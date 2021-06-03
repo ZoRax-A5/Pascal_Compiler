@@ -1,0 +1,215 @@
+%option caseless noyywrap
+%{
+#define YYSTYPE char *
+
+#include <cstring>
+// #include <y.tab.h>
+%}
+
+/* declaration of substitutions */
+/* definition list for keyword. reference: https://wiki.freepascal.org/Identifiers/zh_CN */
+KEYWORD_ABSOLUTE absolute
+KEYWORD_AND and
+KEYWORD_ARRAY array
+KEYWORD_ASM asm
+KEYWORD_BEGIN begin
+KEYWORD_BREAK break
+KEYWORD_CASE case
+KEYWORD_CONST const
+KEYWORD_CONSTRUCTOR constructor
+KEYWORD_CONTINUE continue
+KEYWORD_DESTRUCTOR destructor
+KEYWORD_DIV div
+KEYWORD_DO do
+KEYWORD_DOWNTO downto
+KEYWORD_ELSE else
+KEYWORD_END end
+KEYWORD_FILE file
+KEYWORD_FOR for
+KEYWORD_FUNCTION function
+KEYWORD_GOTO goto
+KEYWORD_IF if
+KEYWORD_IMPLEMENTATION implementation
+KEYWORD_IN in
+KEYWORD_INHERITED inherited
+KEYWORD_INLINE inline
+KEYWORD_INTERFACE interface
+KEYWORD_LABEL label
+KEYWORD_MOD mod
+KEYWORD_NIL nil
+KEYWORD_NOT not
+KEYWORD_OBJECT object
+KEYWORD_OF of
+KEYWORD_ON on
+KEYWORD_OPERATOR operator
+KEYWORD_OR or
+KEYWORD_PACKED packed
+KEYWORD_PROCEDURE procedure
+KEYWORD_PROGRAM program
+KEYWORD_RECORD record
+KEYWORD_REINTRODUCE reintroduce
+KEYWORD_REPEAT repeat
+KEYWORD_SELF self
+KEYWORD_SET set
+KEYWORD_SHL shl
+KEYWORD_SHR shr
+KEYWORD_STRING string
+KEYWORD_THEN then
+KEYWORD_TO to
+KEYWORD_TYPE type
+KEYWORD_UNIT unit
+KEYWORD_UNTIL until
+KEYWORD_USES uses
+KEYWORD_VAR var
+KEYWORD_WHILE while
+KEYWORD_WITH with
+KEYWORD_XOR xor
+
+/* definition of pascal type */
+TYPE_INTEGER integer
+TYPE_REAL real
+TYPE_CHAR char
+TYPE_BOOLEAN boolean
+
+/* definition of literal */
+LITERAL_INTEGER [0-9]+
+LITERAL_REAL ([0-9]+\.[0-9]+)
+LITERAL_CHAR \'.\'
+LITERAL_BOOLEAN_TRUE true
+LITERAL_BOOLEAN_FALSE false
+
+/* definition of symbol */
+/* arithmetic operation */
+SYMBLE_ADD "+"
+SYMBLE_SUB "-
+SYMBLE_MUL "*"
+SYMBLE_DIV "/"
+SYMBLE_ASSIGN ":="
+SYMBLE_GT ">"
+SYMBLE_LT "<"
+SYMBLE_GE ">="
+SYMBLE_LE "<="
+SYMBLE_EQUAL "="
+SYMBLE_NEQUAL "<>"
+/* addressing operation */
+SYMBLE_CARET "^"
+SYMBLE_AT "@"
+SYMBLE_DOT "."
+/* delimiter */
+SYMBLE_COMMA ","
+SYMBLE_SEMICOLON ";"
+SYMBLE_COLON ":"
+SYMBLE_LPAREN "("
+SYMBLE_RPAREN ")"
+SYMBLE_LBRACK "["
+SYMBLE_RBRACK "]"
+
+/* definition of identifier */
+IDENTIFIER [a-zA-Z][a-zA-Z0-9]*
+
+/* definition of comment */
+COMMENT "{"[^\}]*"}"
+
+/* lexical rule */
+%%
+{KEYWORD_ABSOLUTE} { return KEYWORD_ABSOLUTE; }
+{KEYWORD_AND} { return KEYWORD_AND; }
+{KEYWORD_ARRAY} { return KEYWORD_ARRAY; }
+{KEYWORD_ASM} { return KEYWORD_ASM; }
+{KEYWORD_BEGIN} { return KEYWORD_BEGIN; }
+{KEYWORD_BREAK} { return KEYWORD_BREAK; }
+{KEYWORD_CASE} { return KEYWORD_CASE; }
+{KEYWORD_CONST} { return KEYWORD_CONST; }
+{KEYWORD_CONSTRUCTOR} { return KEYWORD_CONSTRUCTOR; }      
+{KEYWORD_CONTINUE} { return KEYWORD_CONTINUE; }
+{KEYWORD_DESTRUCTOR} { return KEYWORD_DESTRUCTOR; }        
+{KEYWORD_DIV} { return KEYWORD_DIV; }
+{KEYWORD_DO} { return KEYWORD_DO; }
+{KEYWORD_DOWNTO} { return KEYWORD_DOWNTO; }
+{KEYWORD_ELSE} { return KEYWORD_ELSE; }
+{KEYWORD_END} { return KEYWORD_END; }
+{KEYWORD_FILE} { return KEYWORD_FILE; }
+{KEYWORD_FOR} { return KEYWORD_FOR; }
+{KEYWORD_FUNCTION} { return KEYWORD_FUNCTION; }
+{KEYWORD_GOTO} { return KEYWORD_GOTO; }
+{KEYWORD_IF} { return KEYWORD_IF; }
+{KEYWORD_IMPLEMENTATION} { return KEYWORD_IMPLEMENTATION; }
+{KEYWORD_IN} { return KEYWORD_IN; }
+{KEYWORD_INHERITED} { return KEYWORD_INHERITED; }
+{KEYWORD_INLINE} { return KEYWORD_INLINE; }
+{KEYWORD_INTERFACE} { return KEYWORD_INTERFACE; }
+{KEYWORD_LABEL} { return KEYWORD_LABEL; }
+{KEYWORD_MOD} { return KEYWORD_MOD; }
+{KEYWORD_NIL} { return KEYWORD_NIL; }
+{KEYWORD_NOT} { return KEYWORD_NOT; }
+{KEYWORD_OBJECT} { return KEYWORD_OBJECT; }
+{KEYWORD_OF} { return KEYWORD_OF; }
+{KEYWORD_ON} { return KEYWORD_ON; }
+{KEYWORD_OPERATOR} { return KEYWORD_OPERATOR; }
+{KEYWORD_OR} { return KEYWORD_OR; }
+{KEYWORD_PACKED} { return KEYWORD_PACKED; }
+{KEYWORD_PROCEDURE} { return KEYWORD_PROCEDURE; }
+{KEYWORD_PROGRAM} { return KEYWORD_PROGRAM; }
+{KEYWORD_RECORD} { return KEYWORD_RECORD; }
+{KEYWORD_REINTRODUCE} { return KEYWORD_REINTRODUCE; }
+{KEYWORD_REPEAT} { return KEYWORD_REPEAT; }
+{KEYWORD_SELF} { return KEYWORD_SELF; }
+{KEYWORD_SET} { return KEYWORD_SET; }
+{KEYWORD_SHL} { return KEYWORD_SHL; }
+{KEYWORD_SHR} { return KEYWORD_SHR; }
+{KEYWORD_STRING} { return KEYWORD_STRING; }
+{KEYWORD_THEN} { return KEYWORD_THEN; }
+{KEYWORD_TO} { return KEYWORD_TO; }
+{KEYWORD_TYPE} { return KEYWORD_TYPE; }
+{KEYWORD_UNIT} { return KEYWORD_UNIT; }
+{KEYWORD_UNTIL} { return KEYWORD_UNTIL; }
+{KEYWORD_USES} { return KEYWORD_USES; }
+{KEYWORD_VAR} { return KEYWORD_VAR; }
+{KEYWORD_WHILE} { return KEYWORD_WHILE; }
+{KEYWORD_WITH} { return KEYWORD_WITH; }
+{KEYWORD_XOR} { return KEYWORD_XOR; }
+{TYPE_INTEGER} { return TYPE_INTEGER; }
+{TYPE_REAL} { return TYPE_REAL; }
+{TYPE_CHAR} { return TYPE_CHAR; }
+{TYPE_BOOLEAN} { return TYPE_BOOLEAN; }
+{LITERAL_INTEGER} { return LITERAL_INTEGER; }
+{LITERAL_REAL} { return LITERAL_REAL; }
+{LITERAL_CHAR} { return LITERAL_CHAR; }
+{LITERAL_BOOLEAN_TRUE} { return LITERAL_BOOLEAN_TRUE; }
+{LITERAL_BOOLEAN_FALSE} { return LITERAL_BOOLEAN_FALSE; }
+{SYMBLE_ADD} { return SYMBLE_ADD; }
+{SYMBLE_SUB} { return SYMBLE_SUB; }
+{SYMBLE_MUL} { return SYMBLE_MUL; }
+{SYMBLE_DIV} { return SYMBLE_DIV; }
+{SYMBLE_ASSIGN} { return SYMBLE_ASSIGN; }
+{SYMBLE_GT} { return SYMBLE_GT; }
+{SYMBLE_LT} { return SYMBLE_LT; }
+{SYMBLE_GE} { return SYMBLE_GE; }
+{SYMBLE_LE} { return SYMBLE_LE; }
+{SYMBLE_EQUAL} { return SYMBLE_EQUAL; }
+{SYMBLE_NEQUAL} { return SYMBLE_NEQUAL; }
+{SYMBLE_CARET} { return SYMBLE_CARET; }
+{SYMBLE_AT} { return SYMBLE_AT; }
+{SYMBLE_DOT} { return SYMBLE_DOT; }
+{SYMBLE_COMMA} { return SYMBLE_COMMA; }
+{SYMBLE_SEMICOLON} { return SYMBLE_SEMICOLON; }
+{SYMBLE_COLON} { return SYMBLE_COLON; }
+{SYMBLE_LPAREN} { return SYMBLE_LPAREN; }
+{SYMBLE_RPAREN} { return SYMBLE_RPAREN; }
+{SYMBLE_LBRACK} { return SYMBLE_LBRACK; }
+{SYMBLE_RBRACK} { return SYMBLE_RBRACK; }
+{IDENTIFIER} { return IDENTIFIER; }
+{COMMENT} { return COMMENT; }
+%%
+
+
+/* error handling */
+void yyerror(char *s) {
+    fprintf(stderr, "error: %s\n", s);
+}
+
+int main()
+{
+    yylex();
+    return 0;
+}

@@ -1,0 +1,585 @@
+#pragma once
+#include <string>
+#include <vector>
+#include <utility>
+
+/* class declarition */
+/* base class */
+class ASTNode;
+/* program class */
+class ASTProgram;
+class ASTProgramHead;
+class ASTProgramBody;
+class ASTBlock;
+class ASTProgramParamList;
+/* type declartion */
+class ASTIdentifierList;
+/* label */
+class ASTLabelDeclPart;
+class ASTLabelList;
+class ASTLabel;
+/* constant */
+class ASTConstDeclPart;
+class ASTConstDeclList;
+class ASTConstDecl;
+class ASTConst;
+/* type definition */
+class ASTTypeDefPart;
+class ASTTypeDefList;
+class ASTTypeDef;
+class ASTTypeDenoter;
+class ASTTypeIdentifier;
+class ASTTypeOrdinal;
+class ASTTypeOrdinalEnum;
+class ASTTypeOrdinalSubrange;
+class ASTTypeStruct;
+class ASTTypeStructArray;
+class ASTTypeStructRecord;
+class ASTTypeStructFile;
+class ASTTypePointer;
+/* variable declartion */
+class ASTVarDeclPart;
+class ASTVarDeclList;
+class ASTVarDecl;
+/* procedure/function */
+class ASTProcFuncDefPart;
+/* statement */
+class ASTStatPart;
+class ASTCompoundStat;
+class ASTStatList;
+class ASTStat;
+class ASTStatAssign;
+class ASTStatGoto;
+class ASTStatProc;
+class ASTStatCondIf;
+class ASTStatIterRepeat;
+class ASTStatIterWhile;
+/* expression */
+class ASTExpr;
+class ASTExprBoolean;
+class ASTExprBinary;
+class ASTExprUnary;
+class ASTExprConst;
+class ASTExprIdentifier;
+
+/* AST node base class */
+class ASTNode {
+private:
+    int line_num;
+    int col_num;
+public:
+    ASTNode();
+    std::pair <int, int> getLocation(void);
+    void setLocation(int line, int col);
+};
+
+/* program base node */
+class ASTProgram : public ASTNode {
+private:
+    ASTProgramHead* program_head;
+    ASTProgramBody* program_body;
+public:
+    ASTProgram();
+    ASTProgram(ASTProgramHead*, ASTProgramBody*);
+
+    ASTProgramHead* getProgramHead();
+    ASTProgramBody* getProgramBody();
+};
+
+/* program head node */
+class ASTProgramHead : public ASTNode {
+private:
+    std::string program_name;
+    std::vector<std::string> parameter_list;
+public:
+    ASTProgramHead();
+    ASTProgramHead(std::string);
+    ASTProgramHead(std::string, ASTProgramParamList*);
+
+    std::string getProgramName();
+    std::vector<std::string> getParamList();
+};
+
+/* program body node*/
+class ASTProgramBody : public ASTNode {
+private:
+    ASTBlock* block;
+public:
+    ASTProgramBody();
+    ASTProgramBody(ASTBlock*);
+
+    ASTBlock* getBlock();
+};
+
+/* block node */
+class ASTBlock : public ASTNode {
+private:
+    ASTLabelDeclPart* label_decl;
+    ASTConstDeclPart* const_decl;
+    ASTTypeDefPart* type_def;
+    ASTVarDeclPart* var_deck;
+    ASTProcFuncDefPart* proc_func_def;
+    ASTStatPart* stat_part;
+public:
+    ASTBlock();
+    ASTBlock(ASTLabelDeclPart*, ASTConstDeclPart*, ASTTypeDefPart*, ASTVarDeclPart*, ASTProcFuncDefPart*, ASTStatPart*);
+
+    ASTLabelDeclPart* getLabelDecl();
+    ASTConstDeclPart* getConstDecl();
+    ASTTypeDefPart* getTypeDef();
+    ASTVarDeclPart* getVarDecl();
+    ASTProcFuncDefPart* getProcFuncDef();
+    ASTStatPart* getStatPart();
+};
+
+/* program parameter list node */
+class ASTProgramParamList : public ASTNode {
+private:
+    ASTIdentifierList* identifier_list;
+public:
+    ASTProgramParamList(ASTIdentifierList*);
+
+    ASTIdentifierList* getASTIdentifierList();
+};
+
+/* name list of identifiers */
+class ASTIdentifierList : public ASTNode {
+private:
+    std::vector<std::string> identifier_list;
+public:
+    ASTIdentifierList();
+
+    void addIdentifier(std::string);
+    std::vector<std::string> getIdentifierList();
+};
+
+/* label declaration part */
+class ASTLabelDeclPart : public ASTNode {
+private:
+    ASTLabelList* AST_label_list;
+public:
+    ASTLabelDeclPart();
+    ASTLabelDeclPart(ASTLabelList*);
+
+    ASTLabelList* getASTLabelList();
+};
+
+/* label list */
+class ASTLabelList : public ASTNode {
+private:
+    std::vector<ASTLabel*> label_list;
+public:
+    ASTLabelList();
+    
+    std::vector<ASTLabel*> getLabelList();
+    void addLabel(ASTLabel*);
+};
+
+/* label */
+class ASTLabel : public ASTNode {
+private:
+    std::string tag;
+public:
+    ASTLabel();
+    ASTLabel(std::string);
+
+    std::string getTag();
+};
+
+/* constant definition part*/
+class ASTConstDeclPart : public ASTNode {
+private:
+    ASTConstDeclList* const_decl_list;
+public:
+    ASTConstDeclPart();
+    ASTConstDeclPart(ASTConstDeclList*);
+
+    ASTConstDeclList* getASTConstDeclList();
+};
+
+/* constant definition list */
+class ASTConstDeclList : public ASTNode {
+private:
+    std::vector<ASTConstDecl*> const_decl_list;
+public:
+    ASTConstDeclList();
+
+    std::vector<ASTConstDecl*> getConstDeclList();
+    void addConstDecl(ASTConstDecl*);
+
+};
+
+/* constant definition line */
+class ASTConstDecl : public ASTNode {
+private:
+    std::string identifier;
+    ASTConst* const_value;
+public:
+    ASTConstDecl();
+    ASTConstDecl(std::string, ASTConst*);
+    
+    std::string getIdentifier();
+    ASTConst* getConst();
+};
+
+/* constant value (literal) */
+class ASTConst : public ASTNode {
+public:
+    typedef int ValueType;
+    ValueType INTEGER = 0;
+    ValueType REAL = 1;
+    ValueType CHAR = 2;
+    ValueType BOOLEAN = 3;
+private:
+    ValueType value_type;
+    std::string literal;
+public:
+    ASTConst();
+    ASTConst(ValueType, std::string);
+
+    ValueType getValueType();
+    std::string getLiteral();
+};
+
+/* type definition part*/
+class ASTTypeDefPart : public ASTNode {
+private:
+    ASTTypeDefList* type_def_list;
+public:
+    ASTTypeDefPart();
+    ASTTypeDefPart(ASTTypeDefList*);
+
+    ASTTypeDefList* getASTTypeDefList();
+};
+
+/* type definition list */
+class ASTTypeDefList : public ASTNode {
+private:
+    std::vector<ASTTypeDef*> type_def_list;
+public:
+    ASTTypeDefList();
+
+    std::vector<ASTTypeDef*> getTypeDefList();
+    void addTypeDef(ASTTypeDef*);
+};
+
+/* type definition unit */
+class ASTTypeDef : public ASTNode {
+private:
+    std::string identifier;
+    ASTTypeDenoter* type_denoter;
+public:
+    ASTTypeDef();
+    ASTTypeDef(std::string, ASTTypeDenoter*);
+
+    std::string getIdentifier();
+    ASTTypeDenoter* getTypeDenoter();
+};
+
+/* type denoter */
+class ASTTypeDenoter : public ASTNode {
+private:
+    typedef int TypeType;
+    TypeType Identifier = 0;
+    TypeType Enum = 1;
+    TypeType Subrange = 2;
+    TypeType Array = 3;
+    TypeType Record = 4;
+    TypeType Pointer = 5;
+
+    TypeType type;
+public:
+    ASTTypeDenoter();
+
+    TypeType getType();
+};
+
+class ASTTypeOrdinal : public ASTTypeDenoter {
+public:
+    ASTTypeOrdinal();
+};
+
+class ASTTypeIdentifier : public ASTTypeOrdinal {
+private:
+    std::string identifier;
+public:
+    ASTTypeIdentifier();
+    ASTTypeIdentifier(std::string);
+
+    std::string getTypeIdentifier();
+};
+
+class ASTTypeOrdinalEnum : public ASTTypeOrdinal {
+private:
+    ASTIdentifierList* identifier_list;
+public:
+    ASTTypeOrdinalEnum();
+    ASTTypeOrdinalEnum(ASTIdentifierList*);
+
+    ASTIdentifierList* getIdentifierList();
+};
+
+class ASTTypeOrdinalSubrange : public ASTTypeOrdinal {
+private:
+    ASTConst* min, max;
+    bool min_neg, max_neg;
+public:
+    ASTTypeOrdinalSubrange();
+    ASTTypeOrdinalSubrange(ASTConst*, ASTConst*, bool, bool);
+
+    ASTConst* getMin();
+    ASTConst* getMax();
+};
+
+class ASTTypeStruct : public ASTTypeDenoter {
+public:
+    ASTTypeStruct();
+};
+
+class ASTTypeStructArray : public ASTTypeStruct {
+private:
+    ASTTypeOrdinal* value;
+    ASTTypeDenoter* type;
+public:
+    ASTTypeStructArray();
+    ASTTypeStructArray(ASTTypeOrdinal*, ASTTypeDenoter*);
+
+    ASTTypeOrdinal* getValue();
+    ASTTypeDenoter* getDenoter();
+};
+
+class ASTTypeStructRecord : public ASTTypeStruct {
+public:
+    ASTTypeStructRecord();
+};
+
+class ASTTypeStructFile : public ASTTypeStruct {
+private:
+    ASTTypeDenoter* component_type;
+public:
+    ASTTypeStructFile();
+    ASTTypeStructFile(ASTTypeDenoter*);
+
+    ASTTypeDenoter* getComponentType();
+};
+
+class ASTTypePointer : public ASTTypeDenoter {
+private:
+    ASTTypeIdentifier* domain_type;
+public:
+    ASTTypePointer();
+    ASTTypePointer(ASTTypeIdentifier*);
+
+    ASTTypeIdentifier* getDomainType();
+};
+
+/* variable declarition part */
+class ASTVarDeclPart : public ASTNode {
+private:
+    ASTVarDeclList* var_decl_list;
+public:
+    ASTVarDeclPart();
+    ASTVarDeclPart(ASTVarDeclList*);
+
+    ASTVarDeclList* getASTVarDeclList();
+};
+
+/* variable declarition list */
+class ASTVarDeclList : public ASTNode {
+private:
+    std::vector<ASTVarDecl*> var_decl_list;
+public:
+    ASTVarDeclList();
+
+    std::vector<ASTVarDecl*> getVarDeclList();
+    void addVarDecl(ASTVarDecl*);
+
+};
+
+/* variable declarition line */
+class ASTVarDecl : public ASTNode {
+private:
+    ASTIdentifierList* identifier_list;
+    ASTTypeDenoter* type_denoter;
+public:
+    ASTVarDecl();
+    ASTVarDecl(ASTIdentifierList*, ASTTypeDenoter*);
+
+    ASTIdentifierList* getASTIdentifierList();
+    ASTTypeDenoter* getTypeDenoter();
+};
+
+class ASTStatPart : public ASTNode {
+private:
+    ASTCompoundStat* compound_stat;
+public:
+    ASTStatPart();
+    ASTStatPart(ASTCompoundStat*);
+
+    ASTCompoundStat* getCompoundStat();
+};
+
+class ASTCompoundStat : public ASTStat {
+private:
+    ASTStatList* stat_list;
+public:
+    ASTCompoundStat();
+    ASTCompoundStat(ASTStatList*, StatType);
+    ASTCompoundStat(ASTStatList*, StatType, std::string);
+
+    ASTStatList* getASTStatList();
+};
+
+class ASTStatList : public ASTNode {
+private:
+    std::vector<ASTStat> stat_list;
+public:
+    ASTStatList();
+
+    std::vector<ASTStat> getStatList();
+    void addStat(ASTStat*);
+};
+
+class ASTStat : public ASTNode {
+public:
+    enum StatType {
+        ASSIGN, PROCEDURE, GOTO,
+        COMPOUND, 
+        IF, CASE,
+        WHILE, REPEAT, FOR,
+        WITH
+    };
+private:
+    StatType stat_type;
+    std::string label;
+public:
+    ASTStat();
+
+    StatType getStatType();
+    std::string getLabel();
+    void setLabel(std::string);
+};
+
+class ASTStatAssign : public ASTStat {
+private:
+    ASTExpr* lvalue;
+    ASTExpr* rvalue;
+public:
+    ASTStatAssign();
+    ASTStatAssign(ASTExpr*, ASTExpr*, StatType);
+
+    ASTExpr* getLvalue();
+    ASTExpr* getRvalue();
+};
+
+class ASTStatGoto : public ASTStat {
+private:
+    std::string label;
+public:
+    ASTStatGoto();
+    ASTStatGoto(std::string, StatType);
+
+    std::string getLabel();
+};
+
+class ASTStatProc : public ASTStat {
+};
+
+class ASTStatCondIf : public ASTStat {
+private:
+    ASTExpr* condition;
+    ASTStat* then_code;
+    ASTStat* else_code;
+public:
+    ASTStatCondIf();
+    ASTStatCondIf(ASTExpr*, ASTStat*, StatType);
+    ASTStatCondIf(ASTExpr*, ASTStat*, ASTStat*, StatType);
+
+    ASTExpr* getCondition();
+    ASTStat* getThenCode();
+    ASTStat* getElseCode();
+};
+
+class ASTStatIterRepeat : public ASTStat {
+private:
+    ASTStatList* repeat_stat_list;
+    ASTExpr* repeat_condition;
+public:
+    ASTStatIterRepeat();
+    ASTStatIterRepeat(ASTStatList*, ASTExpr*, StatType);
+
+    ASTStatList* getRepeatStatList();
+    ASTExpr* getRepeatCondition();
+};
+
+class ASTStatIterWhile : public ASTStat {
+private:
+    ASTStatList* repeat_stat_list;
+    ASTExpr* repeat_condition;
+public:
+    ASTStatIterWhile();
+    ASTStatIterWhile(ASTExpr*, ASTStatList*, StatType);
+
+    ASTStatList* getRepeatStatList();
+    ASTExpr* getRepeatCondition();
+};
+
+class ASTExpr : public ASTNode {
+public:
+    enum OPType {
+        OP_GT, OP_LT, OP_GE, OP_LE, OP_EQ, OP_NE,
+        OP_ADD, OP_AND, OP_OR,
+        OP_MUL, OP_DIV, OP_MOD, OP_AND,
+        OP_NEG
+    };
+private:
+    std::string op;
+    OPType type;
+public:
+    ASTExpr();
+
+    std::string getOp();
+    OPType getOpType();
+};
+
+class ASTExprBinary : public ASTExpr {
+private:
+    ASTExpr* opl;
+    ASTExpr* opr;
+public:
+    ASTExprBinary();
+    ASTExprBinary(ASTExpr*, ASTExpr*, OPType);
+
+    ASTExpr* getOpLeft();
+    ASTExpr* getOpRight();
+};
+
+class ASTExprUnary : public ASTExpr {
+private:
+    ASTExpr* op;
+public:
+    ASTExprUnary();
+    ASTExprUnary(ASTExpr*, OPType);
+
+    ASTExpr* getOp();
+};
+
+class ASTExprConst : public ASTExpr {
+private:
+    ASTConst* value;
+public:
+    ASTExprConst();
+    ASTExprConst(ASTConst*);
+
+    ASTConst* getConstValue();
+};
+
+class ASTExprIdentifier : public ASTExpr {
+private:
+    std::string identifier;
+public:
+    ASTExprIdentifier();
+    ASTExprIdentifier(std::string);
+
+    std::string getIdentifier();
+};
