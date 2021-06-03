@@ -30,6 +30,7 @@ class ASTTypeDef;
 class ASTTypeDenoter;
 class ASTTypeIdentifier;
 class ASTTypeOrdinal;
+class ASTTypeOrdinalBase;
 class ASTTypeOrdinalEnum;
 class ASTTypeOrdinalSubrange;
 class ASTTypeStruct;
@@ -90,14 +91,14 @@ public:
 class ASTProgramHead : public ASTNode {
 private:
     std::string program_name;
-    std::vector<std::string> parameter_list;
+    ASTProgramParamList* parameter_list;
 public:
     ASTProgramHead();
     ASTProgramHead(std::string);
     ASTProgramHead(std::string, ASTProgramParamList*);
 
     std::string getProgramName();
-    std::vector<std::string> getParamList();
+    ASTProgramParamList* getParamList();
 };
 
 /* program body node*/
@@ -117,7 +118,7 @@ private:
     ASTLabelDeclPart* label_decl;
     ASTConstDeclPart* const_decl;
     ASTTypeDefPart* type_def;
-    ASTVarDeclPart* var_deck;
+    ASTVarDeclPart* var_decl;
     ASTProcFuncDefPart* proc_func_def;
     ASTStatPart* stat_part;
 public:
@@ -137,6 +138,7 @@ class ASTProgramParamList : public ASTNode {
 private:
     ASTIdentifierList* identifier_list;
 public:
+    ASTProgramParamList();
     ASTProgramParamList(ASTIdentifierList*);
 
     ASTIdentifierList* getASTIdentifierList();
@@ -170,7 +172,7 @@ private:
     std::vector<ASTLabel*> label_list;
 public:
     ASTLabelList();
-    
+
     std::vector<ASTLabel*> getLabelList();
     void addLabel(ASTLabel*);
 };
@@ -217,7 +219,7 @@ private:
 public:
     ASTConstDecl();
     ASTConstDecl(std::string, ASTConst*);
-    
+
     std::string getIdentifier();
     ASTConst* getConst();
 };
@@ -297,6 +299,18 @@ public:
 class ASTTypeOrdinal : public ASTTypeDenoter {
 public:
     ASTTypeOrdinal();
+};
+
+class ASTTypeOrdinalBase : public ASTTypeOrdinal {
+public:
+    enum Builtin { INTEGER, REAL, CHAR, BOOLEAN };
+private:
+    Builtin type;
+public:
+    ASTTypeOrdinalBase();
+    ASTTypeOrdinalBase(Builtin);
+
+    Builtin getBaseType();
 };
 
 class ASTTypeIdentifier : public ASTTypeOrdinal {
@@ -444,7 +458,7 @@ class ASTStat : public ASTNode {
 public:
     enum StatType {
         ASSIGN, PROCEDURE, GOTO,
-        COMPOUND, 
+        COMPOUND,
         IF, CASE,
         WHILE, REPEAT, FOR,
         WITH

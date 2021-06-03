@@ -1,21 +1,13 @@
-<<<<<<< HEAD
 %option caseless noyywrap
-=======
-%option caseless 
->>>>>>> d9793096ba50e773320420fa1ae359893166e80b
 %{
+#include <cstring>
+#include <y.tab.h>
 #define YYSTYPE char *
 
-#include <cstring>
-<<<<<<< HEAD
-// #include <y.tab.h>
+extern yyerror(char* s);
 %}
 
 /* declaration of substitutions */
-=======
-%}
-
->>>>>>> d9793096ba50e773320420fa1ae359893166e80b
 /* definition list for keyword. reference: https://wiki.freepascal.org/Identifiers/zh_CN */
 KEYWORD_ABSOLUTE absolute
 KEYWORD_AND and
@@ -89,40 +81,37 @@ LITERAL_BOOLEAN_FALSE false
 
 /* definition of symbol */
 /* arithmetic operation */
-SYMBLE_ADD "+"
-SYMBLE_SUB "-
-SYMBLE_MUL "*"
-SYMBLE_DIV "/"
-SYMBLE_ASSIGN ":="
-SYMBLE_GT ">"
-SYMBLE_LT "<"
-SYMBLE_GE ">="
-SYMBLE_LE "<="
-SYMBLE_EQUAL "="
-SYMBLE_NEQUAL "<>"
+SYMBOL_ADD "+"
+SYMBOL_SUB "-
+SYMBOL_MUL "*"
+SYMBOL_DIV "/"
+SYMBOL_ASSIGN ":="
+SYMBOL_GT ">"
+SYMBOL_LT "<"
+SYMBOL_GE ">="
+SYMBOL_LE "<="
+SYMBOL_EQUAL "="
+SYMBOL_NEQUAL "<>"
 /* addressing operation */
-SYMBLE_CARET "^"
-SYMBLE_AT "@"
-SYMBLE_DOT "."
+SYMBOL_CARET "^"
+SYMBOL_AT "@"
+SYMBOL_DOT "."
 /* delimiter */
-SYMBLE_COMMA ","
-SYMBLE_SEMICOLON ";"
-SYMBLE_COLON ":"
-SYMBLE_LPAREN "("
-SYMBLE_RPAREN ")"
-SYMBLE_LBRACK "["
-SYMBLE_RBRACK "]"
+SYMBOL_COMMA ","
+SYMBOL_SEMICOLON ";"
+SYMBOL_COLON ":"
+SYMBOL_LPAREN "("
+SYMBOL_RPAREN ")"
+SYMBOL_LBRACK "["
+SYMBOL_RBRACK "]"
 
 /* definition of identifier */
-IDENTIFIER [a-zA-Z][a-zA-Z0-9]*
+IDENTIFIER [a-zA-Z_][a-zA-Z0-9_]*
 
 /* definition of comment */
 COMMENT "{"[^\}]*"}"
 
-<<<<<<< HEAD
 /* lexical rule */
-=======
->>>>>>> d9793096ba50e773320420fa1ae359893166e80b
 %%
 {KEYWORD_ABSOLUTE} { return KEYWORD_ABSOLUTE; }
 {KEYWORD_AND} { return KEYWORD_AND; }
@@ -189,47 +178,37 @@ COMMENT "{"[^\}]*"}"
 {LITERAL_CHAR} { return LITERAL_CHAR; }
 {LITERAL_BOOLEAN_TRUE} { return LITERAL_BOOLEAN_TRUE; }
 {LITERAL_BOOLEAN_FALSE} { return LITERAL_BOOLEAN_FALSE; }
-{SYMBLE_ADD} { return SYMBLE_ADD; }
-{SYMBLE_SUB} { return SYMBLE_SUB; }
-{SYMBLE_MUL} { return SYMBLE_MUL; }
-{SYMBLE_DIV} { return SYMBLE_DIV; }
-{SYMBLE_ASSIGN} { return SYMBLE_ASSIGN; }
-{SYMBLE_GT} { return SYMBLE_GT; }
-{SYMBLE_LT} { return SYMBLE_LT; }
-{SYMBLE_GE} { return SYMBLE_GE; }
-{SYMBLE_LE} { return SYMBLE_LE; }
-{SYMBLE_EQUAL} { return SYMBLE_EQUAL; }
-{SYMBLE_NEQUAL} { return SYMBLE_NEQUAL; }
-{SYMBLE_CARET} { return SYMBLE_CARET; }
-{SYMBLE_AT} { return SYMBLE_AT; }
-{SYMBLE_DOT} { return SYMBLE_DOT; }
-{SYMBLE_COMMA} { return SYMBLE_COMMA; }
-{SYMBLE_SEMICOLON} { return SYMBLE_SEMICOLON; }
-{SYMBLE_COLON} { return SYMBLE_COLON; }
-{SYMBLE_LPAREN} { return SYMBLE_LPAREN; }
-{SYMBLE_RPAREN} { return SYMBLE_RPAREN; }
-{SYMBLE_LBRACK} { return SYMBLE_LBRACK; }
-{SYMBLE_RBRACK} { return SYMBLE_RBRACK; }
+{SYMBOL_ADD} { return SYMBOL_ADD; }
+{SYMBOL_SUB} { return SYMBOL_SUB; }
+{SYMBOL_MUL} { return SYMBOL_MUL; }
+{SYMBOL_DIV} { return SYMBOL_DIV; }
+{SYMBOL_ASSIGN} { return SYMBOL_ASSIGN; }
+{SYMBOL_GT} { return SYMBOL_GT; }
+{SYMBOL_LT} { return SYMBOL_LT; }
+{SYMBOL_GE} { return SYMBOL_GE; }
+{SYMBOL_LE} { return SYMBOL_LE; }
+{SYMBOL_EQUAL} { return SYMBOL_EQUAL; }
+{SYMBOL_NEQUAL} { return SYMBOL_NEQUAL; }
+{SYMBOL_CARET} { return SYMBOL_CARET; }
+{SYMBOL_AT} { return SYMBOL_AT; }
+{SYMBOL_DOT} { return SYMBOL_DOT; }
+{SYMBOL_COMMA} { return SYMBOL_COMMA; }
+{SYMBOL_SEMICOLON} { return SYMBOL_SEMICOLON; }
+{SYMBOL_COLON} { return SYMBOL_COLON; }
+{SYMBOL_LPAREN} { return SYMBOL_LPAREN; }
+{SYMBOL_RPAREN} { return SYMBOL_RPAREN; }
+{SYMBOL_LBRACK} { return SYMBOL_LBRACK; }
+{SYMBOL_RBRACK} { return SYMBOL_RBRACK; }
 {IDENTIFIER} { return IDENTIFIER; }
 {COMMENT} { return COMMENT; }
 %%
 
+// #define DEBUG_LEXER
 
-/* error handling */
-void yyerror(char *s) {
-    fprintf(stderr, "error: %s\n", s);
-}
-
-<<<<<<< HEAD
-=======
-int yywrap() {
-    if (feof(stdin)) return 1;
-    return 0;
-}
-
->>>>>>> d9793096ba50e773320420fa1ae359893166e80b
-int main()
-{
+#ifdef DEBUG_LEXER
+int main() {
+    yyin = fopen("expression", "r");
     yylex();
     return 0;
 }
+#endif

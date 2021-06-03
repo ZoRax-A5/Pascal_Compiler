@@ -1,13 +1,12 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include "../ast/ast.hpp"
+#include "../ast/ast.h"
 
 extern int yylex(void);
 void yyerror(char *s);
 
-typedef enum { typeKeyword, typeSymble, typeComment } TokenType;
+typedef enum { typeKeyword, typeSymbol, typeComment } TokenType;
 
 ASTNode* ast_root;
 
@@ -22,10 +21,43 @@ ASTNode* ast_root;
     ASTProgramBody* ast_program_body;
     ASTBlock* ast_block;
     ASTProgramParamList* ast_program_param_list;
-    /* type declartion */
+    /* identifier list */     
     ASTIdentifierList* ast_identifier_list;
     /* label */
     ASTLabelDeclPart* ast_label_decl_part;
+    ASTLabelList* ast_label_list;
+    ASTLabel* ast_label;
+    /* constant */
+    ASTConstDeclPart* ast_const_decl_part;
+    ASTConstDeclList* ast_const_decl_list;
+    ASTConstDecl* ast_const_decl;
+    ASTConst* ast_const;
+    /* type */
+    ASTTypeDefPart* ast_type_def_part;
+    ASTTypeDefList* ast_type_def_list;
+    ASTTypeDef* ast_type_def;
+    ASTTypeDenoter* ast_type_denoter;
+    ASTTypeOrdinal* ast_type_ordinal;
+    ASTTypeStruct* ast_type_struct;
+    ASTTypePointer* ast_type_pointer;
+    /* variable */
+    ASTVarDeclPart* ast_var_decl_part;
+    ASTVarDeclList* ast_var_decl_list;
+    ASTVarDecl* ast_var_decl;
+    /* procedure or function */
+    ASTProcFuncDefPart* ast_proc_func_def_part;
+    /* statement */
+    ASTStatPart* ast_stat_part;
+    ASTCompoundStat* ast_compound_stat;
+    ASTStatList* ast_stat_list;
+    ASTStat* ast_stat;
+    ASTStatAssign* ast_stat_assign;
+    ASTStatGoto* ast_stat_goto;
+    ASTStatCondIf* ast_stat_cond_if;
+    ASTStatIterRepeat* ast_stat_iter_repeat;
+    ASTStatIterWhile* ast_stat_iter_while;
+    /* expression */
+    ASTExpr* ast_expr;
 }
 
 %token KEYWORD_ABSOLUTE KEYWORD_AND KEYWORD_ARRAY KEYWORD_ASM KEYWORD_BEGIN 
@@ -47,7 +79,60 @@ ASTNode* ast_root;
 %token SYMBOL_SEMICOLON SYMBOL_COLON SYMBOL_LPAREN SYMBOL_RPAREN SYMBOL_LBRACK
 %token SYMBOL_RBRACK IDENTIFIER COMMENT
 
+%type<token_type> KEYWORD_ABSOLUTE KEYWORD_AND KEYWORD_ARRAY KEYWORD_ASM KEYWORD_BEGIN 
+%type<token_type> KEYWORD_BREAK KEYWORD_CASE KEYWORD_CONST KEYWORD_CONSTRUCTOR KEYWORD_CONTINUE       
+%type<token_type> KEYWORD_DESTRUCTOR KEYWORD_DIV KEYWORD_DO KEYWORD_DOWNTO KEYWORD_ELSE
+%type<token_type> KEYWORD_END KEYWORD_FILE KEYWORD_FOR KEYWORD_FUNCTION KEYWORD_GOTO
+%type<token_type> KEYWORD_IF KEYWORD_IMPLEMENTATION KEYWORD_IN KEYWORD_INHERITED KEYWORD_INLINE       
+%type<token_type> KEYWORD_INTERFACE KEYWORD_LABEL KEYWORD_MOD KEYWORD_NIL KEYWORD_NOT
+%type<token_type> KEYWORD_OBJECT KEYWORD_OF KEYWORD_ON KEYWORD_OPERATOR KEYWORD_OR
+%type<token_type> KEYWORD_PACKED KEYWORD_PROCEDURE KEYWORD_PROGRAM KEYWORD_RECORD KEYWORD_REINTRODUCE 
+%type<token_type> KEYWORD_REPEAT KEYWORD_SELF KEYWORD_SET KEYWORD_SHL KEYWORD_SHR
+%type<token_type> KEYWORD_STRING KEYWORD_THEN KEYWORD_TO KEYWORD_TYPE KEYWORD_UNIT
+%type<token_type> KEYWORD_UNTIL KEYWORD_USES KEYWORD_VAR KEYWORD_WHILE KEYWORD_WITH KEYWORD_XOR
+%type<token_type> TYPE_INTEGER TYPE_REAL TYPE_CHAR TYPE_BOOLEAN
+%type<token_type> SYMBOL_ADD SYMBOL_SUB SYMBOL_MUL SYMBOL_DIV SYMBOL_ASSIGN
+%type<token_type> SYMBOL_GT SYMBOL_LT SYMBOL_GE SYMBOL_LE SYMBOL_EQUAL
+%type<token_type> SYMBOL_NEQUAL SYMBOL_CARET SYMBOL_AT SYMBOL_DOT SYMBOL_COMMA
+%type<token_type> SYMBOL_SEMICOLON SYMBOL_COLON SYMBOL_LPAREN SYMBOL_RPAREN SYMBOL_LBRACK
+%type<token_type> SYMBOL_RBRACK IDENTIFIER COMMENT
 
+%type<content> LITERAL_INTEGER LITERAL_REAL LITERAL_CHAR LITERAL_BOOLEAN_TRUE LITERAL_BOOLEAN_FALSE
+
+%type<ast_program> program
+%type<ast_program_head> program_head
+%type<ast_program_body> program_body
+%type<ast_block> block
+%type<ast_program_param_list> program_param_list
+%type<ast_identifier_list> identifier_list
+%type<ast_label_decl_part> label_declaration
+%type<ast_label_list> label_list
+%type<ast_label> label
+%type<ast_const_decl_part> constant_declarition
+%type<ast_const_decl_list> constant_list
+%type<ast_const_decl> constant_decl
+%type<ast_const> constant
+%type<ast_type_def_part> type_definition
+%type<ast_type_def_list> type_def_list
+%type<ast_type_def> type_def
+%type<ast_type_denoter> type_denoter
+%type<ast_type_ordinal> ordinal_type base_type
+%type<ast_type_struct> struct_type array_type record_type file_type
+%type<ast_type_pointer> pointer_type
+%type<ast_var_decl_part> variable_declarition
+%type<ast_var_decl_list> variable_decl_list
+%type<ast_var_decl> variable_decl
+%type<ast_proc_func_def_part> procedure_function_declarition
+%type<ast_stat_part> statement_part
+%type<ast_compound_stat> compound_statement
+%type<ast_stat_list> statement_list
+%type<ast_stat> label_statement statement
+%type<ast_stat_assign> assign_statement
+%type<ast_stat_goto> goto_statement
+%type<ast_stat_cond_if> if_statement
+%type<ast_stat_iter_repeat> repeat_statement
+%type<ast_stat_iter_while> while_statement
+%type<ast_expr> relational_expression expression term factor
 
 %%
 program:
@@ -72,6 +157,11 @@ block:
     label_declaration constant_declarition type_definition variable_declarition  procedure_function_declarition statement_part {
         $$ = new ASTBlock($1, $2, $3, $4, $5, $6);
     }
+program_param_list:
+    identifier_list {
+        $$ = new ASTProgramParamList($1);
+    }
+;
 
 identifier_list:
     identifier_list SYMBOL_COMMA IDENTIFIER {
@@ -82,6 +172,7 @@ identifier_list:
         $$ = new ASTIdentifierList();
         ($$)->addIdentifier($1);
     }
+;
 
 label_declaration:
     KEYWORD_LABEL label_list KEYWORD_SEMICOLON {
@@ -182,7 +273,10 @@ type_denoter:
     }
 ;
 ordinal_type:
-    IDENTIFIER {
+    base_type {
+        $$ = $1;
+    }
+    | IDENTIFIER {
         $$ = new ASTTypeIdentifier($1);
     }
     | SYMBOL_LPAREN name_list SYMBOL_RPAREN {
@@ -198,6 +292,19 @@ ordinal_type:
         $$ = new ASTTypeOrdinalSubrange($2, $6, true, true);
     }
 ;
+base_type:
+    TYPE_INTEGER {
+        $$ = new ASTTypeOrdinalBase(ASTTypeOrdinalBase::Builtin::INTEGER);
+    }
+    | TYPE_REAL {
+        $$ = new ASTTypeOrdinalBase(ASTTypeOrdinalBase::Builtin::REAL);
+    }
+    | TYPE_CHAR {
+        $$ = new ASTTypeOrdinalBase(ASTTypeOrdinalBase::Builtin::CHAR);
+    }
+    | TYPE_BOOLEAN {
+        $$ = new ASTTypeOrdinalBase(ASTTypeOrdinalBase::Builtin::BOOLEAN);
+    }
 struct_type:
     array_type {
         $$ = $1;
