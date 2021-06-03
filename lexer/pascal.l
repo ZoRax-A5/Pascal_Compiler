@@ -1,3 +1,22 @@
+<<<<<<< HEAD
+%option caseless noyywrap
+=======
+%option caseless 
+>>>>>>> d9793096ba50e773320420fa1ae359893166e80b
+%{
+#define YYSTYPE char *
+
+#include <cstring>
+<<<<<<< HEAD
+// #include <y.tab.h>
+%}
+
+/* declaration of substitutions */
+=======
+%}
+
+>>>>>>> d9793096ba50e773320420fa1ae359893166e80b
+/* definition list for keyword. reference: https://wiki.freepascal.org/Identifiers/zh_CN */
 KEYWORD_ABSOLUTE absolute
 KEYWORD_AND and
 KEYWORD_ARRAY array
@@ -54,15 +73,22 @@ KEYWORD_VAR var
 KEYWORD_WHILE while
 KEYWORD_WITH with
 KEYWORD_XOR xor
+
+/* definition of pascal type */
 TYPE_INTEGER integer
 TYPE_REAL real
 TYPE_CHAR char
 TYPE_BOOLEAN boolean
+
+/* definition of literal */
 LITERAL_INTEGER [0-9]+
 LITERAL_REAL ([0-9]+\.[0-9]+)
 LITERAL_CHAR \'.\'
 LITERAL_BOOLEAN_TRUE true
 LITERAL_BOOLEAN_FALSE false
+
+/* definition of symbol */
+/* arithmetic operation */
 SYMBLE_ADD "+"
 SYMBLE_SUB "-
 SYMBLE_MUL "*"
@@ -74,9 +100,11 @@ SYMBLE_GE ">="
 SYMBLE_LE "<="
 SYMBLE_EQUAL "="
 SYMBLE_NEQUAL "<>"
+/* addressing operation */
 SYMBLE_CARET "^"
 SYMBLE_AT "@"
 SYMBLE_DOT "."
+/* delimiter */
 SYMBLE_COMMA ","
 SYMBLE_SEMICOLON ";"
 SYMBLE_COLON ":"
@@ -84,9 +112,18 @@ SYMBLE_LPAREN "("
 SYMBLE_RPAREN ")"
 SYMBLE_LBRACK "["
 SYMBLE_RBRACK "]"
+
+/* definition of identifier */
 IDENTIFIER [a-zA-Z][a-zA-Z0-9]*
+
+/* definition of comment */
 COMMENT "{"[^\}]*"}"
 
+<<<<<<< HEAD
+/* lexical rule */
+=======
+>>>>>>> d9793096ba50e773320420fa1ae359893166e80b
+%%
 {KEYWORD_ABSOLUTE} { return KEYWORD_ABSOLUTE; }
 {KEYWORD_AND} { return KEYWORD_AND; }
 {KEYWORD_ARRAY} { return KEYWORD_ARRAY; }
@@ -175,3 +212,24 @@ COMMENT "{"[^\}]*"}"
 {SYMBLE_RBRACK} { return SYMBLE_RBRACK; }
 {IDENTIFIER} { return IDENTIFIER; }
 {COMMENT} { return COMMENT; }
+%%
+
+
+/* error handling */
+void yyerror(char *s) {
+    fprintf(stderr, "error: %s\n", s);
+}
+
+<<<<<<< HEAD
+=======
+int yywrap() {
+    if (feof(stdin)) return 1;
+    return 0;
+}
+
+>>>>>>> d9793096ba50e773320420fa1ae359893166e80b
+int main()
+{
+    yylex();
+    return 0;
+}
