@@ -1,13 +1,3 @@
-%option caseless noyywrap
-%{
-#define YYSTYPE char *
-
-#include <cstring>
-// #include <y.tab.h>
-%}
-
-/* declaration of substitutions */
-/* definition list for keyword. reference: https://wiki.freepascal.org/Identifiers/zh_CN */
 KEYWORD_ABSOLUTE absolute
 KEYWORD_AND and
 KEYWORD_ARRAY array
@@ -64,22 +54,15 @@ KEYWORD_VAR var
 KEYWORD_WHILE while
 KEYWORD_WITH with
 KEYWORD_XOR xor
-
-/* definition of pascal type */
 TYPE_INTEGER integer
 TYPE_REAL real
 TYPE_CHAR char
 TYPE_BOOLEAN boolean
-
-/* definition of literal */
 LITERAL_INTEGER [0-9]+
 LITERAL_REAL ([0-9]+\.[0-9]+)
 LITERAL_CHAR \'.\'
 LITERAL_BOOLEAN_TRUE true
 LITERAL_BOOLEAN_FALSE false
-
-/* definition of symbol */
-/* arithmetic operation */
 SYMBLE_ADD "+"
 SYMBLE_SUB "-
 SYMBLE_MUL "*"
@@ -91,11 +74,9 @@ SYMBLE_GE ">="
 SYMBLE_LE "<="
 SYMBLE_EQUAL "="
 SYMBLE_NEQUAL "<>"
-/* addressing operation */
 SYMBLE_CARET "^"
 SYMBLE_AT "@"
 SYMBLE_DOT "."
-/* delimiter */
 SYMBLE_COMMA ","
 SYMBLE_SEMICOLON ";"
 SYMBLE_COLON ":"
@@ -103,15 +84,9 @@ SYMBLE_LPAREN "("
 SYMBLE_RPAREN ")"
 SYMBLE_LBRACK "["
 SYMBLE_RBRACK "]"
-
-/* definition of identifier */
 IDENTIFIER [a-zA-Z][a-zA-Z0-9]*
-
-/* definition of comment */
 COMMENT "{"[^\}]*"}"
 
-/* lexical rule */
-%%
 {KEYWORD_ABSOLUTE} { return KEYWORD_ABSOLUTE; }
 {KEYWORD_AND} { return KEYWORD_AND; }
 {KEYWORD_ARRAY} { return KEYWORD_ARRAY; }
@@ -200,16 +175,3 @@ COMMENT "{"[^\}]*"}"
 {SYMBLE_RBRACK} { return SYMBLE_RBRACK; }
 {IDENTIFIER} { return IDENTIFIER; }
 {COMMENT} { return COMMENT; }
-%%
-
-
-/* error handling */
-void yyerror(char *s) {
-    fprintf(stderr, "error: %s\n", s);
-}
-
-int main()
-{
-    yylex();
-    return 0;
-}
