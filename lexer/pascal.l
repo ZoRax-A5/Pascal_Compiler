@@ -1,4 +1,4 @@
-%option caseless noyywrap
+%option caseless noyywrap yylineno
 %{
 #include <iostream>
 #include <cstring>
@@ -6,13 +6,20 @@
 #include "ast/ast.h"
 #define YYSTYPE char const*
 
+int offset = 1;
+#define YY_USER_ACTION                                  \
+    yylloc.first_line = yylloc.last_line = yylineno;    \
+    yylloc.first_column = offset;                       \
+    offset += yyleng;                                   \
+    yylloc.last_column = offset - 1;              
+
 extern void yyerror(char* s);
 
 #define DEBUG_LEXER
 
 #ifdef DEBUG_LEXER
     int dbgToken(int tok, char const* s) {
-        printf("token %s\n", s);
+        printf("Lexer: %d:%d-%d token %s\n", yylloc.first_line, yylloc.first_column, yylloc.last_column, s);
         return tok;
     }
     #define RETURN(x) return dbgToken(x, #x)
@@ -216,7 +223,7 @@ COMMENT "{"[^\}]*"}"
 {SYMBOL_RBRACK} { yylval.token_type = typeSymbol; RETURN(SYMBOL_RBRACK); }
 {IDENTIFIER} { yylval.content = yytext; RETURN(IDENTIFIER); }
 {COMMENT} { yylval.token_type = typeComment; RETURN(COMMENT); }
-\n|(\r\n) { printf("newline\n"); }
+\n|(\r\n) { offset = 1; }
 " "|\t {}
 . { printf("unknown token\n"); }
 %%
