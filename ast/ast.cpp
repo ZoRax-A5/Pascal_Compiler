@@ -1,7 +1,7 @@
 #include "ast.h"
 
 /* AST node base class */
-ASTNode::ASTNode() {}
+ASTNode::ASTNode() : line_num(0), col_num(0) {}
 std::pair <int, int> ASTNode::getLocation(void) {
     return std::make_pair(this->line_num, this->col_num);
 }
@@ -89,4 +89,199 @@ ASTConst::ASTConst() {}
 ASTConst::ASTConst(ValueType a1, std::string a2) : value_type(a1), literal(a2) {}
 ASTConst::ValueType ASTConst::getValueType() { return value_type; }
 std::string ASTConst::getLiteral() { return literal; }
+bool ASTConst::getSign() { return sign; }
+void ASTConst::setSign(bool s) { sign = s; }
 
+/* type definition part*/
+ASTTypeDefPart::ASTTypeDefPart() {}
+ASTTypeDefPart::ASTTypeDefPart(ASTTypeDefList* a1) : type_def_list(a1) {}
+ASTTypeDefList* ASTTypeDefPart::getASTTypeDefList() { return type_def_list; }
+
+/* type definition list */
+ASTTypeDefList::ASTTypeDefList() {}
+std::vector<ASTTypeDef*> ASTTypeDefList::getTypeDefList() { return type_def_list; }
+void ASTTypeDefList::addTypeDef(ASTTypeDef* a1) { type_def_list.push_back(a1); }
+
+/* type definition unit */
+ASTTypeDef::ASTTypeDef() {}
+ASTTypeDef::ASTTypeDef(std::string a1, ASTTypeDenoter* a2) : identifier(a1), type_denoter(a2) {}
+std::string ASTTypeDef::getIdentifier() { return identifier; }
+ASTTypeDenoter* ASTTypeDef::getTypeDenoter() { return type_denoter; }
+
+/* type denoter */
+ASTTypeDenoter::ASTTypeDenoter() {}
+ASTTypeDenoter::TypeType ASTTypeDenoter::getType() { return type; }
+
+/* ordinal type base class */
+ASTTypeOrdinal::ASTTypeOrdinal() {}
+
+/* pascal builtin type */
+ASTTypeOrdinalBase::ASTTypeOrdinalBase() {}
+ASTTypeOrdinalBase::ASTTypeOrdinalBase(Builtin a1) : type(a1) {}
+ASTTypeOrdinalBase::Builtin ASTTypeOrdinalBase::getBaseType() { return type; }
+
+/* pascal identifier type */
+ASTTypeIdentifier::ASTTypeIdentifier() {}
+ASTTypeIdentifier::ASTTypeIdentifier(std::string a1) : identifier(a1) {}
+std::string ASTTypeIdentifier::getTypeIdentifier() { return identifier; }
+
+/* ordinal enumerate type */
+ASTTypeOrdinalEnum::ASTTypeOrdinalEnum() {}
+ASTTypeOrdinalEnum::ASTTypeOrdinalEnum(ASTIdentifierList* a1) : identifier_list(a1) {}
+ASTIdentifierList* ASTTypeOrdinalEnum::getIdentifierList() { return identifier_list; }
+
+/* ordinal subrange type */
+ASTTypeOrdinalSubrange::ASTTypeOrdinalSubrange() {}
+ASTTypeOrdinalSubrange::ASTTypeOrdinalSubrange(ASTConst* a1, ASTConst* a2, bool a3, bool a4)
+    : min(a1), max(a2), min_neg(a3), max_neg(a4) {
+    a1->setSign(a3);
+    a2->setSign(a4);
+}
+ASTConst* ASTTypeOrdinalSubrange::getMin() { return min; }
+ASTConst* ASTTypeOrdinalSubrange::getMax() { return max; }
+
+/* structure type base class */
+ASTTypeStruct::ASTTypeStruct() {}
+
+/* structure array type */
+ASTTypeStructArray::ASTTypeStructArray() {}
+ASTTypeStructArray::ASTTypeStructArray(ASTTypeOrdinal* a1, ASTTypeDenoter* a2) : value(a1), type(a2) {}
+ASTTypeOrdinal* ASTTypeStructArray::getValue() { return value; }
+ASTTypeDenoter* ASTTypeStructArray::getDenoter() { return type; }
+
+/* structure record type */
+ASTTypeStructRecord::ASTTypeStructRecord() {}
+
+/* structure file type */
+ASTTypeStructFile::ASTTypeStructFile() {}
+ASTTypeStructFile::ASTTypeStructFile(ASTTypeDenoter* a1) : component_type(a1) {}
+ASTTypeDenoter* ASTTypeStructFile::getComponentType() { return component_type; }
+
+/* pointer type */
+ASTTypePointer::ASTTypePointer() {}
+ASTTypePointer::ASTTypePointer(ASTTypeIdentifier* a1) : domain_type(a1) {}
+ASTTypeIdentifier* ASTTypePointer::getDomainType() { return domain_type; }
+
+
+/* variable declarition part */
+ASTVarDeclPart::ASTVarDeclPart() {}
+ASTVarDeclPart::ASTVarDeclPart(ASTVarDeclList* a1) : var_decl_list(a1) {}
+ASTVarDeclList* ASTVarDeclPart::getASTVarDeclList() { return var_decl_list; }
+
+/* variable declarition list */
+ASTVarDeclList::ASTVarDeclList() {}
+std::vector<ASTVarDecl*> ASTVarDeclList::getVarDeclList() { return var_decl_list; }
+void ASTVarDeclList::addVarDecl(ASTVarDecl* a1) { var_decl_list.push_back(a1); }
+
+/* variable declarition line */
+ASTVarDecl::ASTVarDecl() {}
+ASTVarDecl::ASTVarDecl(ASTIdentifierList* a1, ASTTypeDenoter* a2) : identifier_list(a1), type_denoter(a2) {}
+ASTIdentifierList* ASTVarDecl::getASTIdentifierList() { return identifier_list; }
+ASTTypeDenoter* ASTVarDecl::getTypeDenoter() { return type_denoter; }
+
+
+/* statement part */
+ASTStatPart::ASTStatPart() {}
+ASTStatPart::ASTStatPart(ASTCompoundStat* a1) : compound_stat(a1) {}
+ASTCompoundStat* ASTStatPart::getCompoundStat() { return compound_stat; }
+
+/* statement base class */
+ASTStat::ASTStat() {}
+ASTStat::StatType ASTStat::getStatType() { return stat_type; }
+void ASTStat::setStatType(ASTStat::StatType s) { stat_type = s; }
+std::string ASTStat::getLabel() { return label; }
+void ASTStat::setLabel(std::string s) { label = s; }
+
+/* compound statement as struct statement */
+ASTCompoundStat::ASTCompoundStat() {}
+ASTCompoundStat::ASTCompoundStat(ASTStatList* a1, ASTStat::StatType a2) : stat_list(a1) { ASTStat::setStatType(a2); }
+ASTCompoundStat::ASTCompoundStat(ASTStatList* a1, ASTStat::StatType a2, std::string a3) 
+    : stat_list(a1) {
+    ASTStat::setStatType(a2); ASTStat::setLabel(a3);
+}
+ASTStatList* ASTCompoundStat::getASTStatList() { return stat_list; }
+
+/* statement list */
+ASTStatList::ASTStatList() {}
+std::vector<ASTStat*> ASTStatList::getStatList() { return stat_list; }
+void ASTStatList::addStat(ASTStat* s) { stat_list.push_back(s); }
+
+/* assign statement */
+ASTStatAssign::ASTStatAssign() {}
+ASTStatAssign::ASTStatAssign(ASTExpr* a1, ASTExpr* a2, StatType a3)
+    : lvalue(a1), rvalue(a2) {
+    ASTStat::setStatType(a3);
+}
+ASTExpr* ASTStatAssign::getLvalue() { return lvalue; }
+ASTExpr* ASTStatAssign::getRvalue() { return rvalue; }
+
+/* goto statement */
+ASTStatGoto::ASTStatGoto() {}
+ASTStatGoto::ASTStatGoto(std::string a1, StatType a2) : label(a1) { ASTStat::setStatType(a2); }
+std::string ASTStatGoto::getLabel() { return label; }
+
+/* condition if statement */
+ASTStatCondIf::ASTStatCondIf() {}
+ASTStatCondIf::ASTStatCondIf(ASTExpr* a1, ASTStat* a2, StatType a3)
+    : condition(a1), then_code(a2) {
+    ASTStat::setStatType(a3);
+}
+ASTStatCondIf::ASTStatCondIf(ASTExpr* a1, ASTStat* a2, ASTStat* a3, StatType a4)
+    : condition(a1), then_code(a2), else_code(a3) {
+    ASTStat::setStatType(a4);
+}
+ASTExpr* ASTStatCondIf::getCondition() { return condition; }
+ASTStat* ASTStatCondIf::getThenCode() { return then_code; }
+ASTStat* ASTStatCondIf::getElseCode() { return else_code; }
+
+/* repetitive repeat statement */
+ASTStatIterRepeat::ASTStatIterRepeat() {}
+ASTStatIterRepeat::ASTStatIterRepeat(ASTStatList* a1, ASTExpr* a2, StatType a3) 
+    : repeat_stat_list(a1), repeat_condition(a2) {
+    ASTStat::setStatType(a3);
+}
+ASTStatList* ASTStatIterRepeat::getRepeatStatList() { return repeat_stat_list; }
+ASTExpr* ASTStatIterRepeat::getRepeatCondition() { return repeat_condition; }
+
+/* repetitive while statement */
+ASTStatIterWhile::ASTStatIterWhile() {}
+ASTStatIterWhile::ASTStatIterWhile(ASTExpr* a1, ASTStatList* a2, StatType a3)
+    : repeat_stat_list(a2), repeat_condition(a1) {
+    ASTStat::setStatType(a3);
+}
+ASTStatList* ASTStatIterWhile::getRepeatStatList() { return repeat_stat_list; }
+ASTExpr* ASTStatIterWhile::getRepeatCondition() { return repeat_condition; }
+
+/* expression base class */
+ASTExpr::ASTExpr() {}
+std::string ASTExpr::getOp() { return op; }
+void ASTExpr::setOp(std::string s) { op = s; }
+ASTExpr::OPType ASTExpr::getOpType() { return type; }
+void ASTExpr::setOpType(ASTExpr::OPType s) { type = s; }
+
+/* binary operand expression */
+ASTExprBinary::ASTExprBinary() {}
+ASTExprBinary::ASTExprBinary(ASTExpr* a1, ASTExpr* a2, OPType a3)
+    : opl(a1), opr(a2) {
+    ASTExpr::setOpType(a3);
+}
+ASTExpr* ASTExprBinary::getOpLeft() { return opl; }
+ASTExpr* ASTExprBinary::getOpRight() { return opr; }
+
+/* one operand expression */
+ASTExprUnary::ASTExprUnary() {}
+ASTExprUnary::ASTExprUnary(ASTExpr* a1, OPType a2)
+    : op(a1) {
+    ASTExpr::setOpType(a2);
+}
+ASTExpr* ASTExprUnary::getOp() { return op; }
+
+/* constant value expression */
+ASTExprConst::ASTExprConst() {}
+ASTExprConst::ASTExprConst(ASTConst* a1) : value(a1) {}
+ASTConst* ASTExprConst::getConstValue() { return value; }
+
+/* identifier substitution expression */
+ASTExprIdentifier::ASTExprIdentifier() {}
+ASTExprIdentifier::ASTExprIdentifier(std::string a1) : identifier(a1) {}
+std::string ASTExprIdentifier::getIdentifier() { return identifier; }

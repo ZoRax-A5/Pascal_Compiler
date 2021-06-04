@@ -235,12 +235,15 @@ public:
 private:
     ValueType value_type;
     std::string literal;
+    bool sign;
 public:
     ASTConst();
     ASTConst(ValueType, std::string);
 
     ValueType getValueType();
     std::string getLiteral();
+    bool getSign();
+    void setSign(bool);
 };
 
 /* type definition part*/
@@ -278,7 +281,7 @@ public:
     ASTTypeDenoter* getTypeDenoter();
 };
 
-/* type denoter */
+/* type denoter (base class) */
 class ASTTypeDenoter : public ASTNode {
 private:
     typedef int TypeType;
@@ -296,11 +299,13 @@ public:
     TypeType getType();
 };
 
+/* ordinal type base class */
 class ASTTypeOrdinal : public ASTTypeDenoter {
 public:
     ASTTypeOrdinal();
 };
 
+/* pascal builtin type */
 class ASTTypeOrdinalBase : public ASTTypeOrdinal {
 public:
     enum Builtin { INTEGER, REAL, CHAR, BOOLEAN };
@@ -313,6 +318,7 @@ public:
     Builtin getBaseType();
 };
 
+/* pascal identifier type */
 class ASTTypeIdentifier : public ASTTypeOrdinal {
 private:
     std::string identifier;
@@ -323,6 +329,7 @@ public:
     std::string getTypeIdentifier();
 };
 
+/* ordinal enumerate type */
 class ASTTypeOrdinalEnum : public ASTTypeOrdinal {
 private:
     ASTIdentifierList* identifier_list;
@@ -333,9 +340,10 @@ public:
     ASTIdentifierList* getIdentifierList();
 };
 
+/* ordinal subrange type */
 class ASTTypeOrdinalSubrange : public ASTTypeOrdinal {
 private:
-    ASTConst* min, max;
+    ASTConst* min, * max;
     bool min_neg, max_neg;
 public:
     ASTTypeOrdinalSubrange();
@@ -345,11 +353,13 @@ public:
     ASTConst* getMax();
 };
 
+/* structure type base class */
 class ASTTypeStruct : public ASTTypeDenoter {
 public:
     ASTTypeStruct();
 };
 
+/* structure array type */
 class ASTTypeStructArray : public ASTTypeStruct {
 private:
     ASTTypeOrdinal* value;
@@ -362,11 +372,13 @@ public:
     ASTTypeDenoter* getDenoter();
 };
 
+/* structure record type */
 class ASTTypeStructRecord : public ASTTypeStruct {
 public:
     ASTTypeStructRecord();
 };
 
+/* structure file type */
 class ASTTypeStructFile : public ASTTypeStruct {
 private:
     ASTTypeDenoter* component_type;
@@ -377,6 +389,7 @@ public:
     ASTTypeDenoter* getComponentType();
 };
 
+/* pointer type */
 class ASTTypePointer : public ASTTypeDenoter {
 private:
     ASTTypeIdentifier* domain_type;
@@ -423,6 +436,7 @@ public:
     ASTTypeDenoter* getTypeDenoter();
 };
 
+/* statement part */
 class ASTStatPart : public ASTNode {
 private:
     ASTCompoundStat* compound_stat;
@@ -433,27 +447,7 @@ public:
     ASTCompoundStat* getCompoundStat();
 };
 
-class ASTCompoundStat : public ASTStat {
-private:
-    ASTStatList* stat_list;
-public:
-    ASTCompoundStat();
-    ASTCompoundStat(ASTStatList*, StatType);
-    ASTCompoundStat(ASTStatList*, StatType, std::string);
-
-    ASTStatList* getASTStatList();
-};
-
-class ASTStatList : public ASTNode {
-private:
-    std::vector<ASTStat> stat_list;
-public:
-    ASTStatList();
-
-    std::vector<ASTStat> getStatList();
-    void addStat(ASTStat*);
-};
-
+/* statement base class */
 class ASTStat : public ASTNode {
 public:
     enum StatType {
@@ -470,10 +464,35 @@ public:
     ASTStat();
 
     StatType getStatType();
+    void setStatType(StatType);
     std::string getLabel();
     void setLabel(std::string);
 };
 
+/* compound statement as struct statement */
+class ASTCompoundStat : public ASTStat {
+private:
+    ASTStatList* stat_list;
+public:
+    ASTCompoundStat();
+    ASTCompoundStat(ASTStatList*, StatType);
+    ASTCompoundStat(ASTStatList*, StatType, std::string);
+
+    ASTStatList* getASTStatList();
+};
+
+/* statement list */
+class ASTStatList : public ASTNode {
+private:
+    std::vector<ASTStat*> stat_list;
+public:
+    ASTStatList();
+
+    std::vector<ASTStat*> getStatList();
+    void addStat(ASTStat*);
+};
+
+/* assign statement */
 class ASTStatAssign : public ASTStat {
 private:
     ASTExpr* lvalue;
@@ -486,6 +505,7 @@ public:
     ASTExpr* getRvalue();
 };
 
+/* goto statement */
 class ASTStatGoto : public ASTStat {
 private:
     std::string label;
@@ -496,9 +516,11 @@ public:
     std::string getLabel();
 };
 
+/* procedure call statement */
 class ASTStatProc : public ASTStat {
 };
 
+/* condition if statement */
 class ASTStatCondIf : public ASTStat {
 private:
     ASTExpr* condition;
@@ -514,6 +536,7 @@ public:
     ASTStat* getElseCode();
 };
 
+/* repetitive repeat statement */
 class ASTStatIterRepeat : public ASTStat {
 private:
     ASTStatList* repeat_stat_list;
@@ -526,6 +549,7 @@ public:
     ASTExpr* getRepeatCondition();
 };
 
+/* repetitive while statement */
 class ASTStatIterWhile : public ASTStat {
 private:
     ASTStatList* repeat_stat_list;
@@ -538,11 +562,12 @@ public:
     ASTExpr* getRepeatCondition();
 };
 
+/* expression base class */
 class ASTExpr : public ASTNode {
 public:
     enum OPType {
         OP_GT, OP_LT, OP_GE, OP_LE, OP_EQ, OP_NE,
-        OP_ADD, OP_AND, OP_OR,
+        OP_ADD, OP_SUB, OP_OR,
         OP_MUL, OP_DIV, OP_MOD, OP_AND,
         OP_NEG
     };
@@ -553,9 +578,12 @@ public:
     ASTExpr();
 
     std::string getOp();
+    void setOp(std::string);
     OPType getOpType();
+    void setOpType(OPType);
 };
 
+/* binary operand expression */
 class ASTExprBinary : public ASTExpr {
 private:
     ASTExpr* opl;
@@ -568,6 +596,7 @@ public:
     ASTExpr* getOpRight();
 };
 
+/* one operand expression */
 class ASTExprUnary : public ASTExpr {
 private:
     ASTExpr* op;
@@ -578,6 +607,7 @@ public:
     ASTExpr* getOp();
 };
 
+/* constant value expression */
 class ASTExprConst : public ASTExpr {
 private:
     ASTConst* value;
@@ -588,6 +618,7 @@ public:
     ASTConst* getConstValue();
 };
 
+/* identifier substitution expression */
 class ASTExprIdentifier : public ASTExpr {
 private:
     std::string identifier;
