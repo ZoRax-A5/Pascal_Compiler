@@ -1,3 +1,4 @@
+%locations
 %code requires {
 #include <iostream>
 #include <string>
@@ -7,6 +8,7 @@ extern int yylex(void);
 void yyerror(char *s);
 typedef enum { typeKeyword, typeSymbol, typeComment } TokenType;
 extern ASTNode* ast_root;
+
 }
 
 %union {
@@ -134,11 +136,13 @@ extern ASTNode* ast_root;
 %%
 program:
     program_head SYMBOL_SEMICOLON program_body {
+        
         ast_root = new ASTProgram($1, $3);
     }
 ;
 program_head:
     KEYWORD_PROGRAM IDENTIFIER {
+        
         $$ = new ASTProgramHead($2);
     }
     | KEYWORD_PROGRAM IDENTIFIER SYMBOL_LBRACK SYMBOL_LPAREN program_param_list SYMBOL_RPAREN SYMBOL_RBRACK {
@@ -378,21 +382,21 @@ compound_statement:
     }
 ;
 statement_list:
-    statement_list label_statement {
+    statement_list label_statement SYMBOL_SEMICOLON {
         ($1)->addStat($2);
         $$ = $1;
     }
-    | label_statement {
+    | label_statement SYMBOL_SEMICOLON {
         $$ = new ASTStatList();
         ($$)->addStat($1);
     }
 ;
 label_statement:
-    IDENTIFIER SYMBOL_COLON statement SYMBOL_SEMICOLON {
+    IDENTIFIER SYMBOL_COLON statement {
         ($3)->setLabel($1);
         $$ = $3;
     }
-    | statement SYMBOL_SEMICOLON {
+    | statement {
         $$ = $1;
     }
 ;

@@ -15,11 +15,11 @@ int offset = 1;
 
 extern void yyerror(char* s);
 
-#define DEBUG_LEXER
+// #define DEBUG_LEXER
 
 #ifdef DEBUG_LEXER
     int dbgToken(int tok, char const* s) {
-        printf("Lexer: %d:%d-%d token %s\n", yylloc.first_line, yylloc.first_column, yylloc.last_column, s);
+        printf("Lexer: %d.%d-%d.%d token %s\n", yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, s);
         return tok;
     }
     #define RETURN(x) return dbgToken(x, #x)
@@ -228,7 +228,7 @@ COMMENT "{"[^\}]*"}"
 . { printf("unknown token\n"); }
 %%
 
-#ifndef DEBUG_LEXER
+#ifdef DEBUG_LEXER
 int main() {
     yyin = fopen("test/hello.pas", "r");
     yylex();

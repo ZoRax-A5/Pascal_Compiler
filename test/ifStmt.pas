@@ -5,7 +5,7 @@ begin
     a := 3;
     b := 4;
     if (a < b) then
-        writeln('a');
+        a := a - 1
     else
         a := a + 1;
-end
+end.
