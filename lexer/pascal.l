@@ -1,10 +1,11 @@
 %option caseless noyywrap
 %{
 #include <cstring>
-#include <y.tab.h>
+#include "../parser/y.tab.h"
+#include "../ast/ast.h"
 #define YYSTYPE char *
 
-extern yyerror(char* s);
+extern void yyerror(char* s);
 %}
 
 /* declaration of substitutions */
@@ -82,9 +83,10 @@ LITERAL_BOOLEAN_FALSE false
 /* definition of symbol */
 /* arithmetic operation */
 SYMBOL_ADD "+"
-SYMBOL_SUB "-
+SYMBOL_SUB "-"
 SYMBOL_MUL "*"
 SYMBOL_DIV "/"
+SYMBOL_MOD "%"
 SYMBOL_ASSIGN ":="
 SYMBOL_GT ">"
 SYMBOL_LT "<"

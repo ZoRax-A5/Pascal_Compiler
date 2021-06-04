@@ -1,16 +1,13 @@
-%{
-#include <stdio.h>
-#include <stdlib.h>
+%code requires {
+#include <iostream>
+#include <string>
 #include "../ast/ast.h"
 
 extern int yylex(void);
 void yyerror(char *s);
-
 typedef enum { typeKeyword, typeSymbol, typeComment } TokenType;
-
-ASTNode* ast_root;
-
-%}
+extern ASTNode* ast_root;
+}
 
 %union {
     TokenType token_type;
@@ -70,14 +67,14 @@ ASTNode* ast_root;
 %token KEYWORD_PACKED KEYWORD_PROCEDURE KEYWORD_PROGRAM KEYWORD_RECORD KEYWORD_REINTRODUCE 
 %token KEYWORD_REPEAT KEYWORD_SELF KEYWORD_SET KEYWORD_SHL KEYWORD_SHR
 %token KEYWORD_STRING KEYWORD_THEN KEYWORD_TO KEYWORD_TYPE KEYWORD_UNIT
-%token KEYWORD_UNTIL KEYWORD_USES KEYWORD_VAR KEYWORD_WHILE KEYWORD_WITH
-%token KEYWORD_XOR TYPE_INTEGER TYPE_REAL TYPE_CHAR TYPE_BOOLEAN
+%token KEYWORD_UNTIL KEYWORD_USES KEYWORD_VAR KEYWORD_WHILE KEYWORD_WITH KEYWORD_XOR
+%token TYPE_INTEGER TYPE_REAL TYPE_CHAR TYPE_BOOLEAN
 %token LITERAL_INTEGER LITERAL_REAL LITERAL_CHAR LITERAL_BOOLEAN_TRUE LITERAL_BOOLEAN_FALSE
-%token SYMBOL_ADD SYMBOL_SUB SYMBOL_MUL SYMBOL_DIV SYMBOL_ASSIGN
-%token SYMBOL_GT SYMBOL_LT SYMBOL_GE SYMBOL_LE SYMBOL_EQUAL
-%token SYMBOL_NEQUAL SYMBOL_CARET SYMBOL_AT SYMBOL_DOT SYMBOL_COMMA
-%token SYMBOL_SEMICOLON SYMBOL_COLON SYMBOL_LPAREN SYMBOL_RPAREN SYMBOL_LBRACK
-%token SYMBOL_RBRACK IDENTIFIER COMMENT
+%token SYMBOL_ADD SYMBOL_SUB SYMBOL_MUL SYMBOL_DIV SYMBOL_MOD SYMBOL_ASSIGN
+%token SYMBOL_GT SYMBOL_LT SYMBOL_GE SYMBOL_LE SYMBOL_EQUAL SYMBOL_NEQUAL
+%token SYMBOL_CARET SYMBOL_AT SYMBOL_DOT SYMBOL_COMMA SYMBOL_SEMICOLON SYMBOL_COLON
+%token SYMBOL_LPAREN SYMBOL_RPAREN SYMBOL_LBRACK SYMBOL_RBRACK
+%token IDENTIFIER COMMENT
 
 %type<token_type> KEYWORD_ABSOLUTE KEYWORD_AND KEYWORD_ARRAY KEYWORD_ASM KEYWORD_BEGIN 
 %type<token_type> KEYWORD_BREAK KEYWORD_CASE KEYWORD_CONST KEYWORD_CONSTRUCTOR KEYWORD_CONTINUE       
@@ -91,13 +88,13 @@ ASTNode* ast_root;
 %type<token_type> KEYWORD_STRING KEYWORD_THEN KEYWORD_TO KEYWORD_TYPE KEYWORD_UNIT
 %type<token_type> KEYWORD_UNTIL KEYWORD_USES KEYWORD_VAR KEYWORD_WHILE KEYWORD_WITH KEYWORD_XOR
 %type<token_type> TYPE_INTEGER TYPE_REAL TYPE_CHAR TYPE_BOOLEAN
-%type<token_type> SYMBOL_ADD SYMBOL_SUB SYMBOL_MUL SYMBOL_DIV SYMBOL_ASSIGN
-%type<token_type> SYMBOL_GT SYMBOL_LT SYMBOL_GE SYMBOL_LE SYMBOL_EQUAL
-%type<token_type> SYMBOL_NEQUAL SYMBOL_CARET SYMBOL_AT SYMBOL_DOT SYMBOL_COMMA
-%type<token_type> SYMBOL_SEMICOLON SYMBOL_COLON SYMBOL_LPAREN SYMBOL_RPAREN SYMBOL_LBRACK
-%type<token_type> SYMBOL_RBRACK IDENTIFIER COMMENT
+%type<token_type> SYMBOL_ADD SYMBOL_SUB SYMBOL_MUL SYMBOL_DIV SYMBOL_MOD SYMBOL_ASSIGN
+%type<token_type> SYMBOL_GT SYMBOL_LT SYMBOL_GE SYMBOL_LE SYMBOL_EQUAL SYMBOL_NEQUAL
+%type<token_type> SYMBOL_CARET SYMBOL_AT SYMBOL_DOT SYMBOL_COMMA SYMBOL_SEMICOLON SYMBOL_COLON
+%type<token_type> SYMBOL_LPAREN SYMBOL_RPAREN SYMBOL_LBRACK SYMBOL_RBRACK
+%type<token_type> COMMENT
 
-%type<content> LITERAL_INTEGER LITERAL_REAL LITERAL_CHAR LITERAL_BOOLEAN_TRUE LITERAL_BOOLEAN_FALSE
+%type<content> IDENTIFIER LITERAL_INTEGER LITERAL_REAL LITERAL_CHAR LITERAL_BOOLEAN_TRUE LITERAL_BOOLEAN_FALSE
 
 %type<ast_program> program
 %type<ast_program_head> program_head
@@ -136,7 +133,7 @@ ASTNode* ast_root;
 
 %%
 program:
-    program_head SYM_SEMICOLON program_body {
+    program_head SYMBOL_SEMICOLON program_body {
         ast_root = new ASTProgram($1, $3);
     }
 ;
@@ -144,7 +141,7 @@ program_head:
     KEYWORD_PROGRAM IDENTIFIER {
         $$ = new ASTProgramHead($2);
     }
-    | KEYWORD_PROGRAM IDENTIFIER SYMBOL_LBRACK SYMBOL_LPAREN program_parameter SYMBOL_RPAREN SYMBOL_RBRACK {
+    | KEYWORD_PROGRAM IDENTIFIER SYMBOL_LBRACK SYMBOL_LPAREN program_param_list SYMBOL_RPAREN SYMBOL_RBRACK {
         $$ = new ASTProgramHead($2, $5);
     }
 ;
@@ -175,10 +172,10 @@ identifier_list:
 ;
 
 label_declaration:
-    KEYWORD_LABEL label_list KEYWORD_SEMICOLON {
-        $$ = new ASTLabelDeclPart($1);
+    KEYWORD_LABEL label_list SYMBOL_SEMICOLON {
+        $$ = new ASTLabelDeclPart($2);
     }
-    %empty { 
+    | /* empty */ { 
         $$ = nullptr;
     }
 ;
@@ -201,7 +198,7 @@ constant_declarition:
     KEYWORD_CONST constant_list {
         $$ = new ASTConstDeclPart($2);
     }
-    | %empty { 
+    | /* empty */ { 
         $$ = nullptr;
     }
 ;
@@ -222,19 +219,19 @@ constant_decl:
 ;
 constant:
     LITERAL_INTEGER {
-        $$ = new ASTConst(ASTConst::INTEGER, $1);
+        $$ = new ASTConst(ASTConst::ValueType::INTEGER, $1);
     }
     | LITERAL_REAL {
-        $$ = new ASTConst(ASTConst::REAL, $1);
+        $$ = new ASTConst(ASTConst::ValueType::REAL, $1);
     }
     | LITERAL_CHAR {
-        $$ = new ASTConst(ASTConst::CHAR, $1);
+        $$ = new ASTConst(ASTConst::ValueType::CHAR, $1);
     }
     | LITERAL_BOOLEAN_TRUE {
-        $$ = new ASTConst(ASTConst::BOOLEAN, $1);
+        $$ = new ASTConst(ASTConst::ValueType::BOOLEAN, $1);
     }
     | LITERAL_BOOLEAN_FALSE {
-        $$ = new ASTConst(ASTConst::BOOLEAN, $1);
+        $$ = new ASTConst(ASTConst::ValueType::BOOLEAN, $1);
     }
 ;
 
@@ -242,7 +239,7 @@ type_definition:
     KEYWORD_TYPE type_def_list {
         $$ = new ASTTypeDefPart($2);
     }
-    | %empty {
+    | /* empty */ {
         $$ = nullptr;
     }
 ;
@@ -253,7 +250,7 @@ type_def_list:
     }
     | type_def {
         $$ = new ASTTypeDefList();
-        ($$)->addConstDecl($1);
+        ($$)->addTypeDef($1);
     }
 ;
 type_def:
@@ -279,7 +276,7 @@ ordinal_type:
     | IDENTIFIER {
         $$ = new ASTTypeIdentifier($1);
     }
-    | SYMBOL_LPAREN name_list SYMBOL_RPAREN {
+    | SYMBOL_LPAREN identifier_list SYMBOL_RPAREN {
         $$ = new ASTTypeOrdinalEnum($2);
     }
     | constant SYMBOL_DOT SYMBOL_DOT constant {
@@ -322,7 +319,7 @@ array_type:
     }
 ;
 record_type:
-    KEYWORD_RECORD field_list KEYWORD_END {
+    /* empty */ {
         $$ = nullptr;
     }
 ;
@@ -341,7 +338,7 @@ variable_declarition:
     KEYWORD_VAR variable_decl_list {
         $$ = new ASTVarDeclPart($2);
     }
-    | %empty {
+    | /* empty */ {
         $$ = nullptr;
     }
 ;
@@ -350,7 +347,7 @@ variable_decl_list:
         ($1)->addVarDecl($2);
         $$ = $1;
     }
-    variable_decl {
+    | variable_decl {
         $$ = new ASTVarDeclList();
         ($$)->addVarDecl($1);
     }
@@ -362,7 +359,7 @@ variable_decl:
 ;
 
 procedure_function_declarition:
-    %empty {
+    /* empty */ {
         $$ = nullptr;
     }
 ;
@@ -371,7 +368,7 @@ statement_part:
     compound_statement {
         $$ = new ASTStatPart($1);
     }
-    | %empty {
+    | /* empty */ {
         $$ = nullptr;
     }
 ;
@@ -391,19 +388,16 @@ statement_list:
     }
 ;
 label_statement:
-    IDENTIFIER SYMBOL_COLON statement KEYWORD_SEMICOLON {
+    IDENTIFIER SYMBOL_COLON statement SYMBOL_SEMICOLON {
         ($3)->setLabel($1);
         $$ = $3;
     }
-    | statement KEYWORD_SEMICOLON {
+    | statement SYMBOL_SEMICOLON {
         $$ = $1;
     }
 ;
 statement:
     assign_statement {
-        $$ = $1;
-    }
-    | procedure_statement {
         $$ = $1;
     }
     | goto_statement {
@@ -420,7 +414,7 @@ statement:
     }
 ;
 assign_statement:
-    IDENTIFIER SYMBOL_EQUAL relational_expression {
+    IDENTIFIER SYMBOL_ASSIGN relational_expression {
         $$ = new ASTStatAssign(new ASTExprIdentifier($1), $3, ASTStat::StatType::ASSIGN);
     }
 ;
@@ -433,8 +427,8 @@ if_statement:
     KEYWORD_IF relational_expression KEYWORD_THEN label_statement {
         $$ = new ASTStatCondIf($2, $4, ASTStat::StatType::IF);
     }
-    KEYWORD_IF relational_expression KEYWORD_THEN label_statement KEYWORD_ELSE label_statement {
-        $$ = new ASTStatCondIf($2, $4, $5, ASTStat::StatType::IF);
+    | KEYWORD_IF relational_expression KEYWORD_THEN label_statement KEYWORD_ELSE label_statement {
+        $$ = new ASTStatCondIf($2, $4, $6, ASTStat::StatType::IF);
     }
 ;
 repeat_statement:
@@ -478,7 +472,7 @@ expression:
     | expression SYMBOL_SUB term {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_SUB);
     }
-    | expression SYMBOL_OR term {
+    | expression KEYWORD_OR term {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_OR);
     }
     | term {
@@ -495,7 +489,7 @@ term:
     | term SYMBOL_MOD factor {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_MOD);
     }
-    | term SYMBOL_AND factor {
+    | term KEYWORD_AND factor {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_AND);
     }
     | factor {
@@ -521,6 +515,8 @@ factor:
 void yyerror(char *s) {
     fprintf(stdout, "%s\n", s);
 }
+
+#define PARSER_DEBUG
 
 #ifdef PARSER_DUBUG
 int main(void) {
