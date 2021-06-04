@@ -1,8 +1,8 @@
 %option caseless noyywrap
 %{
 #include <cstring>
-#include "../parser/y.tab.h"
-#include "../ast/ast.h"
+#include "y.tab.h"
+#include "ast/ast.h"
 #define YYSTYPE char *
 
 extern void yyerror(char* s);

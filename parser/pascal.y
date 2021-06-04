@@ -1,7 +1,7 @@
 %code requires {
 #include <iostream>
 #include <string>
-#include "../ast/ast.h"
+#include "ast/ast.h"
 
 extern int yylex(void);
 void yyerror(char *s);
@@ -516,7 +516,7 @@ void yyerror(char *s) {
     fprintf(stdout, "%s\n", s);
 }
 
-#define PARSER_DEBUG
+// #define PARSER_DEBUG
 
 #ifdef PARSER_DUBUG
 int main(void) {
