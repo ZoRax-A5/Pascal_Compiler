@@ -9,6 +9,13 @@ void yyerror(char *s);
 typedef enum { typeKeyword, typeSymbol, typeComment } TokenType;
 extern ASTNode* ast_root;
 
+#define PARSER_DEBUG
+
+#ifdef PARSER_DEBUG
+#define TRACE(x) (x)->setLocation(yylloc.first_line, yylloc.first_column); printf("reduce at line %d\n", yylloc.first_line)
+#elif
+#define TRACE(x) (x)->setLocation(yylloc.first_line, yylloc.first_column)
+#endif
 }
 
 %union {
@@ -136,31 +143,35 @@ extern ASTNode* ast_root;
 %%
 program:
     program_head SYMBOL_SEMICOLON program_body {
-        
         ast_root = new ASTProgram($1, $3);
+        TRACE(ast_root);
     }
 ;
 program_head:
     KEYWORD_PROGRAM IDENTIFIER {
-        
         $$ = new ASTProgramHead($2);
+        TRACE($$);
     }
     | KEYWORD_PROGRAM IDENTIFIER SYMBOL_LBRACK SYMBOL_LPAREN program_param_list SYMBOL_RPAREN SYMBOL_RBRACK {
         $$ = new ASTProgramHead($2, $5);
+        TRACE($$);
     }
 ;
 program_body:
     block SYMBOL_DOT {
         $$ = new ASTProgramBody($1);
+        TRACE($$);
     }
 ;
 block:
     label_declaration constant_declarition type_definition variable_declarition  procedure_function_declarition statement_part {
         $$ = new ASTBlock($1, $2, $3, $4, $5, $6);
+        TRACE($$);
     }
 program_param_list:
     identifier_list {
         $$ = new ASTProgramParamList($1);
+        TRACE($$);
     }
 ;
 
@@ -172,12 +183,14 @@ identifier_list:
     | IDENTIFIER {
         $$ = new ASTIdentifierList();
         ($$)->addIdentifier($1);
+        TRACE($$);
     }
 ;
 
 label_declaration:
     KEYWORD_LABEL label_list SYMBOL_SEMICOLON {
         $$ = new ASTLabelDeclPart($2);
+        TRACE($$);
     }
     | /* empty */ { 
         $$ = nullptr;
@@ -187,20 +200,24 @@ label_list:
     label_list label {
         ($1)->addLabel($2);
         $$ = $1;
+        TRACE($$);
     }
     | label {
         $$ = new ASTLabelList();
         ($$)->addLabel($1);
+        TRACE($$);
     }
 ;
 label:
     IDENTIFIER {
         $$ = new ASTLabel($1);
+        TRACE($$);
     }
 
 constant_declarition:
     KEYWORD_CONST constant_list {
         $$ = new ASTConstDeclPart($2);
+        TRACE($$);
     }
     | /* empty */ { 
         $$ = nullptr;
@@ -214,34 +231,42 @@ constant_list:
     | constant_decl {
         $$ = new ASTConstDeclList();
         ($$)->addConstDecl($1);
+        TRACE($$);
     }
 ;
 constant_decl:
     IDENTIFIER SYMBOL_EQUAL constant SYMBOL_SEMICOLON {
         $$ = new ASTConstDecl($1, $3);
+        TRACE($$);
     }
 ;
 constant:
     LITERAL_INTEGER {
         $$ = new ASTConst(ASTConst::ValueType::INTEGER, $1);
+        TRACE($$);
     }
     | LITERAL_REAL {
         $$ = new ASTConst(ASTConst::ValueType::REAL, $1);
+        TRACE($$);
     }
     | LITERAL_CHAR {
         $$ = new ASTConst(ASTConst::ValueType::CHAR, $1);
+        TRACE($$);
     }
     | LITERAL_BOOLEAN_TRUE {
         $$ = new ASTConst(ASTConst::ValueType::BOOLEAN, $1);
+        TRACE($$);
     }
     | LITERAL_BOOLEAN_FALSE {
         $$ = new ASTConst(ASTConst::ValueType::BOOLEAN, $1);
+        TRACE($$);
     }
 ;
 
 type_definition:
     KEYWORD_TYPE type_def_list {
         $$ = new ASTTypeDefPart($2);
+        TRACE($$);
     }
     | /* empty */ {
         $$ = nullptr;
@@ -255,11 +280,13 @@ type_def_list:
     | type_def {
         $$ = new ASTTypeDefList();
         ($$)->addTypeDef($1);
+        TRACE($$);
     }
 ;
 type_def:
     IDENTIFIER SYMBOL_EQUAL type_denoter SYMBOL_SEMICOLON {
         $$ = new ASTTypeDef($1, $3);
+        TRACE($$);
     }
 ;
 type_denoter:
@@ -279,32 +306,41 @@ ordinal_type:
     }
     | IDENTIFIER {
         $$ = new ASTTypeIdentifier($1);
+        TRACE($$);
     }
     | SYMBOL_LPAREN identifier_list SYMBOL_RPAREN {
         $$ = new ASTTypeOrdinalEnum($2);
+        TRACE($$);
     }
     | constant SYMBOL_DOT SYMBOL_DOT constant {
         $$ = new ASTTypeOrdinalSubrange($1, $4, false, false);
+        TRACE($$);
     }
     | SYMBOL_SUB constant SYMBOL_DOT SYMBOL_DOT constant {
         $$ = new ASTTypeOrdinalSubrange($2, $5, true, false);
+        TRACE($$);
     }
     | SYMBOL_SUB constant SYMBOL_DOT SYMBOL_DOT SYMBOL_SUB constant {
         $$ = new ASTTypeOrdinalSubrange($2, $6, true, true);
+        TRACE($$);
     }
 ;
 base_type:
     TYPE_INTEGER {
         $$ = new ASTTypeOrdinalBase(ASTTypeOrdinalBase::Builtin::INTEGER);
+        TRACE($$);
     }
     | TYPE_REAL {
         $$ = new ASTTypeOrdinalBase(ASTTypeOrdinalBase::Builtin::REAL);
+        TRACE($$);
     }
     | TYPE_CHAR {
         $$ = new ASTTypeOrdinalBase(ASTTypeOrdinalBase::Builtin::CHAR);
+        TRACE($$);
     }
     | TYPE_BOOLEAN {
         $$ = new ASTTypeOrdinalBase(ASTTypeOrdinalBase::Builtin::BOOLEAN);
+        TRACE($$);
     }
 struct_type:
     array_type {
@@ -320,6 +356,7 @@ struct_type:
 array_type:
     KEYWORD_ARRAY SYMBOL_LBRACK ordinal_type SYMBOL_RBRACK KEYWORD_OF type_denoter {
         $$ = new ASTTypeStructArray($3, $6);
+        TRACE($$);
     }
 ;
 record_type:
@@ -330,17 +367,20 @@ record_type:
 file_type:
     KEYWORD_FILE KEYWORD_OF type_denoter {
         $$ = new ASTTypeStructFile($3);
+        TRACE($$);
     }
 ;
 pointer_type:
     SYMBOL_CARET IDENTIFIER {
         $$ = new ASTTypePointer(new ASTTypeIdentifier($2));
+        TRACE($$);
     }
 ;
 
 variable_declarition:
     KEYWORD_VAR variable_decl_list {
         $$ = new ASTVarDeclPart($2);
+        TRACE($$);
     }
     | /* empty */ {
         $$ = nullptr;
@@ -354,11 +394,13 @@ variable_decl_list:
     | variable_decl {
         $$ = new ASTVarDeclList();
         ($$)->addVarDecl($1);
+        TRACE($$);
     }
 ;
 variable_decl:
     identifier_list SYMBOL_COLON type_denoter SYMBOL_SEMICOLON {
         $$ = new ASTVarDecl($1, $3);
+        TRACE($$);
     }
 ;
 
@@ -371,6 +413,7 @@ procedure_function_declarition:
 statement_part:
     compound_statement {
         $$ = new ASTStatPart($1);
+        TRACE($$);
     }
     | /* empty */ {
         $$ = nullptr;
@@ -379,6 +422,7 @@ statement_part:
 compound_statement:
     KEYWORD_BEGIN statement_list KEYWORD_END {
         $$ = new ASTCompoundStat($2, ASTStat::StatType::COMPOUND);
+        TRACE($$);
     }
 ;
 statement_list:
@@ -389,6 +433,7 @@ statement_list:
     | label_statement SYMBOL_SEMICOLON {
         $$ = new ASTStatList();
         ($$)->addStat($1);
+        TRACE($$);
     }
 ;
 label_statement:
@@ -416,54 +461,69 @@ statement:
     | while_statement {
         $$ = $1;
     }
+    | compound_statement {
+        $$ = $1;
+    }
 ;
 assign_statement:
     IDENTIFIER SYMBOL_ASSIGN relational_expression {
         $$ = new ASTStatAssign(new ASTExprIdentifier($1), $3, ASTStat::StatType::ASSIGN);
+        TRACE($$);
     }
 ;
 goto_statement:
     KEYWORD_GOTO IDENTIFIER {
         $$ = new ASTStatGoto($2, ASTStat::StatType::GOTO);
+        TRACE($$);
     }
 ;
 if_statement:
     KEYWORD_IF relational_expression KEYWORD_THEN label_statement {
         $$ = new ASTStatCondIf($2, $4, ASTStat::StatType::IF);
+        TRACE($$);
     }
     | KEYWORD_IF relational_expression KEYWORD_THEN label_statement KEYWORD_ELSE label_statement {
         $$ = new ASTStatCondIf($2, $4, $6, ASTStat::StatType::IF);
+        TRACE($$);
     }
 ;
 repeat_statement:
     KEYWORD_REPEAT statement_list KEYWORD_UNTIL relational_expression {
         $$ = new ASTStatIterRepeat($2, $4, ASTStat::StatType::REPEAT);
+        TRACE($$);
     }
 ;
 while_statement:
     KEYWORD_WHILE relational_expression KEYWORD_DO label_statement {
         $$ = new ASTStatIterWhile($2, $4, ASTStat::StatType::WHILE);
+        TRACE($$);
     }
 ;
 
 relational_expression:
     relational_expression SYMBOL_GT expression {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_GT);
+        TRACE($$);
     }
     | relational_expression SYMBOL_LT expression {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_LT);
+        TRACE($$);
     }
     | relational_expression SYMBOL_GE expression {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_GE);
+        TRACE($$);
     }
     | relational_expression SYMBOL_LE expression {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_LE);
+        TRACE($$);
     }
     | relational_expression SYMBOL_EQUAL expression {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_EQ);
+        TRACE($$);
     }
     | relational_expression SYMBOL_NEQUAL expression {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_NE);
+        TRACE($$);
     }
     | expression {
         $$ = $1;
@@ -472,12 +532,15 @@ relational_expression:
 expression:
     expression SYMBOL_ADD term {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_ADD);
+        TRACE($$);
     }
     | expression SYMBOL_SUB term {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_SUB);
+        TRACE($$);
     }
     | expression KEYWORD_OR term {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_OR);
+        TRACE($$);
     }
     | term {
         $$ = $1;
@@ -486,15 +549,19 @@ expression:
 term:
     term SYMBOL_MUL factor {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_MUL);
+        TRACE($$);
     }
     | term SYMBOL_DIV factor {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_DIV);
+        TRACE($$);
     }
     | term SYMBOL_MOD factor {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_MOD);
+        TRACE($$);
     }
     | term KEYWORD_AND factor {
         $$ = new ASTExprBinary($1, $3, ASTExpr::OPType::OP_AND);
+        TRACE($$);
     }
     | factor {
         $$ = $1;
@@ -503,15 +570,18 @@ term:
 factor:
     constant {
         $$ = new ASTExprConst($1);
+        TRACE($$);
     }
     | IDENTIFIER {
         $$ = new ASTExprIdentifier($1);
+        TRACE($$);
     }
     | SYMBOL_LPAREN relational_expression SYMBOL_RPAREN {
         $$ = $2;
     }
     | SYMBOL_SUB factor {
         $$ = new ASTExprUnary($2, ASTExpr::OPType::OP_NEG);
+        TRACE($$);
     }
 ;
 %%
