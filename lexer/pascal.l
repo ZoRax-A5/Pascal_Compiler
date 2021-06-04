@@ -1,6 +1,7 @@
 %option caseless noyywrap
 %{
 #include <iostream>
+#include <cstring>
 #include "y.tab.h"
 #include "ast/ast.h"
 #define YYSTYPE char const*
@@ -127,97 +128,100 @@ COMMENT "{"[^\}]*"}"
 
 /* lexical rule */
 %%
-{KEYWORD_ABSOLUTE} { RETURN(KEYWORD_ABSOLUTE); }
-{KEYWORD_AND} { RETURN(KEYWORD_AND); }
-{KEYWORD_ARRAY} { RETURN(KEYWORD_ARRAY); }
-{KEYWORD_ASM} { RETURN(KEYWORD_ASM); }
-{KEYWORD_BEGIN} { RETURN(KEYWORD_BEGIN); }
-{KEYWORD_BREAK} { RETURN(KEYWORD_BREAK); }
-{KEYWORD_CASE} { RETURN(KEYWORD_CASE); }
-{KEYWORD_CONST} { RETURN(KEYWORD_CONST); }
-{KEYWORD_CONSTRUCTOR} { RETURN(KEYWORD_CONSTRUCTOR); }      
-{KEYWORD_CONTINUE} { RETURN(KEYWORD_CONTINUE); }
-{KEYWORD_DESTRUCTOR} { RETURN(KEYWORD_DESTRUCTOR); }        
-{KEYWORD_DIV} { RETURN(KEYWORD_DIV); }
-{KEYWORD_DO} { RETURN(KEYWORD_DO); }
-{KEYWORD_DOWNTO} { RETURN(KEYWORD_DOWNTO); }
-{KEYWORD_ELSE} { RETURN(KEYWORD_ELSE); }
-{KEYWORD_END} { RETURN(KEYWORD_END); }
-{KEYWORD_FILE} { RETURN(KEYWORD_FILE); }
-{KEYWORD_FOR} { RETURN(KEYWORD_FOR); }
-{KEYWORD_FUNCTION} { RETURN(KEYWORD_FUNCTION); }
-{KEYWORD_GOTO} { RETURN(KEYWORD_GOTO); }
-{KEYWORD_IF} { RETURN(KEYWORD_IF); }
-{KEYWORD_IMPLEMENTATION} { RETURN(KEYWORD_IMPLEMENTATION); }
-{KEYWORD_IN} { RETURN(KEYWORD_IN); }
-{KEYWORD_INHERITED} { RETURN(KEYWORD_INHERITED); }
-{KEYWORD_INLINE} { RETURN(KEYWORD_INLINE); }
-{KEYWORD_INTERFACE} { RETURN(KEYWORD_INTERFACE); }
-{KEYWORD_LABEL} { RETURN(KEYWORD_LABEL); }
-{KEYWORD_MOD} { RETURN(KEYWORD_MOD); }
-{KEYWORD_NIL} { RETURN(KEYWORD_NIL); }
-{KEYWORD_NOT} { RETURN(KEYWORD_NOT); }
-{KEYWORD_OBJECT} { RETURN(KEYWORD_OBJECT); }
-{KEYWORD_OF} { RETURN(KEYWORD_OF); }
-{KEYWORD_ON} { RETURN(KEYWORD_ON); }
-{KEYWORD_OPERATOR} { RETURN(KEYWORD_OPERATOR); }
-{KEYWORD_OR} { RETURN(KEYWORD_OR); }
-{KEYWORD_PACKED} { RETURN(KEYWORD_PACKED); }
-{KEYWORD_PROCEDURE} { RETURN(KEYWORD_PROCEDURE); }
-{KEYWORD_PROGRAM} { RETURN(KEYWORD_PROGRAM); }
-{KEYWORD_RECORD} { RETURN(KEYWORD_RECORD); }
-{KEYWORD_REINTRODUCE} { RETURN(KEYWORD_REINTRODUCE); }      
-{KEYWORD_REPEAT} { RETURN(KEYWORD_REPEAT); }
-{KEYWORD_SELF} { RETURN(KEYWORD_SELF); }
-{KEYWORD_SET} { RETURN(KEYWORD_SET); }
-{KEYWORD_SHL} { RETURN(KEYWORD_SHL); }
-{KEYWORD_SHR} { RETURN(KEYWORD_SHR); }
-{KEYWORD_STRING} { RETURN(KEYWORD_STRING); }
-{KEYWORD_THEN} { RETURN(KEYWORD_THEN); }
-{KEYWORD_TO} { RETURN(KEYWORD_TO); }
-{KEYWORD_TYPE} { RETURN(KEYWORD_TYPE); }
-{KEYWORD_UNIT} { RETURN(KEYWORD_UNIT); }
-{KEYWORD_UNTIL} { RETURN(KEYWORD_UNTIL); }
-{KEYWORD_USES} { RETURN(KEYWORD_USES); }
-{KEYWORD_VAR} { RETURN(KEYWORD_VAR); }
-{KEYWORD_WHILE} { RETURN(KEYWORD_WHILE); }
-{KEYWORD_WITH} { RETURN(KEYWORD_WITH); }
-{KEYWORD_XOR} { RETURN(KEYWORD_XOR); }
-{TYPE_INTEGER} { RETURN(TYPE_INTEGER); }
-{TYPE_REAL} { RETURN(TYPE_REAL); }
-{TYPE_CHAR} { RETURN(TYPE_CHAR); }
-{TYPE_BOOLEAN} { RETURN(TYPE_BOOLEAN); }
-{LITERAL_INTEGER} { RETURN(LITERAL_INTEGER); }
-{LITERAL_REAL} { RETURN(LITERAL_REAL); }
-{LITERAL_CHAR} { RETURN(LITERAL_CHAR); }
-{LITERAL_BOOLEAN_TRUE} { RETURN(LITERAL_BOOLEAN_TRUE); }    
-{LITERAL_BOOLEAN_FALSE} { RETURN(LITERAL_BOOLEAN_FALSE); }  
-{SYMBOL_ADD} { RETURN(SYMBOL_ADD); }
-{SYMBOL_SUB} { RETURN(SYMBOL_SUB); }
-{SYMBOL_MUL} { RETURN(SYMBOL_MUL); }
-{SYMBOL_DIV} { RETURN(SYMBOL_DIV); }
-{SYMBOL_ASSIGN} { RETURN(SYMBOL_ASSIGN); }
-{SYMBOL_GT} { RETURN(SYMBOL_GT); }
-{SYMBOL_LT} { RETURN(SYMBOL_LT); }
-{SYMBOL_GE} { RETURN(SYMBOL_GE); }
-{SYMBOL_LE} { RETURN(SYMBOL_LE); }
-{SYMBOL_EQUAL} { RETURN(SYMBOL_EQUAL); }
-{SYMBOL_NEQUAL} { RETURN(SYMBOL_NEQUAL); }
-{SYMBOL_CARET} { RETURN(SYMBOL_CARET); }
-{SYMBOL_AT} { RETURN(SYMBOL_AT); }
-{SYMBOL_DOT} { RETURN(SYMBOL_DOT); }
-{SYMBOL_COMMA} { RETURN(SYMBOL_COMMA); }
-{SYMBOL_SEMICOLON} { RETURN(SYMBOL_SEMICOLON); }
-{SYMBOL_COLON} { RETURN(SYMBOL_COLON); }
-{SYMBOL_LPAREN} { RETURN(SYMBOL_LPAREN); }
-{SYMBOL_RPAREN} { RETURN(SYMBOL_RPAREN); }
-{SYMBOL_LBRACK} { RETURN(SYMBOL_LBRACK); }
-{SYMBOL_RBRACK} { RETURN(SYMBOL_RBRACK); }
-{IDENTIFIER} { RETURN(IDENTIFIER); }
-{COMMENT} { RETURN(COMMENT); }
+{KEYWORD_ABSOLUTE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_ABSOLUTE); }
+{KEYWORD_AND} { yylval.token_type = typeKeyword; RETURN(KEYWORD_AND); }
+{KEYWORD_ARRAY} { yylval.token_type = typeKeyword; RETURN(KEYWORD_ARRAY); }
+{KEYWORD_ASM} { yylval.token_type = typeKeyword; RETURN(KEYWORD_ASM); }
+{KEYWORD_BEGIN} { yylval.token_type = typeKeyword; RETURN(KEYWORD_BEGIN); }
+{KEYWORD_BREAK} { yylval.token_type = typeKeyword; RETURN(KEYWORD_BREAK); }
+{KEYWORD_CASE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_CASE); }
+{KEYWORD_CONST} { yylval.token_type = typeKeyword; RETURN(KEYWORD_CONST); }
+{KEYWORD_CONSTRUCTOR} { yylval.token_type = typeKeyword; RETURN(KEYWORD_CONSTRUCTOR); }      
+{KEYWORD_CONTINUE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_CONTINUE); }
+{KEYWORD_DESTRUCTOR} { yylval.token_type = typeKeyword; RETURN(KEYWORD_DESTRUCTOR); }        
+{KEYWORD_DIV} { yylval.token_type = typeKeyword; RETURN(KEYWORD_DIV); }
+{KEYWORD_DO} { yylval.token_type = typeKeyword; RETURN(KEYWORD_DO); }
+{KEYWORD_DOWNTO} { yylval.token_type = typeKeyword; RETURN(KEYWORD_DOWNTO); }
+{KEYWORD_ELSE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_ELSE); }
+{KEYWORD_END} { yylval.token_type = typeKeyword; RETURN(KEYWORD_END); }
+{KEYWORD_FILE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_FILE); }
+{KEYWORD_FOR} { yylval.token_type = typeKeyword; RETURN(KEYWORD_FOR); }
+{KEYWORD_FUNCTION} { yylval.token_type = typeKeyword; RETURN(KEYWORD_FUNCTION); }
+{KEYWORD_GOTO} { yylval.token_type = typeKeyword; RETURN(KEYWORD_GOTO); }
+{KEYWORD_IF} { yylval.token_type = typeKeyword; RETURN(KEYWORD_IF); }
+{KEYWORD_IMPLEMENTATION} { yylval.token_type = typeKeyword; RETURN(KEYWORD_IMPLEMENTATION); }
+{KEYWORD_IN} { yylval.token_type = typeKeyword; RETURN(KEYWORD_IN); }
+{KEYWORD_INHERITED} { yylval.token_type = typeKeyword; RETURN(KEYWORD_INHERITED); }
+{KEYWORD_INLINE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_INLINE); }
+{KEYWORD_INTERFACE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_INTERFACE); }
+{KEYWORD_LABEL} { yylval.token_type = typeKeyword; RETURN(KEYWORD_LABEL); }
+{KEYWORD_MOD} { yylval.token_type = typeKeyword; RETURN(KEYWORD_MOD); }
+{KEYWORD_NIL} { yylval.token_type = typeKeyword; RETURN(KEYWORD_NIL); }
+{KEYWORD_NOT} { yylval.token_type = typeKeyword; RETURN(KEYWORD_NOT); }
+{KEYWORD_OBJECT} { yylval.token_type = typeKeyword; RETURN(KEYWORD_OBJECT); }
+{KEYWORD_OF} { yylval.token_type = typeKeyword; RETURN(KEYWORD_OF); }
+{KEYWORD_ON} { yylval.token_type = typeKeyword; RETURN(KEYWORD_ON); }
+{KEYWORD_OPERATOR} { yylval.token_type = typeKeyword; RETURN(KEYWORD_OPERATOR); }
+{KEYWORD_OR} { yylval.token_type = typeKeyword; RETURN(KEYWORD_OR); }
+{KEYWORD_PACKED} { yylval.token_type = typeKeyword; RETURN(KEYWORD_PACKED); }
+{KEYWORD_PROCEDURE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_PROCEDURE); }
+{KEYWORD_PROGRAM} { yylval.token_type = typeKeyword; RETURN(KEYWORD_PROGRAM); }
+{KEYWORD_RECORD} { yylval.token_type = typeKeyword; RETURN(KEYWORD_RECORD); }
+{KEYWORD_REINTRODUCE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_REINTRODUCE); }      
+{KEYWORD_REPEAT} { yylval.token_type = typeKeyword; RETURN(KEYWORD_REPEAT); }
+{KEYWORD_SELF} { yylval.token_type = typeKeyword; RETURN(KEYWORD_SELF); }
+{KEYWORD_SET} { yylval.token_type = typeKeyword; RETURN(KEYWORD_SET); }
+{KEYWORD_SHL} { yylval.token_type = typeKeyword; RETURN(KEYWORD_SHL); }
+{KEYWORD_SHR} { yylval.token_type = typeKeyword; RETURN(KEYWORD_SHR); }
+{KEYWORD_STRING} { yylval.token_type = typeKeyword; RETURN(KEYWORD_STRING); }
+{KEYWORD_THEN} { yylval.token_type = typeKeyword; RETURN(KEYWORD_THEN); }
+{KEYWORD_TO} { yylval.token_type = typeKeyword; RETURN(KEYWORD_TO); }
+{KEYWORD_TYPE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_TYPE); }
+{KEYWORD_UNIT} { yylval.token_type = typeKeyword; RETURN(KEYWORD_UNIT); }
+{KEYWORD_UNTIL} { yylval.token_type = typeKeyword; RETURN(KEYWORD_UNTIL); }
+{KEYWORD_USES} { yylval.token_type = typeKeyword; RETURN(KEYWORD_USES); }
+{KEYWORD_VAR} { yylval.token_type = typeKeyword; RETURN(KEYWORD_VAR); }
+{KEYWORD_WHILE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_WHILE); }
+{KEYWORD_WITH} { yylval.token_type = typeKeyword; RETURN(KEYWORD_WITH); }
+{KEYWORD_XOR} { yylval.token_type = typeKeyword; RETURN(KEYWORD_XOR); }
+{TYPE_INTEGER} { yylval.token_type = typeKeyword; RETURN(TYPE_INTEGER); }
+{TYPE_REAL} { yylval.token_type = typeKeyword; RETURN(TYPE_REAL); }
+{TYPE_CHAR} { yylval.token_type = typeKeyword; RETURN(TYPE_CHAR); }
+{TYPE_BOOLEAN} { yylval.token_type = typeKeyword; RETURN(TYPE_BOOLEAN); }
+{LITERAL_INTEGER} { yylval.content = yytext; RETURN(LITERAL_INTEGER); }
+{LITERAL_REAL} { yylval.content = yytext; RETURN(LITERAL_REAL); }
+{LITERAL_CHAR} { yylval.content = yytext; RETURN(LITERAL_CHAR); }
+{LITERAL_BOOLEAN_TRUE} { yylval.content = yytext; RETURN(LITERAL_BOOLEAN_TRUE); }    
+{LITERAL_BOOLEAN_FALSE} { yylval.content = yytext; RETURN(LITERAL_BOOLEAN_FALSE); }  
+{SYMBOL_ADD} {  yylval.token_type = typeSymbol; RETURN(SYMBOL_ADD); }
+{SYMBOL_SUB} { yylval.token_type = typeSymbol; RETURN(SYMBOL_SUB); }
+{SYMBOL_MUL} { yylval.token_type = typeSymbol; RETURN(SYMBOL_MUL); }
+{SYMBOL_DIV} { yylval.token_type = typeSymbol; RETURN(SYMBOL_DIV); }
+{SYMBOL_ASSIGN} { yylval.token_type = typeSymbol; RETURN(SYMBOL_ASSIGN); }
+{SYMBOL_GT} { yylval.token_type = typeSymbol; RETURN(SYMBOL_GT); }
+{SYMBOL_LT} { yylval.token_type = typeSymbol; RETURN(SYMBOL_LT); }
+{SYMBOL_GE} { yylval.token_type = typeSymbol; RETURN(SYMBOL_GE); }
+{SYMBOL_LE} { yylval.token_type = typeSymbol; RETURN(SYMBOL_LE); }
+{SYMBOL_EQUAL} { yylval.token_type = typeSymbol; RETURN(SYMBOL_EQUAL); }
+{SYMBOL_NEQUAL} { yylval.token_type = typeSymbol; RETURN(SYMBOL_NEQUAL); }
+{SYMBOL_CARET} { yylval.token_type = typeSymbol; RETURN(SYMBOL_CARET); }
+{SYMBOL_AT} { yylval.token_type = typeSymbol; RETURN(SYMBOL_AT); }
+{SYMBOL_DOT} { yylval.token_type = typeSymbol; RETURN(SYMBOL_DOT); }
+{SYMBOL_COMMA} { yylval.token_type = typeSymbol; RETURN(SYMBOL_COMMA); }
+{SYMBOL_SEMICOLON} { yylval.token_type = typeSymbol; RETURN(SYMBOL_SEMICOLON); }
+{SYMBOL_COLON} { yylval.token_type = typeSymbol; RETURN(SYMBOL_COLON); }
+{SYMBOL_LPAREN} { yylval.token_type = typeSymbol; RETURN(SYMBOL_LPAREN); }
+{SYMBOL_RPAREN} { yylval.token_type = typeSymbol; RETURN(SYMBOL_RPAREN); }
+{SYMBOL_LBRACK} { yylval.token_type = typeSymbol; RETURN(SYMBOL_LBRACK); }
+{SYMBOL_RBRACK} { yylval.token_type = typeSymbol; RETURN(SYMBOL_RBRACK); }
+{IDENTIFIER} { yylval.content = yytext; RETURN(IDENTIFIER); }
+{COMMENT} { yylval.token_type = typeComment; RETURN(COMMENT); }
+\n|(\r\n) { printf("newline\n"); }
+" "|\t {}
+. { printf("unknown token\n"); }
 %%
 
-#ifdef DEBUG_LEXER
+#ifndef DEBUG_LEXER
 int main() {
     yyin = fopen("test/hello.pas", "r");
     yylex();
