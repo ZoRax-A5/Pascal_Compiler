@@ -65,6 +65,9 @@ extern ASTNode* ast_root;
     ASTFormalParamVariable* ast_formal_param_variable; 
     ASTFormalParamProc* ast_formal_param_proc;
     ASTFormalParamFunc* ast_formal_param_func;
+    /* actual parameter */
+    ASTActualParamList* ast_actual_param_list;
+    ASTActualParam* ast_actual_param;
     /* statement */
     ASTStatPart* ast_stat_part;
     ASTCompoundStat* ast_compound_stat;
@@ -72,6 +75,7 @@ extern ASTNode* ast_root;
     ASTStat* ast_stat;
     ASTStatAssign* ast_stat_assign;
     ASTStatGoto* ast_stat_goto;
+    ASTStatProc* ast_stat_proc;
     ASTStatCondIf* ast_stat_cond_if;
     ASTStatIterRepeat* ast_stat_iter_repeat;
     ASTStatIterWhile* ast_stat_iter_while;
@@ -123,14 +127,18 @@ extern ASTNode* ast_root;
 %type<ast_program_body> program_body
 %type<ast_block> block
 %type<ast_program_param_list> program_param_list
+
 %type<ast_identifier_list> identifier_list
+
 %type<ast_label_decl_part> label_declaration
 %type<ast_label_list> label_list
 %type<ast_label> label
+
 %type<ast_const_decl_part> constant_declarition
 %type<ast_const_decl_list> constant_list
 %type<ast_const_decl> constant_decl
 %type<ast_const> constant
+
 %type<ast_type_def_part> type_definition
 %type<ast_type_def_list> type_def_list
 %type<ast_type_def> type_def
@@ -138,9 +146,11 @@ extern ASTNode* ast_root;
 %type<ast_type_ordinal> ordinal_type base_type
 %type<ast_type_struct> struct_type array_type record_type file_type
 %type<ast_type_pointer> pointer_type
+
 %type<ast_var_decl_part> variable_declarition
 %type<ast_var_decl_list> variable_decl_list
 %type<ast_var_decl> variable_decl
+
 %type<ast_proc_func_def_part> procedure_function_declarition
 %type<ast_procedure_declaration> procedure_declarition
 %type<ast_procedure_head> procedure_head
@@ -148,18 +158,24 @@ extern ASTNode* ast_root;
 %type<ast_function_declaration> function_declarition
 %type<ast_function_head> function_head
 %type<ast_function_body> function_body
+
 %type<ast_formal_param_list> formal_param_list
 %type<ast_formal_param> formal_param
 %type<ast_formal_param_value> value_param
 %type<ast_formal_param_variable> variable_param
 %type<ast_formal_param_proc> procedure_param
 %type<ast_formal_param_func> function_param
+
+%type<ast_actual_param_list> actual_param_list
+%type<ast_actual_param> actual_param
+
 %type<ast_stat_part> statement_part
 %type<ast_compound_stat> compound_statement
 %type<ast_stat_list> statement_list
 %type<ast_stat> label_statement statement
 %type<ast_stat_assign> assign_statement
 %type<ast_stat_goto> goto_statement
+%type<ast_stat_proc> procedure_statement
 %type<ast_stat_cond_if> if_statement
 %type<ast_stat_iter_repeat> repeat_statement
 %type<ast_stat_iter_while> while_statement
@@ -484,7 +500,7 @@ procedure_head:
     }
 ;
 procedure_body:
-    block {
+    block SYMBOL_SEMICOLON {
         $$ = new ASTProcedureBody($1);
         TRACE($$);
     }
@@ -510,7 +526,7 @@ function_head:
     }
 ;
 function_body:
-    block {
+    block SYMBOL_SEMICOLON {
         $$ = new ASTFunctionBody($1);
         TRACE($$);
     }     
@@ -571,6 +587,25 @@ function_param:
     }
 ;
 
+actual_param_list:
+    actual_param_list SYMBOL_COMMA actual_param {
+        ($1)->addParam($3);
+        $$ = $1;
+        TRACE($$);
+    }
+    | actual_param {
+        $$ = new ASTActualParamList();
+        ($$)->addParam($1);
+        TRACE($$);
+    }
+;
+actual_param:
+    relational_expression {
+        $$ = new ASTActualParam($1);
+        TRACE($$);
+    }
+;
+
 statement_part:
     compound_statement {
         $$ = new ASTStatPart($1);
@@ -618,6 +653,10 @@ statement:
         $$ = $1;
         TRACE($$);
     }
+    | procedure_statement {
+        $$ = $1;
+        TRACE($$);
+    }
     | if_statement {
         $$ = $1;
         TRACE($$);
@@ -644,6 +683,16 @@ assign_statement:
 goto_statement:
     KEYWORD_GOTO IDENTIFIER {
         $$ = new ASTStatGoto($2, ASTStat::StatType::GOTO);
+        TRACE($$);
+    }
+;
+procedure_statement:
+    IDENTIFIER {
+        $$ = new ASTStatProc($1, ASTStat::StatType::PROCEDURE);
+        TRACE($$);
+    }
+    | IDENTIFIER SYMBOL_LPAREN actual_param_list SYMBOL_RPAREN {
+        $$ = new ASTStatProc($1, $3, ASTStat::StatType::PROCEDURE);
         TRACE($$);
     }
 ;

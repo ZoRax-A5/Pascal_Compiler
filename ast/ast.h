@@ -58,6 +58,9 @@ class ASTFormalParamValue;
 class ASTFormalParamVariable;
 class ASTFormalParamProc;
 class ASTFormalParamFunc;
+/* actual parameter */
+class ASTActualParamList;
+class ASTActualParam;
 /* statement */
 class ASTStatPart;
 class ASTCompoundStat;
@@ -615,6 +618,29 @@ public:
 };
 
 
+/* actual parameter list */
+class ASTActualParamList : public ASTNode {
+private:
+    std::vector<ASTActualParam*> param_list;
+public:
+    ASTActualParamList();
+    
+    std::vector<ASTActualParam*> getParamList();
+    void addParam(ASTActualParam*);
+};
+
+/* actual parameter */
+class ASTActualParam : public ASTNode {
+private:
+    ASTExpr* expression;
+public:
+    ASTActualParam();
+    ASTActualParam(ASTExpr*);
+
+    ASTExpr* getExpr();
+};
+
+
 /* statement part */
 class ASTStatPart : public ASTNode {
 private:
@@ -697,6 +723,16 @@ public:
 
 /* procedure call statement */
 class ASTStatProc : public ASTStat {
+private:
+    std::string proc_name;
+    ASTActualParamList* param_list;
+public:
+    ASTStatProc();
+    ASTStatProc(std::string, StatType);
+    ASTStatProc(std::string, ASTActualParamList*, StatType);
+
+    std::string getProcName();
+    ASTActualParamList* getParamList();
 };
 
 /* condition if statement */

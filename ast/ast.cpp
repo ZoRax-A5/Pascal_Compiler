@@ -271,6 +271,16 @@ ASTFormalParamFunc::ASTFormalParamFunc(ASTFunctionHead* a1) : head(a1) {}
 ASTFunctionHead* ASTFormalParamFunc::getHead() { return head; }
 
 
+/* actual parameter list */
+ASTActualParamList::ASTActualParamList() {}
+std::vector<ASTActualParam*> ASTActualParamList::getParamList() { return param_list; }
+void ASTActualParamList::addParam(ASTActualParam* s) { param_list.push_back(s); }
+
+/* actual parameter */
+ASTActualParam::ASTActualParam() {}
+ASTActualParam::ASTActualParam(ASTExpr* a1) : expression(a1) {}
+ASTExpr* ASTActualParam::getExpr() { return expression; }
+
 /* statement part */
 ASTStatPart::ASTStatPart() {}
 ASTStatPart::ASTStatPart(ASTCompoundStat* a1) : compound_stat(a1) {}
@@ -310,6 +320,19 @@ ASTExpr* ASTStatAssign::getRvalue() { return rvalue; }
 ASTStatGoto::ASTStatGoto() {}
 ASTStatGoto::ASTStatGoto(std::string a1, StatType a2) : label(a1) { ASTStat::setStatType(a2); }
 std::string ASTStatGoto::getLabel() { return label; }
+
+/* procedure call statement */
+ASTStatProc::ASTStatProc() {}
+ASTStatProc::ASTStatProc(std::string a1, StatType a2)
+    : proc_name(a1) {
+    ASTStat::setStatType(a2);
+}
+ASTStatProc::ASTStatProc(std::string a1, ASTActualParamList* a2, StatType a3) 
+    : proc_name(a1), param_list(a2) {
+    ASTStat::setStatType(a3);
+}
+std::string ASTStatProc::getProcName() { return proc_name; }
+ASTActualParamList* ASTStatProc::getParamList() { return param_list; }
 
 /* condition if statement */
 ASTStatCondIf::ASTStatCondIf() {}
