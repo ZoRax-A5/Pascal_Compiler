@@ -9,8 +9,8 @@ extern int yyparse();
 #endif
 extern int yydebug;
 
-int main() {
-    freopen("test/ifStmt.pas", "r", stdin);
+int main(int argc, char** argv) {
+    freopen(argv[1], "r", stdin);
     #if PARSER_DEBUG
         yydebug = 1;
     #endif

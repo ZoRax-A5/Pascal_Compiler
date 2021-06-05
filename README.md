@@ -242,12 +242,42 @@ int offset = 1;
 <var_decl> := <identifier list> ":" <type_declarition> ";"
 ```
 
-#### 函数
+#### 过程和函数
 
 ```
-<procedure_function declarations> := ( <procedure_declaration> | <function_declaration> )* ";"
-<function declarition> := <function>
-...
+<procedure_function declarations> := <procedure_function declarations> <procedure declaration>
+								| <procedure_function declarations> <function declarition>
+								| <procedure declaration>
+								| <function declarition>
+								| empty
+
+<procedure declaration> := <procedure head> ";" <procedure block>
+					   | <procedure head> ";" <identifier> ";" <procedure block>
+<procedure head> := "procedure" <identifier>
+				| "procedure"  <identifier> "(" <formal_parameter_list> ")"
+<procedure block> := <block>
+
+<function declarition> := <function head> ";" <function block>
+					   | <function head> ";" <identifier> ";" <function block>	   
+<function head> := "function" <identifier> ":" <ordinal_type>
+				| "function"  <identifier> "(" <formal_parameter_list> ")" ":" <ordinal_type>
+<function block> := <block>
+```
+
+#### 过程/函数形参
+
+```
+<formal_parameter_list> := <formal_parameter_list> ";" <formal_parameter> | <formal_parameter>
+<formal_parameter> := <value_formal_parameter> | <variable_formal_parameter> | <procedure_formal_parameter> | <function_formal_parameter> | <value_conformant_formal_parameter> | <variable_conformant_formal_parameter>
+<value_formal_parameter> := <identifier_list> ":" <ordinal_type>
+<variable_formal_parameter> := "var" <identifier_list> ":" <ordinal_type>
+<procedure_formal_parameter> := <procedure head>
+<function_formal_parameter> := <function head>
+<value_conformant_formal_parameter> := <identifier_list> ":" <conformant_array_schema>
+<variable_conformant_formal_parameter> := "var" <identifier_list> ":" <conformant_array_schema>
+<conformant_array_schema> := "packed" "array" O(<index_type_specification> ) "of" <type_identifier>
+	| "array" O(<index_type_specification> #(“;” <index_type_specification>) ) "of" <type_identifier>
+<index_type_specfication>::= <identifier> ".." <identifier> ":" <ordinal_type_identifier>
 ```
 
 #### 语句块
@@ -265,6 +295,13 @@ int offset = 1;
 				| "if" <relational_expression> "then" <label_statement> "else" <label_statement>
 <repeat statement> := "repeat" <statment_list> "until" <relational_expression>
 <while statement> := "while" <relational_expression> "do" <label_statement>
+<procedure statement> := <identifier> | <identifier> "(" <actual_parameter_list> ")" 
+                    | <io_procedure_statement>
+
+<actual_parameter_list> := <actual_parameter_list> "," <actual_parameter> 
+                        | <actual_parameter>
+<actual_parameter> := <relational_expression> | <variable_access>
+
 ```
 
 #### 表达式
