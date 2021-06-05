@@ -224,7 +224,7 @@ COMMENT "{"[^\}]*"}"
 {SYMBOL_LBRACK} { yylval.token_type = typeSymbol; RETURN(SYMBOL_LBRACK); }
 {SYMBOL_RBRACK} { yylval.token_type = typeSymbol; RETURN(SYMBOL_RBRACK); }
 {IDENTIFIER} { yylval.content = yytext; RETURN(IDENTIFIER); }
-{COMMENT} { yylval.token_type = typeComment; RETURN(COMMENT); }
+{COMMENT} { }
 \n|(\r\n) { offset = 1; }
 " "|\t {}
 . { printf("unknown token\n"); }
