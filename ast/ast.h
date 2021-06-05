@@ -518,13 +518,15 @@ class ASTFunctionHead : public ASTNode {
 private:
     std::string name;
     ASTFormalParamList* param_list;
+    ASTTypeOrdinal* return_type;
 public:
     ASTFunctionHead();
-    ASTFunctionHead(std::string);
-    ASTFunctionHead(std::string, ASTFormalParamList*);
+    ASTFunctionHead(std::string, ASTTypeOrdinal*);
+    ASTFunctionHead(std::string, ASTFormalParamList*, ASTTypeOrdinal*);
 
     std::string getFuncName();
     ASTFormalParamList* getFuncParam();
+    ASTTypeOrdinal* getReturnType();
 };
 
 /* procedure block */

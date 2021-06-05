@@ -224,10 +224,13 @@ std::string ASTFunctionDeclaration::getDirective() { return directive; }
 
 /* function head */
 ASTFunctionHead::ASTFunctionHead() {}
-ASTFunctionHead::ASTFunctionHead(std::string a1) : name(a1) {}
-ASTFunctionHead::ASTFunctionHead(std::string a1, ASTFormalParamList* a2) : name(a1), param_list(a2) {}
+ASTFunctionHead::ASTFunctionHead(std::string a1, ASTTypeOrdinal* a2)
+    : name(a1), return_type(a2) {}
+ASTFunctionHead::ASTFunctionHead(std::string a1, ASTFormalParamList* a2, ASTTypeOrdinal* a3)
+    : name(a1), param_list(a2), return_type(a3) {}
 std::string ASTFunctionHead::getFuncName() { return name; }
 ASTFormalParamList* ASTFunctionHead::getFuncParam() { return param_list; }
+ASTTypeOrdinal* ASTFunctionHead::getReturnType() { return return_type; }
 
 /* procedure block */
 ASTFunctionBody::ASTFunctionBody() {}
