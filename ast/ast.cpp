@@ -182,6 +182,92 @@ ASTIdentifierList* ASTVarDecl::getASTIdentifierList() { return identifier_list; 
 ASTTypeDenoter* ASTVarDecl::getTypeDenoter() { return type_denoter; }
 
 
+/* procedure/function */
+ASTProcFuncDefPart::ASTProcFuncDefPart() {}
+std::vector<ASTProcFuncDecl*> ASTProcFuncDefPart::getProcFuncList() { return proc_func_list; }
+void ASTProcFuncDefPart::addProcFuncDecl(ASTProcFuncDecl* s) { proc_func_list.push_back(s); }
+
+/* procedure/function base class */
+ASTProcFuncDecl::ASTProcFuncDecl() {}
+
+/* procedure declarition part */
+ASTProcedureDeclaration::ASTProcedureDeclaration() {}
+ASTProcedureDeclaration::ASTProcedureDeclaration(ASTProcedureHead* a1, ASTProcedureBody* a2)
+    : head(a1), body(a2) {}
+ASTProcedureDeclaration::ASTProcedureDeclaration(ASTProcedureHead* a1, ASTProcedureBody* a2, std::string a3)
+    : head(a1), body(a2), directive(a3) {}
+ASTProcedureHead* ASTProcedureDeclaration::getProcHead() { return head; }
+ASTProcedureBody* ASTProcedureDeclaration::getProcBody() { return body; }
+std::string ASTProcedureDeclaration::getDirective() { return directive; }
+
+/* procedure head */
+ASTProcedureHead::ASTProcedureHead() {}
+ASTProcedureHead::ASTProcedureHead(std::string a1) : name(a1) {}
+ASTProcedureHead::ASTProcedureHead(std::string a1, ASTFormalParamList* a2) : name(a1), param_list(a2) {}
+std::string ASTProcedureHead::getProcName() { return name; }
+ASTFormalParamList* ASTProcedureHead::getProcParam() { return param_list; }
+
+/* procedure block */
+ASTProcedureBody::ASTProcedureBody() {}
+ASTProcedureBody::ASTProcedureBody(ASTBlock* a1) : block(a1) {}
+ASTBlock* ASTProcedureBody::getBlock() { return block; }
+
+/* function declarition part */
+ASTFunctionDeclaration::ASTFunctionDeclaration() {}
+ASTFunctionDeclaration::ASTFunctionDeclaration(ASTFunctionHead* a1, ASTFunctionBody* a2)
+    : head(a1), body(a2) {}
+ASTFunctionDeclaration::ASTFunctionDeclaration(ASTFunctionHead* a1, ASTFunctionBody* a2, std::string a3)
+    : head(a1), body(a2), directive(a3) {}
+ASTFunctionHead* ASTFunctionDeclaration::getFuncHead() { return head; }
+ASTFunctionBody* ASTFunctionDeclaration::getFuncBody() { return body; }
+std::string ASTFunctionDeclaration::getDirective() { return directive; }
+
+/* function head */
+ASTFunctionHead::ASTFunctionHead() {}
+ASTFunctionHead::ASTFunctionHead(std::string a1) : name(a1) {}
+ASTFunctionHead::ASTFunctionHead(std::string a1, ASTFormalParamList* a2) : name(a1), param_list(a2) {}
+std::string ASTFunctionHead::getFuncName() { return name; }
+ASTFormalParamList* ASTFunctionHead::getFuncParam() { return param_list; }
+
+/* procedure block */
+ASTFunctionBody::ASTFunctionBody() {}
+ASTFunctionBody::ASTFunctionBody(ASTBlock* a1) : block(a1) {}
+ASTBlock* ASTFunctionBody::getBlock() { return block; }
+
+
+/* formal parameter list */
+ASTFormalParamList::ASTFormalParamList() {}
+std::vector<ASTFormalParam*> ASTFormalParamList::getParamList() { return param_list; }
+void ASTFormalParamList::addParam(ASTFormalParam* s) { param_list.push_back(s); }
+
+/* formal parameter base class */
+ASTFormalParam::ASTFormalParam() {}
+ASTFormalParam::FormalType ASTFormalParam::getFormalType() { return formal_type; }
+void ASTFormalParam::setFormalType(ASTFormalParam::FormalType s) { formal_type = s; }
+
+/* value type formal parameter */
+ASTFormalParamValue::ASTFormalParamValue() {}
+ASTFormalParamValue::ASTFormalParamValue(ASTIdentifierList* a1, ASTTypeOrdinal* a2) : name_list(a1), type(a2) {}
+ASTIdentifierList* ASTFormalParamValue::getNameList() { return name_list; }
+ASTTypeOrdinal* ASTFormalParamValue::getType() { return type; }
+
+/* variable type formal parameter */
+ASTFormalParamVariable::ASTFormalParamVariable() {}
+ASTFormalParamVariable::ASTFormalParamVariable(ASTIdentifierList* a1, ASTTypeOrdinal* a2) : name_list(a1), type(a2) {}
+ASTIdentifierList* ASTFormalParamVariable::getNameList() { return name_list; }
+ASTTypeOrdinal* ASTFormalParamVariable::getType() { return type; }
+
+/* procedure type formal parameter */
+ASTFormalParamProc::ASTFormalParamProc() {}
+ASTFormalParamProc::ASTFormalParamProc(ASTProcedureHead* a1) : head(a1) {}
+ASTProcedureHead* ASTFormalParamProc::getHead() { return head; }
+
+/* function type formal parameter */
+ASTFormalParamFunc::ASTFormalParamFunc() {}
+ASTFormalParamFunc::ASTFormalParamFunc(ASTFunctionHead* a1) : head(a1) {}
+ASTFunctionHead* ASTFormalParamFunc::getHead() { return head; }
+
+
 /* statement part */
 ASTStatPart::ASTStatPart() {}
 ASTStatPart::ASTStatPart(ASTCompoundStat* a1) : compound_stat(a1) {}
@@ -197,7 +283,7 @@ void ASTStat::setLabel(std::string s) { label = s; }
 /* compound statement as struct statement */
 ASTCompoundStat::ASTCompoundStat() {}
 ASTCompoundStat::ASTCompoundStat(ASTStatList* a1, ASTStat::StatType a2) : stat_list(a1) { ASTStat::setStatType(a2); }
-ASTCompoundStat::ASTCompoundStat(ASTStatList* a1, ASTStat::StatType a2, std::string a3) 
+ASTCompoundStat::ASTCompoundStat(ASTStatList* a1, ASTStat::StatType a2, std::string a3)
     : stat_list(a1) {
     ASTStat::setStatType(a2); ASTStat::setLabel(a3);
 }
@@ -238,7 +324,7 @@ ASTStat* ASTStatCondIf::getElseCode() { return else_code; }
 
 /* repetitive repeat statement */
 ASTStatIterRepeat::ASTStatIterRepeat() {}
-ASTStatIterRepeat::ASTStatIterRepeat(ASTStatList* a1, ASTExpr* a2, StatType a3) 
+ASTStatIterRepeat::ASTStatIterRepeat(ASTStatList* a1, ASTExpr* a2, StatType a3)
     : repeat_stat_list(a1), repeat_condition(a2) {
     ASTStat::setStatType(a3);
 }

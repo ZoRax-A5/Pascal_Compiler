@@ -44,6 +44,20 @@ class ASTVarDeclList;
 class ASTVarDecl;
 /* procedure/function */
 class ASTProcFuncDefPart;
+class ASTProcFuncDecl;
+class ASTProcedureDeclaration;
+class ASTProcedureHead;
+class ASTProcedureBody;
+class ASTFunctionDeclaration;
+class ASTFunctionHead;
+class ASTFunctionBody;
+/* formal parameter */
+class ASTFormalParamList;
+class ASTFormalParam;
+class ASTFormalParamValue;
+class ASTFormalParamVariable;
+class ASTFormalParamProc;
+class ASTFormalParamFunc;
 /* statement */
 class ASTStatPart;
 class ASTCompoundStat;
@@ -424,6 +438,180 @@ public:
     ASTIdentifierList* getASTIdentifierList();
     ASTTypeDenoter* getTypeDenoter();
 };
+
+/* procedure/function */
+class ASTProcFuncDefPart : public ASTNode {
+private:
+    std::vector<ASTProcFuncDecl*> proc_func_list;
+public:
+    ASTProcFuncDefPart();
+
+    std::vector<ASTProcFuncDecl*> getProcFuncList();
+    void addProcFuncDecl(ASTProcFuncDecl*);
+};
+
+/* procedure/function base class */
+class ASTProcFuncDecl : public ASTNode {
+public:
+    ASTProcFuncDecl();
+};
+
+/* procedure declarition part */
+class ASTProcedureDeclaration : public ASTProcFuncDecl {
+private:
+    ASTProcedureHead* head;
+    ASTProcedureBody* body;
+    std::string directive;
+public:
+    ASTProcedureDeclaration();
+    ASTProcedureDeclaration(ASTProcedureHead*, ASTProcedureBody*);
+    ASTProcedureDeclaration(ASTProcedureHead*, ASTProcedureBody*, std::string);
+
+    ASTProcedureHead* getProcHead();
+    ASTProcedureBody* getProcBody();
+    std::string getDirective();
+};
+
+/* procedure head */
+class ASTProcedureHead : public ASTNode {
+private:
+    std::string name;
+    ASTFormalParamList* param_list;
+public:
+    ASTProcedureHead();
+    ASTProcedureHead(std::string);
+    ASTProcedureHead(std::string, ASTFormalParamList*);
+
+    std::string getProcName();
+    ASTFormalParamList* getProcParam();
+};
+
+/* procedure block */
+class ASTProcedureBody : public ASTNode {
+private:
+    ASTBlock* block;
+public:
+    ASTProcedureBody();
+    ASTProcedureBody(ASTBlock*);
+
+    ASTBlock* getBlock();
+};
+
+/* function declarition part */
+class ASTFunctionDeclaration : public ASTProcFuncDecl {
+private:
+    ASTFunctionHead* head;
+    ASTFunctionBody* body;
+    std::string directive;
+public:
+    ASTFunctionDeclaration();
+    ASTFunctionDeclaration(ASTFunctionHead*, ASTFunctionBody*);
+    ASTFunctionDeclaration(ASTFunctionHead*, ASTFunctionBody*, std::string);
+
+    ASTFunctionHead* getFuncHead();
+    ASTFunctionBody* getFuncBody();
+    std::string getDirective();
+};
+
+/* function head */
+class ASTFunctionHead : public ASTNode {
+private:
+    std::string name;
+    ASTFormalParamList* param_list;
+public:
+    ASTFunctionHead();
+    ASTFunctionHead(std::string);
+    ASTFunctionHead(std::string, ASTFormalParamList*);
+
+    std::string getFuncName();
+    ASTFormalParamList* getFuncParam();
+};
+
+/* procedure block */
+class ASTFunctionBody : public ASTNode {
+private:
+    ASTBlock* block;
+public:
+    ASTFunctionBody();
+    ASTFunctionBody(ASTBlock*);
+
+    ASTBlock* getBlock();
+};
+
+
+/* formal parameter list */
+class ASTFormalParamList : public ASTNode {
+private:
+    std::vector<ASTFormalParam*> param_list;
+
+public:
+    ASTFormalParamList();
+
+    std::vector<ASTFormalParam*> getParamList();
+    void addParam(ASTFormalParam*);
+};
+
+/* formal parameter base class */
+class ASTFormalParam : public ASTNode {
+public:
+    enum FormalType { Value, Variable, Procedure, Function, Conformant };
+private:
+    FormalType formal_type;
+public:
+    ASTFormalParam();
+
+    FormalType getFormalType();
+    void setFormalType(FormalType);
+};
+
+/* value type formal parameter */
+class ASTFormalParamValue : public ASTFormalParam {
+private:
+    ASTIdentifierList* name_list;
+    ASTTypeOrdinal* type;
+public:
+    ASTFormalParamValue();
+    ASTFormalParamValue(ASTIdentifierList*, ASTTypeOrdinal*);
+
+    ASTIdentifierList* getNameList();
+    ASTTypeOrdinal* getType();
+};
+
+/* variable type formal parameter */
+class ASTFormalParamVariable : public ASTFormalParam {
+private:
+    ASTIdentifierList* name_list;
+    ASTTypeOrdinal* type;
+public:
+    ASTFormalParamVariable();
+    ASTFormalParamVariable(ASTIdentifierList*, ASTTypeOrdinal*);
+
+    ASTIdentifierList* getNameList();
+    ASTTypeOrdinal* getType();
+};
+
+/* procedure type formal parameter */
+class ASTFormalParamProc : public ASTFormalParam {
+private:
+    ASTProcedureHead* head;
+public:
+    ASTFormalParamProc();
+    ASTFormalParamProc(ASTProcedureHead*);
+
+    ASTProcedureHead* getHead();
+};
+
+/* function type formal parameter */
+class ASTFormalParamFunc : public ASTFormalParam {
+private:
+    ASTFunctionHead* head;
+public:
+    ASTFormalParamFunc();
+    ASTFormalParamFunc(ASTFunctionHead*);
+
+    ASTFunctionHead* getHead();
+};
+
 
 /* statement part */
 class ASTStatPart : public ASTNode {
