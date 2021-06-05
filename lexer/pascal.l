@@ -97,6 +97,7 @@ TYPE_BOOLEAN boolean
 LITERAL_INTEGER [0-9]+
 LITERAL_REAL ([0-9]+\.[0-9]+)
 LITERAL_CHAR \'.\'
+LITERAL_STRING \'([^']|'')*\'
 LITERAL_BOOLEAN_TRUE true
 LITERAL_BOOLEAN_FALSE false
 
@@ -198,6 +199,7 @@ COMMENT "{"[^\}]*"}"
 {LITERAL_INTEGER} { yylval.content = yytext; RETURN(LITERAL_INTEGER); }
 {LITERAL_REAL} { yylval.content = yytext; RETURN(LITERAL_REAL); }
 {LITERAL_CHAR} { yylval.content = yytext; RETURN(LITERAL_CHAR); }
+{LITERAL_STRING} { yylval.content = yytext; RETURN(LITERAL_STRING); }
 {LITERAL_BOOLEAN_TRUE} { yylval.content = yytext; RETURN(LITERAL_BOOLEAN_TRUE); }    
 {LITERAL_BOOLEAN_FALSE} { yylval.content = yytext; RETURN(LITERAL_BOOLEAN_FALSE); }  
 {SYMBOL_ADD} {  yylval.token_type = typeSymbol; RETURN(SYMBOL_ADD); }

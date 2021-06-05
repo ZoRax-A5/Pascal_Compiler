@@ -244,7 +244,7 @@ public:
 /* constant value (literal) */
 class ASTConst : public ASTNode {
 public:
-    enum ValueType { INTEGER, REAL, CHAR, BOOLEAN };
+    enum ValueType { INTEGER, REAL, CHAR, BOOLEAN, STRING };
 private:
     ValueType value_type;
     std::string literal;
