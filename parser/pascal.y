@@ -9,10 +9,10 @@ void yyerror(char *s);
 typedef enum { typeKeyword, typeSymbol, typeComment } TokenType;
 extern ASTNode* ast_root;
 
-#define PARSER_DEBUG
+#define PARSER_DEBUG 0
 
 #ifdef PARSER_DEBUG
-#define TRACE(x) (x)->setLocation(yylloc.first_line, yylloc.first_column); printf("reduce at line %d\n", yylloc.first_line)
+#define TRACE(x) (x)->setLocation(yylloc.first_line, yylloc.first_column); printf("reduce at %d.%d-%d.%d\n", yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column)
 #elif
 #define TRACE(x) (x)->setLocation(yylloc.first_line, yylloc.first_column)
 #endif
@@ -52,6 +52,19 @@ extern ASTNode* ast_root;
     ASTVarDecl* ast_var_decl;
     /* procedure or function */
     ASTProcFuncDefPart* ast_proc_func_def_part;
+    ASTProcedureDeclaration* ast_procedure_declaration;
+    ASTProcedureHead* ast_procedure_head;
+    ASTProcedureBody* ast_procedure_body;
+    ASTFunctionDeclaration* ast_function_declaration;  
+    ASTFunctionHead* ast_function_head;
+    ASTFunctionBody* ast_function_body;
+    /* formal parameter */
+    ASTFormalParamList* ast_formal_param_list;
+    ASTFormalParam* ast_formal_param;
+    ASTFormalParamValue* ast_formal_param_value;       
+    ASTFormalParamVariable* ast_formal_param_variable; 
+    ASTFormalParamProc* ast_formal_param_proc;
+    ASTFormalParamFunc* ast_formal_param_func;
     /* statement */
     ASTStatPart* ast_stat_part;
     ASTCompoundStat* ast_compound_stat;
@@ -129,6 +142,18 @@ extern ASTNode* ast_root;
 %type<ast_var_decl_list> variable_decl_list
 %type<ast_var_decl> variable_decl
 %type<ast_proc_func_def_part> procedure_function_declarition
+%type<ast_procedure_declaration> procedure_declarition
+%type<ast_procedure_head> procedure_head
+%type<ast_procedure_body> procedure_body
+%type<ast_function_declaration> function_declarition
+%type<ast_function_head> function_head
+%type<ast_function_body> function_body
+%type<ast_formal_param_list> formal_param_list
+%type<ast_formal_param> formal_param
+%type<ast_formal_param_value> value_param
+%type<ast_formal_param_variable> variable_param
+%type<ast_formal_param_proc> procedure_param
+%type<ast_formal_param_func> function_param
 %type<ast_stat_part> statement_part
 %type<ast_compound_stat> compound_statement
 %type<ast_stat_list> statement_list
@@ -179,6 +204,7 @@ identifier_list:
     identifier_list SYMBOL_COMMA IDENTIFIER {
         ($1)->addIdentifier($3);
         $$ = $1;
+        TRACE($$);
     }
     | IDENTIFIER {
         $$ = new ASTIdentifierList();
@@ -227,6 +253,7 @@ constant_list:
     constant_list constant_decl {
         ($1)->addConstDecl($2);
         $$ = $1;
+        TRACE($$);
     }
     | constant_decl {
         $$ = new ASTConstDeclList();
@@ -276,6 +303,7 @@ type_def_list:
     type_def_list type_def {
         ($1)->addTypeDef($2);
         $$ = $1;
+        TRACE($$);
     }
     | type_def {
         $$ = new ASTTypeDefList();
@@ -292,17 +320,21 @@ type_def:
 type_denoter:
     ordinal_type {
         $$ = $1;
+        TRACE($$);
     }
     | struct_type {
         $$ = $1;
+        TRACE($$);
     }
     | pointer_type {
         $$ = $1;
+        TRACE($$);
     }
 ;
 ordinal_type:
     base_type {
         $$ = $1;
+        TRACE($$);
     }
     | IDENTIFIER {
         $$ = new ASTTypeIdentifier($1);
@@ -345,12 +377,15 @@ base_type:
 struct_type:
     array_type {
         $$ = $1;
+        TRACE($$);
     }
     | record_type {
         $$ = $1;
+        TRACE($$);
     }
     | file_type {
         $$ = $1;
+        TRACE($$);
     }
 ;
 array_type:
@@ -390,6 +425,7 @@ variable_decl_list:
     variable_decl_list variable_decl {
         ($1)->addVarDecl($2);
         $$ = $1;
+        TRACE($$);
     }
     | variable_decl {
         $$ = new ASTVarDeclList();
@@ -405,8 +441,133 @@ variable_decl:
 ;
 
 procedure_function_declarition:
-    /* empty */ {
+    procedure_function_declarition procedure_declarition {
+        ($1)->addProcFuncDecl($2);
+        $$ = $1;
+        TRACE($$);
+    }
+    | procedure_function_declarition function_declarition {
+        ($1)->addProcFuncDecl($2);
+        $$ = $1;
+        TRACE($$);
+    }
+    | procedure_declarition {
+        $$ = new ASTProcFuncDefPart();
+        TRACE($$);
+    }
+    |  function_declarition {
+        $$ = new ASTProcFuncDefPart();
+        TRACE($$);
+    }
+    | /* empty */ {
         $$ = nullptr;
+    }
+;
+procedure_declarition:
+    procedure_head SYMBOL_SEMICOLON procedure_body {
+        $$ = new ASTProcedureDeclaration($1, $3);
+        TRACE($$);
+    }
+    | procedure_head SYMBOL_SEMICOLON IDENTIFIER SYMBOL_SEMICOLON procedure_body {
+        $$ = new ASTProcedureDeclaration($1, $5 ,$3);
+        TRACE($$);
+    }
+;
+procedure_head:
+    KEYWORD_PROCEDURE IDENTIFIER {
+        $$ = new ASTProcedureHead($2);
+        TRACE($$);
+    }
+    | KEYWORD_PROCEDURE IDENTIFIER SYMBOL_LPAREN formal_param_list SYMBOL_RPAREN {
+        $$ = new ASTProcedureHead($2, $4);
+        TRACE($$);
+    }
+;
+procedure_body:
+    block {
+        $$ = new ASTProcedureBody($1);
+        TRACE($$);
+    }
+;
+function_declarition:
+    function_head SYMBOL_SEMICOLON function_body {
+        $$ = new ASTFunctionDeclaration($1, $3);
+        TRACE($$);
+    }
+    | function_head SYMBOL_SEMICOLON IDENTIFIER SYMBOL_SEMICOLON function_body {
+        $$ = new ASTFunctionDeclaration($1, $5 ,$3);
+        TRACE($$);
+    }
+;
+function_head:
+    KEYWORD_FUNCTION IDENTIFIER SYMBOL_COLON ordinal_type {
+        $$ = new ASTFunctionHead($2, $4);
+        TRACE($$);
+    }
+    | KEYWORD_FUNCTION IDENTIFIER SYMBOL_LPAREN formal_param_list SYMBOL_RPAREN SYMBOL_COLON ordinal_type {
+        $$ = new ASTFunctionHead($2, $4, $7);
+        TRACE($$);
+    }
+;
+function_body:
+    block {
+        $$ = new ASTFunctionBody($1);
+        TRACE($$);
+    }     
+;
+
+formal_param_list:
+    formal_param_list SYMBOL_SEMICOLON formal_param {
+        ($1)->addParam($3);
+        $$ = $1;
+        TRACE($$);
+    }
+    | formal_param {
+        $$ = new ASTFormalParamList();
+        ($$)->addParam($1);
+        TRACE($$);
+    }
+;
+formal_param:
+    value_param {
+        $$ = $1;
+        TRACE($$);
+    }
+    | variable_param {
+        $$ = $1;
+        TRACE($$);
+    }
+    | procedure_param {
+        $$ = $1;
+        TRACE($$);
+    }
+    | function_param {
+        $$ = $1;
+        TRACE($$);
+    }
+;
+value_param:
+    identifier_list SYMBOL_COLON ordinal_type {
+        $$ = new ASTFormalParamValue($1, $3);
+        TRACE($$);
+    }
+;
+variable_param:
+    KEYWORD_VAR identifier_list SYMBOL_COLON ordinal_type {
+        $$ = new ASTFormalParamVariable($2, $4);
+        TRACE($$);
+    }
+;
+procedure_param:
+    procedure_head {
+         $$ = new ASTFormalParamProc($1);
+        TRACE($$);
+    }
+;
+function_param:
+    function_head {
+        $$ = new ASTFormalParamFunc($1);
+        TRACE($$);
     }
 ;
 
@@ -429,6 +590,7 @@ statement_list:
     statement_list label_statement SYMBOL_SEMICOLON {
         ($1)->addStat($2);
         $$ = $1;
+        TRACE($$);
     }
     | label_statement SYMBOL_SEMICOLON {
         $$ = new ASTStatList();
@@ -440,29 +602,37 @@ label_statement:
     IDENTIFIER SYMBOL_COLON statement {
         ($3)->setLabel($1);
         $$ = $3;
+        TRACE($$);
     }
     | statement {
         $$ = $1;
+        TRACE($$);
     }
 ;
 statement:
     assign_statement {
         $$ = $1;
+        TRACE($$);
     }
     | goto_statement {
         $$ = $1;
+        TRACE($$);
     }
     | if_statement {
         $$ = $1;
+        TRACE($$);
     }
     | repeat_statement {
         $$ = $1;
+        TRACE($$);
     }
     | while_statement {
         $$ = $1;
+        TRACE($$);
     }
     | compound_statement {
         $$ = $1;
+        TRACE($$);
     }
 ;
 assign_statement:
@@ -527,6 +697,7 @@ relational_expression:
     }
     | expression {
         $$ = $1;
+        TRACE($$);
     }
 ;
 expression:
@@ -544,6 +715,7 @@ expression:
     }
     | term {
         $$ = $1;
+        TRACE($$);
     }
 ;
 term:
@@ -565,6 +737,7 @@ term:
     }
     | factor {
         $$ = $1;
+        TRACE($$);
     }
 ;
 factor:
@@ -578,6 +751,7 @@ factor:
     }
     | SYMBOL_LPAREN relational_expression SYMBOL_RPAREN {
         $$ = $2;
+        TRACE($$);
     }
     | SYMBOL_SUB factor {
         $$ = new ASTExprUnary($2, ASTExpr::OPType::OP_NEG);
