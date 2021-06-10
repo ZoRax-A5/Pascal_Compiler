@@ -3,6 +3,8 @@
 #include <vector>
 #include <utility>
 
+class Visitor;
+
 /* class declarition */
 /* base class */
 class ASTNode;
@@ -74,7 +76,6 @@ class ASTStatIterRepeat;
 class ASTStatIterWhile;
 /* expression */
 class ASTExpr;
-class ASTExprBoolean;
 class ASTExprBinary;
 class ASTExprUnary;
 class ASTExprConst;
@@ -83,12 +84,14 @@ class ASTExprIdentifier;
 /* AST node base class */
 class ASTNode {
 private:
-    int line_num;
-    int col_num;
+    std::pair <int, int> first_loc, last_loc;
 public:
     ASTNode();
-    std::pair <int, int> getLocation(void);
-    void setLocation(int line, int col);
+    std::pair <std::pair <int, int>, std::pair <int, int>> getLocation(void);
+    void setLocation(int fline, int fcol, int lline, int lcol);
+
+    virtual ~ASTNode() {}
+    virtual void accept(Visitor* visitor) = 0;
 };
 
 /* program base node */
@@ -102,6 +105,8 @@ public:
 
     ASTProgramHead* getProgramHead();
     ASTProgramBody* getProgramBody();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* program head node */
@@ -116,6 +121,8 @@ public:
 
     std::string getProgramName();
     ASTProgramParamList* getParamList();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* program body node*/
@@ -127,6 +134,8 @@ public:
     ASTProgramBody(ASTBlock*);
 
     ASTBlock* getBlock();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* block node */
@@ -148,6 +157,8 @@ public:
     ASTVarDeclPart* getVarDecl();
     ASTProcFuncDefPart* getProcFuncDef();
     ASTStatPart* getStatPart();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* program parameter list node */
@@ -159,6 +170,8 @@ public:
     ASTProgramParamList(ASTIdentifierList*);
 
     ASTIdentifierList* getASTIdentifierList();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* name list of identifiers */
@@ -170,6 +183,8 @@ public:
 
     void addIdentifier(std::string);
     std::vector<std::string> getIdentifierList();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* label declaration part */
@@ -181,6 +196,8 @@ public:
     ASTLabelDeclPart(ASTLabelList*);
 
     ASTLabelList* getASTLabelList();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* label list */
@@ -192,6 +209,8 @@ public:
 
     std::vector<ASTLabel*> getLabelList();
     void addLabel(ASTLabel*);
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* label */
@@ -203,6 +222,8 @@ public:
     ASTLabel(std::string);
 
     std::string getTag();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* constant definition part*/
@@ -214,6 +235,8 @@ public:
     ASTConstDeclPart(ASTConstDeclList*);
 
     ASTConstDeclList* getASTConstDeclList();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* constant definition list */
@@ -226,6 +249,7 @@ public:
     std::vector<ASTConstDecl*> getConstDeclList();
     void addConstDecl(ASTConstDecl*);
 
+    virtual void accept(Visitor* visitor);
 };
 
 /* constant definition line */
@@ -239,6 +263,8 @@ public:
 
     std::string getIdentifier();
     ASTConst* getConst();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* constant value (literal) */
@@ -257,6 +283,8 @@ public:
     std::string getLiteral();
     bool getSign();
     void setSign(bool);
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* type definition part*/
@@ -268,6 +296,8 @@ public:
     ASTTypeDefPart(ASTTypeDefList*);
 
     ASTTypeDefList* getASTTypeDefList();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* type definition list */
@@ -279,6 +309,8 @@ public:
 
     std::vector<ASTTypeDef*> getTypeDefList();
     void addTypeDef(ASTTypeDef*);
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* type definition unit */
@@ -292,6 +324,8 @@ public:
 
     std::string getIdentifier();
     ASTTypeDenoter* getTypeDenoter();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* type denoter (base class) */
@@ -303,18 +337,22 @@ public:
     ASTTypeDenoter();
 
     TypeType getType();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* ordinal type base class */
 class ASTTypeOrdinal : public ASTTypeDenoter {
 public:
     ASTTypeOrdinal();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* pascal builtin type */
 class ASTTypeOrdinalBase : public ASTTypeOrdinal {
 public:
-    enum Builtin { INTEGER, REAL, CHAR, BOOLEAN };
+    enum Builtin { INTEGER, REAL, CHAR, BOOLEAN, STRING };
 private:
     Builtin type;
 public:
@@ -322,6 +360,8 @@ public:
     ASTTypeOrdinalBase(Builtin);
 
     Builtin getBaseType();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* pascal identifier type */
@@ -333,6 +373,8 @@ public:
     ASTTypeIdentifier(std::string);
 
     std::string getTypeIdentifier();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* ordinal enumerate type */
@@ -344,6 +386,8 @@ public:
     ASTTypeOrdinalEnum(ASTIdentifierList*);
 
     ASTIdentifierList* getIdentifierList();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* ordinal subrange type */
@@ -357,12 +401,16 @@ public:
 
     ASTConst* getMin();
     ASTConst* getMax();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* structure type base class */
 class ASTTypeStruct : public ASTTypeDenoter {
 public:
     ASTTypeStruct();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* structure array type */
@@ -376,12 +424,16 @@ public:
 
     ASTTypeOrdinal* getValue();
     ASTTypeDenoter* getDenoter();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* structure record type */
 class ASTTypeStructRecord : public ASTTypeStruct {
 public:
     ASTTypeStructRecord();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* structure file type */
@@ -393,6 +445,8 @@ public:
     ASTTypeStructFile(ASTTypeDenoter*);
 
     ASTTypeDenoter* getComponentType();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* pointer type */
@@ -404,6 +458,8 @@ public:
     ASTTypePointer(ASTTypeIdentifier*);
 
     ASTTypeIdentifier* getDomainType();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* variable declarition part */
@@ -415,6 +471,8 @@ public:
     ASTVarDeclPart(ASTVarDeclList*);
 
     ASTVarDeclList* getASTVarDeclList();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* variable declarition list */
@@ -427,6 +485,7 @@ public:
     std::vector<ASTVarDecl*> getVarDeclList();
     void addVarDecl(ASTVarDecl*);
 
+    virtual void accept(Visitor* visitor);
 };
 
 /* variable declarition line */
@@ -440,6 +499,8 @@ public:
 
     ASTIdentifierList* getASTIdentifierList();
     ASTTypeDenoter* getTypeDenoter();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* procedure/function */
@@ -451,12 +512,16 @@ public:
 
     std::vector<ASTProcFuncDecl*> getProcFuncList();
     void addProcFuncDecl(ASTProcFuncDecl*);
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* procedure/function base class */
 class ASTProcFuncDecl : public ASTNode {
 public:
     ASTProcFuncDecl();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* procedure declarition part */
@@ -473,6 +538,8 @@ public:
     ASTProcedureHead* getProcHead();
     ASTProcedureBody* getProcBody();
     std::string getDirective();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* procedure head */
@@ -487,6 +554,8 @@ public:
 
     std::string getProcName();
     ASTFormalParamList* getProcParam();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* procedure block */
@@ -498,6 +567,8 @@ public:
     ASTProcedureBody(ASTBlock*);
 
     ASTBlock* getBlock();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* function declarition part */
@@ -514,6 +585,8 @@ public:
     ASTFunctionHead* getFuncHead();
     ASTFunctionBody* getFuncBody();
     std::string getDirective();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* function head */
@@ -530,6 +603,8 @@ public:
     std::string getFuncName();
     ASTFormalParamList* getFuncParam();
     ASTTypeOrdinal* getReturnType();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* procedure block */
@@ -541,6 +616,8 @@ public:
     ASTFunctionBody(ASTBlock*);
 
     ASTBlock* getBlock();
+
+    virtual void accept(Visitor* visitor);
 };
 
 
@@ -554,6 +631,8 @@ public:
 
     std::vector<ASTFormalParam*> getParamList();
     void addParam(ASTFormalParam*);
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* formal parameter base class */
@@ -567,6 +646,8 @@ public:
 
     FormalType getFormalType();
     void setFormalType(FormalType);
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* value type formal parameter */
@@ -580,6 +661,8 @@ public:
 
     ASTIdentifierList* getNameList();
     ASTTypeOrdinal* getType();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* variable type formal parameter */
@@ -593,6 +676,8 @@ public:
 
     ASTIdentifierList* getNameList();
     ASTTypeOrdinal* getType();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* procedure type formal parameter */
@@ -604,6 +689,8 @@ public:
     ASTFormalParamProc(ASTProcedureHead*);
 
     ASTProcedureHead* getHead();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* function type formal parameter */
@@ -615,6 +702,8 @@ public:
     ASTFormalParamFunc(ASTFunctionHead*);
 
     ASTFunctionHead* getHead();
+
+    virtual void accept(Visitor* visitor);
 };
 
 
@@ -624,9 +713,11 @@ private:
     std::vector<ASTActualParam*> param_list;
 public:
     ASTActualParamList();
-    
+
     std::vector<ASTActualParam*> getParamList();
     void addParam(ASTActualParam*);
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* actual parameter */
@@ -638,6 +729,8 @@ public:
     ASTActualParam(ASTExpr*);
 
     ASTExpr* getExpr();
+
+    virtual void accept(Visitor* visitor);
 };
 
 
@@ -650,6 +743,8 @@ public:
     ASTStatPart(ASTCompoundStat*);
 
     ASTCompoundStat* getCompoundStat();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* statement base class */
@@ -672,6 +767,8 @@ public:
     void setStatType(StatType);
     std::string getLabel();
     void setLabel(std::string);
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* compound statement as struct statement */
@@ -684,6 +781,8 @@ public:
     ASTCompoundStat(ASTStatList*, StatType, std::string);
 
     ASTStatList* getASTStatList();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* statement list */
@@ -695,6 +794,8 @@ public:
 
     std::vector<ASTStat*> getStatList();
     void addStat(ASTStat*);
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* assign statement */
@@ -708,6 +809,8 @@ public:
 
     ASTExpr* getLvalue();
     ASTExpr* getRvalue();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* goto statement */
@@ -719,6 +822,8 @@ public:
     ASTStatGoto(std::string, StatType);
 
     std::string getLabel();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* procedure call statement */
@@ -733,6 +838,8 @@ public:
 
     std::string getProcName();
     ASTActualParamList* getParamList();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* condition if statement */
@@ -749,6 +856,8 @@ public:
     ASTExpr* getCondition();
     ASTStat* getThenCode();
     ASTStat* getElseCode();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* repetitive repeat statement */
@@ -762,6 +871,8 @@ public:
 
     ASTStatList* getRepeatStatList();
     ASTExpr* getRepeatCondition();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* repetitive while statement */
@@ -775,6 +886,8 @@ public:
 
     ASTStat* getRepeatStat();
     ASTExpr* getRepeatCondition();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* expression base class */
@@ -796,6 +909,8 @@ public:
     void setOp(std::string);
     OPType getOpType();
     void setOpType(OPType);
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* binary operand expression */
@@ -809,6 +924,8 @@ public:
 
     ASTExpr* getOpLeft();
     ASTExpr* getOpRight();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* one operand expression */
@@ -820,6 +937,8 @@ public:
     ASTExprUnary(ASTExpr*, OPType);
 
     ASTExpr* getOp();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* constant value expression */
@@ -831,6 +950,8 @@ public:
     ASTExprConst(ASTConst*);
 
     ASTConst* getConstValue();
+
+    virtual void accept(Visitor* visitor);
 };
 
 /* identifier substitution expression */
@@ -842,4 +963,6 @@ public:
     ASTExprIdentifier(std::string);
 
     std::string getIdentifier();
+
+    virtual void accept(Visitor* visitor);
 };

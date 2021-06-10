@@ -1,15 +1,16 @@
 #include "ast.h"
+#include "../visitor/visitor.h"
 
 ASTNode* ast_root;
 
 /* AST node base class */
-ASTNode::ASTNode() : line_num(0), col_num(0) {}
-std::pair <int, int> ASTNode::getLocation(void) {
-    return std::make_pair(this->line_num, this->col_num);
+ASTNode::ASTNode() {}
+std::pair <std::pair <int, int>, std::pair <int, int>> ASTNode::getLocation(void) {
+    return std::make_pair(this->first_loc, this->last_loc);
 }
-void ASTNode::setLocation(int line, int col) {
-    this->line_num = line;
-    this->col_num = col;
+void ASTNode::setLocation(int fline, int fcol, int lline, int lcol) {
+    first_loc = std::make_pair(fline, fcol);
+    last_loc = std::make_pair(lline, lcol);
 }
 
 
@@ -193,7 +194,9 @@ ASTProcFuncDecl::ASTProcFuncDecl() {}
 /* procedure declarition part */
 ASTProcedureDeclaration::ASTProcedureDeclaration() {}
 ASTProcedureDeclaration::ASTProcedureDeclaration(ASTProcedureHead* a1, ASTProcedureBody* a2)
-    : head(a1), body(a2) {}
+    : head(a1), body(a2) {
+    directive = "";
+}
 ASTProcedureDeclaration::ASTProcedureDeclaration(ASTProcedureHead* a1, ASTProcedureBody* a2, std::string a3)
     : head(a1), body(a2), directive(a3) {}
 ASTProcedureHead* ASTProcedureDeclaration::getProcHead() { return head; }
@@ -399,3 +402,66 @@ ASTConst* ASTExprConst::getConstValue() { return value; }
 ASTExprIdentifier::ASTExprIdentifier() {}
 ASTExprIdentifier::ASTExprIdentifier(std::string a1) : identifier(a1) {}
 std::string ASTExprIdentifier::getIdentifier() { return identifier; }
+
+/* visitor accept interface */
+void ASTProgram::accept(Visitor* visitor) { visitor->visitASTProgram(this); }
+void ASTProgramHead::accept(Visitor* visitor) { visitor->visitASTProgramHead(this); }
+void ASTProgramBody::accept(Visitor* visitor) { visitor->visitASTProgramBody(this); }
+void ASTBlock::accept(Visitor* visitor) { visitor->visitASTBlock(this); }
+void ASTProgramParamList::accept(Visitor* visitor) { visitor->visitASTProgramParamList(this); }
+void ASTIdentifierList::accept(Visitor* visitor) { visitor->visitASTIdentifierList(this); }
+void ASTLabelDeclPart::accept(Visitor* visitor) { visitor->visitASTLabelDeclPart(this); }
+void ASTLabelList::accept(Visitor* visitor) { visitor->visitASTLabelList(this); }
+void ASTLabel::accept(Visitor* visitor) { visitor->visitASTLabel(this); }
+void ASTConstDeclPart::accept(Visitor* visitor) { visitor->visitASTConstDeclPart(this); }
+void ASTConstDeclList::accept(Visitor* visitor) { visitor->visitASTConstDeclList(this); }
+void ASTConstDecl::accept(Visitor* visitor) { visitor->visitASTConstDecl(this); }
+void ASTConst::accept(Visitor* visitor) { visitor->visitASTConst(this); }
+void ASTTypeDefPart::accept(Visitor* visitor) { visitor->visitASTTypeDefPart(this); }
+void ASTTypeDefList::accept(Visitor* visitor) { visitor->visitASTTypeDefList(this); }
+void ASTTypeDef::accept(Visitor* visitor) { visitor->visitASTTypeDef(this); }
+void ASTTypeDenoter::accept(Visitor* visitor) { visitor->visitASTTypeDenoter(this); }
+void ASTTypeIdentifier::accept(Visitor* visitor) { visitor->visitASTTypeIdentifier(this); }
+void ASTTypeOrdinal::accept(Visitor* visitor) { visitor->visitASTTypeOrdinal(this); }
+void ASTTypeOrdinalBase::accept(Visitor* visitor) { visitor->visitASTTypeOrdinalBase(this); }
+void ASTTypeOrdinalEnum::accept(Visitor* visitor) { visitor->visitASTTypeOrdinalEnum(this); }
+void ASTTypeOrdinalSubrange::accept(Visitor* visitor) { visitor->visitASTTypeOrdinalSubrange(this); }
+void ASTTypeStruct::accept(Visitor* visitor) { visitor->visitASTTypeStruct(this); }
+void ASTTypeStructArray::accept(Visitor* visitor) { visitor->visitASTTypeStructArray(this); }
+void ASTTypeStructRecord::accept(Visitor* visitor) { visitor->visitASTTypeStructRecord(this); }
+void ASTTypeStructFile::accept(Visitor* visitor) { visitor->visitASTTypeStructFile(this); }
+void ASTTypePointer::accept(Visitor* visitor) { visitor->visitASTTypePointer(this); }
+void ASTVarDeclPart::accept(Visitor* visitor) { visitor->visitASTVarDeclPart(this); }
+void ASTVarDeclList::accept(Visitor* visitor) { visitor->visitASTVarDeclList(this); }
+void ASTVarDecl::accept(Visitor* visitor) { visitor->visitASTVarDecl(this); }
+void ASTProcFuncDefPart::accept(Visitor* visitor) { visitor->visitASTProcFuncDefPart(this); }
+void ASTProcFuncDecl::accept(Visitor* visitor) { visitor->visitASTProcFuncDecl(this); }
+void ASTProcedureDeclaration::accept(Visitor* visitor) { visitor->visitASTProcedureDeclaration(this); }
+void ASTProcedureHead::accept(Visitor* visitor) { visitor->visitASTProcedureHead(this); }
+void ASTProcedureBody::accept(Visitor* visitor) { visitor->visitASTProcedureBody(this); }
+void ASTFunctionDeclaration::accept(Visitor* visitor) { visitor->visitASTFunctionDeclaration(this); }
+void ASTFunctionHead::accept(Visitor* visitor) { visitor->visitASTFunctionHead(this); }
+void ASTFunctionBody::accept(Visitor* visitor) { visitor->visitASTFunctionBody(this); }
+void ASTFormalParamList::accept(Visitor* visitor) { visitor->visitASTFormalParamList(this); }
+void ASTFormalParam::accept(Visitor* visitor) { visitor->visitASTFormalParam(this); }
+void ASTFormalParamValue::accept(Visitor* visitor) { visitor->visitASTFormalParamValue(this); }
+void ASTFormalParamVariable::accept(Visitor* visitor) { visitor->visitASTFormalParamVariable(this); }
+void ASTFormalParamProc::accept(Visitor* visitor) { visitor->visitASTFormalParamProc(this); }
+void ASTFormalParamFunc::accept(Visitor* visitor) { visitor->visitASTFormalParamFunc(this); }
+void ASTActualParamList::accept(Visitor* visitor) { visitor->visitASTActualParamList(this); }
+void ASTActualParam::accept(Visitor* visitor) { visitor->visitASTActualParam(this); }
+void ASTStatPart::accept(Visitor* visitor) { visitor->visitASTStatPart(this); }
+void ASTCompoundStat::accept(Visitor* visitor) { visitor->visitASTCompoundStat(this); }
+void ASTStatList::accept(Visitor* visitor) { visitor->visitASTStatList(this); }
+void ASTStat::accept(Visitor* visitor) { visitor->visitASTStat(this); }
+void ASTStatAssign::accept(Visitor* visitor) { visitor->visitASTStatAssign(this); }
+void ASTStatGoto::accept(Visitor* visitor) { visitor->visitASTStatGoto(this); }
+void ASTStatProc::accept(Visitor* visitor) { visitor->visitASTStatProc(this); }
+void ASTStatCondIf::accept(Visitor* visitor) { visitor->visitASTStatCondIf(this); }
+void ASTStatIterRepeat::accept(Visitor* visitor) { visitor->visitASTStatIterRepeat(this); }
+void ASTStatIterWhile::accept(Visitor* visitor) { visitor->visitASTStatIterWhile(this); }
+void ASTExpr::accept(Visitor* visitor) { visitor->visitASTExpr(this); }
+void ASTExprBinary::accept(Visitor* visitor) { visitor->visitASTExprBinary(this); }
+void ASTExprUnary::accept(Visitor* visitor) { visitor->visitASTExprUnary(this); }
+void ASTExprConst::accept(Visitor* visitor) { visitor->visitASTExprConst(this); }
+void ASTExprIdentifier::accept(Visitor* visitor) { visitor->visitASTExprIdentifier(this); }
