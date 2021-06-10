@@ -1,3 +1,4 @@
+ASTNode
 ASTProgram
 ASTProgramHead
 ASTProgramBody
@@ -42,6 +43,8 @@ ASTFormalParamValue
 ASTFormalParamVariable
 ASTFormalParamProc
 ASTFormalParamFunc
+ASTActualParamList
+ASTActualParam
 ASTStatPart
 ASTCompoundStat
 ASTStatList
@@ -53,7 +56,6 @@ ASTStatCondIf
 ASTStatIterRepeat
 ASTStatIterWhile
 ASTExpr
-ASTExprBoolean
 ASTExprBinary
 ASTExprUnary
 ASTExprConst
