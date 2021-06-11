@@ -91,7 +91,7 @@ void VisitorJson::visitASTProgramParamList(ASTProgramParamList* node) {
 	json_stream << "\"type\":\"ASTProgramParamList\",";
 	printLocation(node);
 	json_stream << "\"parameter list\":[";
-	node->getASTIdentifierList();
+	node->getASTIdentifierList()->accept(this);
 	json_stream << "]";
 }
 
@@ -215,6 +215,7 @@ void VisitorJson::visitASTTypeOrdinalBase(ASTTypeOrdinalBase* node) {
 	std::string tag[] = { "integer", "real", "char", "boolean", "string" };
 	json_stream << "\"name\":\"" + tag[node->getBaseType()] + "\"";
 }
+
 void VisitorJson::visitASTTypeOrdinalEnum(ASTTypeOrdinalEnum* node) {
 	json_stream << "\"type\":\"ASTTypeOrdinalEnum\",";
 	printLocation(node);
@@ -222,6 +223,7 @@ void VisitorJson::visitASTTypeOrdinalEnum(ASTTypeOrdinalEnum* node) {
 	node->getIdentifierList()->accept(this);
 	json_stream << "]";
 }
+
 void VisitorJson::visitASTTypeOrdinalSubrange(ASTTypeOrdinalSubrange* node) {
 	json_stream << "\"type\":\"ASTTypeOrdinalSubrange\",";
 	printLocation(node);
