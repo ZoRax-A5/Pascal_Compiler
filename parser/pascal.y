@@ -394,6 +394,11 @@ base_type:
         $$ = new ASTTypeOrdinalBase(ASTTypeOrdinalBase::Builtin::BOOLEAN);
         TRACE($$, @$);
     }
+    | KEYWORD_STRING {
+        $$ = new ASTTypeOrdinalBase(ASTTypeOrdinalBase::Builtin::STRING);
+        TRACE($$, @$);
+    }
+;
 struct_type:
     array_type {
         $$ = $1;
