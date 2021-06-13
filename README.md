@@ -1,52 +1,12 @@
 # Pascal_Compiler
 
-## 2021.05.31
 
-摸完鱼来学习一下 Pascal 上古语言。运行环境为 `free pascal compiler`。这么语言可以看到这么几个主要特色：
-
-* 强类型语言：只有一些轻微基本的自动类型转换，必须要严格的 `explicit conversion`
-* 嵌套：`function` 和 `procedure` 可以无限嵌套
-* 大小写不敏感
-
-Pascal的代码由语句构成。基本的程序结构如下。
-
-```pascal
-program {name of the program}
-uses {comma delimited names of libraries you use}
-const {global constant declaration block}
-var {global variable declaration block}
-function {function declarations, if any}
-{ local variables }
-begin
-...
-end;
-procedure { procedure declarations, if any}
-{ local variables }
-begin
-...
-end;
-begin { main program block starts}
-...
-end. { the end of main program block }
-```
-
-字符集如下：
-
-* 全部大写字母：[A-Z]
-* 全部小写字母：[a-z]
-* 全部数字：[0-9]
-* 特殊符号：\- + * / := , . ; () [] = {} 空格 
-* 标识符：[a-z|A-Z] [a-z|A-Z|0-9]*
-
-保留字：https://wiki.freepascal.org/Identifiers/zh_CN
-
-函数与过程的区别：是否返回值
 
 ## 编译环境
 
 * Bison for Windows 2.4.1: http://gnuwin32.sourceforge.net/packages/bison.htm
 * Flex for Windows 2.5.4a: http://gnuwin32.sourceforge.net/packages/flex.htm
-* Linux 事实上也能编译运行...
+* Linux 测试环境为 Ubuntu 20.04, bison (GNU Bison) 3.5.1, flex 2.6.4
 
 ## 词法分析 (Lexical Analysis)
 
@@ -83,27 +43,93 @@ end. { the end of main program block }
 
 ### 类型处理
 
-在 `Pascal` 程序中，我们需要处理的字符串对应的 `token` 的类型并不相同。大体上，我们需要处理以下几类：
+在 `Pascal` 程序中，词法分析阶段需要处理的字符串对应的 `token` 的类型并不相同，分为以下几类：
 
 * keyword：程序保留关键字
-* type：Pascal 的内建类型，包括 `integer`, `real`, `char`, `boolean`
+* type： Pascal 的内建类型，包括 `integer`, `real`, `char`, `boolean`, `string`
 * literal：对应上面几种类型的字面量
-* symbol：各种符号，包括运算符、分隔符、换行符等等
+* symbol：各种符号，包括：运算符、等等
 * identifier：标识符
 * comment：注释
+* separator：分隔符、换行符等
 
 针对关键字，我们采用了FPC参考中的 Turbo Pascal 保留字，参考链接如下：https://wiki.freepascal.org/Identifiers/zh_CN。
 
-> 类型处理，字面量：待完善
+| absolute        | and           | array          | asm        | begin         | break              | case       | const           |
+| --------------- | ------------- | -------------- | ---------- | ------------- | ------------------ | ---------- | --------------- |
+| **constructor** | **continue**  | **destructor** | **div**    | **do**        | **downto**         | **else**   | **end**         |
+| **file**        | **for**       | **function**   | **goto**   | **if**        | **implementation** | **in**     | **inherited**   |
+| **inline**      | **interface** | **label**      | **mod**    | **nil**       | **not**            | **object** | **of**          |
+| **on**          | **operator**  | **or**         | **packed** | **procedure** | **program**        | **record** | **reintroduce** |
+| **repeat**      | **self**      | **set**        | **shl**    | **shr**       | **string**         | **then**   | **to**          |
+| **type**        | **unit**      | **until**      | **use**    | **var**       | **while**          | **with**   | **xor**         |
 
-针对符号，我们考虑了关系运算符、代数运算符、取址运算符和分隔符。另外注意，`Pascal` 中部分运算并不一定通过符号完成。例如，与运算为保留关键字 `and`，或运算为保留关键字 `or`。
+针对类型处理，词法分析支持五种Pascal的基本类型。其中，`string`类型作为关键字进行token匹配。通过关键字匹配，提供对于拓展类型的支持。通过符号匹配，提供对于指针类型的定义。
+
+* 基本类型：integer, real, char, boolean, string
+* 拓展类型：array, record, file
+* 指针类型：caret (symbol)
+
+针对字面量，词法分析匹配五种基本类型对应的字面量。
+
+| Type    | Regular Expression      |
+| ------- | ----------------------- |
+| integer | [ 0-9 ]+                |
+| real    | [ 0-9 ]+ . [ 0-9 ]+     |
+| char    | '.'                     |
+| string  | ' (\[ ^' ] \| \' ' )* ' |
+| boolean | true                    |
+| boolean | false                   |
+
+针对符号，词法分析支持关系运算符、代数运算符、取址运算符和分隔符等符号。另外注意，`Pascal` 中部分运算并不一定通过符号完成。例如：与运算为保留关键字 `and`，或运算为保留关键字 `or`。
 
 * 代数运算：+, -, *, /, %, :=
 * 关系运算：>, <, >=, <=, =, <>
 * 地址运算：^, @, .
 * 分隔符：, ; : ( ) [ ] 等
 
-观察到：我们需要处理较多类型的 `token`， 而大部分对应需要的操作是重叠的。关键字、符号和类型定义的规则中，操作是较为接近的。因此，我们可以利用 `Lex` 提供的 `substitution` 替换上面的正则表达式，以便于我们对于代码统一处理。另外，在规则中使用 `substitution` 需要注意用 `{}` 包围，以区分常规的正则表达式。这些 `token` 对应的详细类型，我们则在 `parser` 部分进行完成。
+针对标识符和注释，词法分析根据各自的正则表达式进行表示，在pascal代码中，变量命名和注释格式应符合语法规则。
+
+| Type       | Regular Expression              |
+| ---------- | ------------------------------- |
+| Identifier | [ a-z A-Z _ ]\[ 0-9 a-z A-Z _ ] |
+| Comment    | { [ \^} ]* }                    |
+
+对于分隔符，词法分析会匹配制表符、换行符这些特殊符号。需要注意的是，Linux 和 Windows 采用的换行符并不相同。
+
+* 空白符：" ", "\t"
+* 换行符："\n" (Linux), "\r\n" (Windows)
+
+对于上述几种类型，词法分析在扫描中，需要根据对应的正则表达式进行匹配，并将匹配结果传递到语法分析部分。这里的返回针对语法分析中使用到的两个栈：`parse stack`, `value stack`。parse stack 包含了语法分析中使用的终结符和非终结符，表示一个当前的语法栈的状态。value stack 保存了词法分析中每个 token 对应的值，值的类型与 `YYSTYPE` 所定义的类型相同，每一个值对应 parse stack 中的一个 element。词法分析中，通过 return 将 token 类型传递到语法分析的 parse stack, 通过改变 yylval 的值将 token 内容传递到语法分析的 value stack。
+
+在词法分析的文法阶段中，为了便于代码重构，方便统一处理，可以利用 `Lex` 提供的 `substitution` 替换 token 类型对应匹配的正则表达式。格式为 `substitution regularExpression` 例如：
+
+```
+KEYWORD_ABSOLUTE absolute
+TYPE_INTEGER integer
+LITERAL_INTEGER [0-9]+
+SYMBOL_ADD "+"
+IDENTIFIER [a-zA-Z_][a-zA-Z0-9_]*
+COMMENT "{"[^\}]*"}"
+```
+
+在匹配规则部分，使用 `substitution` 用 `{}` 包围，以区分常规的正则表达式。对于每个 token 的匹配，处理是改变 yylval 对应类型的值，并返回 token 的类型。 YYSTYPE 是一个结构体，在语法分析的对应代码中定义。对于 token 类型的定义，也在语法分析的对应代码中定义。我们则在语法分析部分讲解。这里 `rule` 部分的处理如下例：
+
+```
+{KEYWORD_ABSOLUTE} { yylval.token_type = typeKeyword; RETURN(KEYWORD_ABSOLUTE); }
+...
+{TYPE_INTEGER} { yylval.token_type = typeKeyword; RETURN(TYPE_INTEGER); }
+...
+{LITERAL_INTEGER} { yylval.content = strdup(yytext); RETURN(LITERAL_INTEGER); }
+...
+{SYMBOL_ADD} {  yylval.token_type = typeSymbol; RETURN(SYMBOL_ADD); }
+...
+{IDENTIFIER} { yylval.content = strdup(yytext); RETURN(IDENTIFIER); }
+{COMMENT} { }
+\n|(\r\n) { offset = 1; }
+" "|\t {}
+. { printf("unknown token\n"); }
+```
 
 ### Debug 实现
 
@@ -161,27 +187,538 @@ int offset = 1;
 
 ## 语法分析 (Syntax Analysis)
 
-> 等待语法部分完成
+### 基本原理
 
-* 输入：tokens（终结符）
-* 输出：AST node 的语法树。（返回root）
+在语法分析这一阶段，我们需要对词法分析过程得到的tokens序列进行语法分析处理，最终得到的是源程序的语法树。语法分析通过主要通过语法栈实现，将 token 序列通过移进 (shift) ，规约 (reduce) 处理，得到语法起始的非终结符。我们需要为语法分析实现提供语言的BNF文法，并在文法规则中构建语法树。
 
-### 目前支持功能
+项目中的语法分析主要通过 `Yacc` 实现。语法分析提供 `yyparse` 接口给编译器调用，输入为重定向的待编译源代码文件，输出为语法树。同时，这一阶段进行初步的错误处理 (error handle) ，语法树可视化，以及输出保存语法树的具体信息。
 
-* label声明
-* const声明
-* var声明
-* type声明
-* 代数运算：代数运算，逻辑运算，关系运算
-* 语句：条件语句，控制语句
+### 语法树
 
-### 进一步的工作
+语法树中每个节点保存了不同层次结构的程序信息，这也导致每个节点的具体类型是不同的。为了表示语法树，需要预先定义不同的节点类型，并实现不同节点对应的内部数据类型和方法接口。首先，为了便于构建、遍历语法树，应该定义一个抽象类作为基类。后面不同的抽象类/具体类继承该抽象类。
 
-* 对上面的功能模块不断debug
-* type中的record部分
-* 取值操作（赋值语句等提供支持）
-* 函数和过程
-* **语法树的遍历（展示时用，以及生成中间代码）**
+```c++
+/* AST node base class */
+class ASTNode {
+private:
+    std::pair <int, int> first_loc, last_loc;
+public:
+    ASTNode();
+    std::pair <std::pair <int, int>, std::pair <int, int>> getLocation(void);
+    void setLocation(int fline, int fcol, int lline, int lcol);
+
+    virtual ~ASTNode() {}
+    virtual void accept(Visitor* visitor) = 0;
+};
+```
+
+`ASTNode` 是所有其他节点类型的基类。其中，其提供的公共接口 `getLocation` 和 `setLocation` 用于保存节点的位置信息。另外，为了遍历语法树，ASTNode 还定义了纯虚函数 `accept`，所有具体类必须实现该方法。我们在后面的语法树遍历部分详细讲解。
+
+#### 程序结构
+
+Pascal的代码由语句构成。基本的程序结构如下。
+
+```pascal
+{ ... this is a comment ... }
+program {name of the program} {parameter of the program (option) }
+label {global labels declarition block}
+const {global constant declaration block}
+var {global variable declaration block}
+function {function declarations, if any}
+{ local variables }
+begin
+...
+end;
+procedure { procedure declarations, if any}
+{ local variables }
+begin
+...
+end;
+begin { main program block starts}
+...
+end. { the end of main program block }
+```
+
+我们可以首先划定程序的基本结构，定义如下节点类型：
+
+* ASTProgram：根节点的具体类型，表示整个程序体
+* ASTProgramHead：表示程序头
+* ASTProgramBody：表示程序主体部分，这里用于区分procedure/function 部分的模块，包含程序结尾的 `.`
+* ASTBlock：一个完整的程序模块，包括 `label`, `constant`, `type`, `var`, `proc/func`, `stat` 六部分，可以在程序、函数/过程中使用
+* ASTProgramParamList：表示程序运行时传入的参数列表，可选，包含在程序头部分
+
+![](./figure/ASTProgram.png)
+
+```c++
+/* example: program head node */
+class ASTProgramHead : public ASTNode {
+private:
+    std::string program_name;
+    ASTProgramParamList* parameter_list;
+public:
+    ASTProgramHead();
+    ASTProgramHead(std::string);
+    ASTProgramHead(std::string, ASTProgramParamList*);
+
+    std::string getProgramName();
+    ASTProgramParamList* getParamList();
+
+    virtual void accept(Visitor* visitor);
+};
+```
+
+#### 标签声明
+
+该部分实现标签声明，定义如下类型：
+
+* ASTLabelDeclPart：表示标签程序体的声明部分，可以为空
+* ASTLableList：表示标签列表
+* ASTLabel：表示单个标签，类型为identifier
+
+![](./figure/ASTLabel.png)
+
+其中，存储 `label` 对应的文法为左递归，这里需要使用一个线性表保存。
+
+```c++
+/* label list */
+class ASTLabelList : public ASTNode {
+private:
+    std::vector<ASTLabel*> label_list;
+public:
+    ASTLabelList();
+
+    std::vector<ASTLabel*> getLabelList();
+    void addLabel(ASTLabel*);
+
+    virtual void accept(Visitor* visitor);
+};
+
+/* label */
+class ASTLabel : public ASTNode {
+private:
+    std::string tag;
+public:
+    ASTLabel();
+    ASTLabel(std::string);
+
+    std::string getTag();
+
+    virtual void accept(Visitor* visitor);
+};
+```
+
+#### 常量定义
+
+该部分实现常量定义，与`label`部分的实现非常相似。定义如下类型：
+
+* ASTConstDeclPart：表示常量程序体的声明部分，可以为空
+* ASTConstDeclList：表示常量定义语句块
+* ASTConstDecl：表示单行常量定义语句
+* ASTConst：定义程序中使用到的常量类型，对应 token 字面量
+
+![](./figure/ASTConst.png)
+
+```c++
+/* constant value (literal) */
+class ASTConst : public ASTNode {
+public:
+    enum ValueType { INTEGER, REAL, CHAR, BOOLEAN, STRING };
+private:
+    ValueType value_type;
+    std::string literal;
+    bool sign;
+public:
+    ASTConst();
+    ASTConst(ValueType, std::string);
+
+    ValueType getValueType();
+    std::string getLiteral();
+    bool getSign();
+    void setSign(bool);
+
+    virtual void accept(Visitor* visitor);
+};
+```
+
+#### 类型定义
+
+该部分实现类型的自定义，定义如下类型：
+
+* ASTTypeDefPart：表示类型定义程序体的声明部分，可以为空
+* ASTTypeDefList：表示类型定义语句块
+* ASTTypeDef：表示单个类型定义单元
+* ASTTypeDenoter：所有支持定义类型的公共基类
+
+![](./figure/ASTType.png)
+
+其中，根据 Pascal 的文法规则，定义三类数据类型：
+
+* ASTTypeOrdinal：表示基本类型，包括 identifier, base, enum, subrange
+* ASTTypeStruct：表示复合类型，包括 array, record, file
+* ASTTypePointer：表示指针类型，包括 pointer
+
+![](./figure/ASTDenoter.png)
+
+#### 变量声明
+
+该部分实现变量声明，定义如下类型：
+
+* ASTVarDeclPart：表示变量声明程序体的声明部分，可以为空
+* ASTVarDeclList：表示变量声明语句块
+* ASTVarDecl：表示单行变量声明
+
+![](./figure/ASTVar.png)
+
+#### 函数/过程定义
+
+该部分实现函数/过程定义，定义如下类型：
+
+* ASTProcFuncDefPart：表示函数/过程定义程序体的声明部分，可以为空。维护一个 `ASTProcFuncDef` 派生类对象的线性表
+* ASTProcFuncDef：函数/过程派生类的公共基类
+* ASTProcedureDeclaration：表示一个过程的整体模块
+* ASTProcedureHead：表示过程的头部分，包含过程名，形参
+* ASTProcedureBody：表示过程的结构体部分
+* ASTFunctionDeclaration：表示一个过程的整体模块
+* ASTProcedureHead：表示函数的头部分，包含函数名，形参，返回类型
+* ASTProcedureBody：表示函数的结构体部分
+
+![](./figure/ASTProcFunc.png)
+
+#### 函数形参/ 实参
+
+形参部分用于函数/过程的头部，定义如下类型：
+
+* ASTFormalParamList：表示函数/过程中使用的形参列表
+* ASTFormalParam：表示函数/过程的某一个参数声明，是所有参数定义具体派生类的基类
+* ASTFormalParamValue：表示传入变量
+* ASTFormalParamVariable：表示自定义变量
+* ASTFormalParamProc：表示过程名作为参数
+* ASTFormalParamFunc：表示函数名作为参数
+
+实参部分用于函数/过程调用的参数，定义如下类型：
+
+* ASTActualParamList：表示函数/过程调用的实际参数列表
+* ASTActualParam：表示函数/过程调用的某一参数
+
+![](./figure/ASTParam.png)
+
+#### 语句
+
+该部分实现程序语句块定义，定义如下类型：
+
+* ASTStatPart：表示 begin, end 及被其包含的程序语句块，不能为空
+* ASTStatList：表示语句块，不包含 begin, end
+* ASTStat：表示所有类型语句块的基类
+* ASTCompoundStat：表示 begin, end 及被其包含的程序语句块，而且是ASTStat的派生类
+* ASTStatAssign：表示赋值语句
+* ASTStatGoto：表示 goto 语句
+* ASTStatProc：表示过程调用
+* ASTStatCondIf：表示函数语句
+* ASTStatIterRepeat：表示 repeat 语句
+* ASTStatIterWhile：表示 while 语句
+
+![](./figure/ASTStat.png)
+
+#### 表达式
+
+该部分实现语句单元：表达式，定义如下类型：
+
+* ASTExpr：所有类型表达式的基类
+* ASTExprBinary：表示双目运算符的表达式
+* ASTExprUnary：表示单目运算符的表达式
+* ASTExprConst：表示常量表达式
+* ASTExprIdentifier：表示关键字表达式
+
+![](./figure/ASTExpr.png)
+
+### BNF 文法实现
+
+定义、实现语法树节点部分后，进行文法规则的实现。程序的主要框架如下
+
+```
+%{
+code requirement
+%}
+
+%union
+change YYSTYPE
+
+%token
+token name declaration
+%token
+
+%type
+nonterminal/terminal type definition
+%type
+
+%%
+rule
+%%
+```
+
+首先，引入支持文法分析的功能模块。包括 lex 提供的词法分析 `yylex` 接口，token类型，以及最终 `accept` 状态语法树的根节点
+
+```c
+extern int yylex(void);
+void yyerror(char *s);
+typedef enum { typeKeyword, typeSymbol, typeComment } TokenType;
+extern ASTNode* ast_root;
+```
+
+通过 `%union` 声明一个联合，可以使语法分析过程中的非终结符，以及词法分析得到的终结符各自具有不同类型，可以结合 `%token` 和 `%type<>` 具体实现。首先，通过 `%token` 声明词法分析中返回的 token 的终结符名称
+
+```
+%token KEYWORD_ABSOLUTE KEYWORD_AND KEYWORD_ARRAY KEYWORD_ASM KEYWORD_BEGIN
+...
+%token IDENTIFIER COMMENT
+```
+
+而后，通过 `%union` 声明所有需要在语法分析中使用的类型
+
+```c
+%union {
+    TokenType token_type;
+    char* content;
+    /* program structure */
+    ASTProgram* ast_program;
+    ...
+    /* identifier list */     
+    ASTIdentifierList* ast_identifier_list;
+    /* label */
+    ASTLabelDeclPart* ast_label_decl_part;
+    ...
+    /* constant */
+    ASTConstDeclPart* ast_const_decl_part;
+    ...
+    /* type */
+    ASTTypeDefPart* ast_type_def_part;
+    ...
+    /* variable */
+    ASTVarDeclPart* ast_var_decl_part;
+    ...
+    /* procedure or function */
+    ASTProcFuncDefPart* ast_proc_func_def_part;
+    ...
+    /* formal parameter */
+    ASTFormalParamList* ast_formal_param_list;
+    ...
+    /* actual parameter */
+    ASTActualParamList* ast_actual_param_list;
+    ...
+    /* statement */
+    ASTStatPart* ast_stat_part;
+    ...
+    /* expression */
+    ASTExpr* ast_expr;
+}
+```
+
+其中，关键字、符号和类型对应枚举类型 `token_type`。标识符，字面量对应 `char *`
+
+```
+%type<token_type> KEYWORD_ABSOLUTE KEYWORD_AND KEYWORD_ARRAY KEYWORD_ASM KEYWORD_BEGIN 
+...
+%type<token_type> COMMENT
+
+%type<content> IDENTIFIER LITERAL_INTEGER ... LITERAL_STRING
+```
+
+对于非终结符，将不同非终结符与我们实现的语法树节点的具体类型对应
+
+```
+%type<ast_program> program
+...
+%type<ast_identifier_list> identifier_list
+%type<ast_label_decl_part> label_declaration
+...
+%type<ast_const_decl_part> constant_declarition
+...
+%type<ast_type_def_part> type_definition
+...
+%type<ast_var_decl_part> variable_declarition
+...
+%type<ast_proc_func_def_part> procedure_function_declarition
+...
+%type<ast_formal_param_list> formal_param_list
+...
+%type<ast_actual_param_list> actual_param_list
+...
+%type<ast_stat_part> statement_part
+...
+%type<ast_expr> relational_expression expression term factor
+```
+
+定义好上述内容后，根据 BNF 文法构造语法树。实现的文法篇幅较大，见报告的附录部分。文法部分的格式如下
+
+```c
+%%
+non-terminal:
+	rule1 {
+	
+	}
+	| rule2 {
+	
+	}
+;
+...
+// example
+program:
+    program_head SYMBOL_SEMICOLON program_body {
+        ast_root = new ASTProgram($1, $3);
+        TRACE(ast_root, @$);
+    }
+;
+type_definition:
+    KEYWORD_TYPE type_def_list {
+        $$ = new ASTTypeDefPart($2);
+        TRACE($$, @$);
+    }
+    | /* empty */ {
+        $$ = nullptr;
+    }
+;
+type_def_list:
+    type_def_list type_def {
+        ($1)->addTypeDef($2);
+        $$ = $1;
+        TRACE($$, @$);
+    }
+    | type_def {
+        $$ = new ASTTypeDefList();
+        ($$)->addTypeDef($1);
+        TRACE($$, @$);
+    }
+;
+%%
+```
+
+如上所示，在文法规则对应的代码块下，通过调用具体类的构造函数，并将新构造的对象推入栈顶。对于左递归的文法，则维护一个线性表，将元素依次添加到线性表。最终，将`ASTProgram`类构造的对象作为语法树的根节点返回给 `ast_root`。
+
+### 语法树遍历
+
+#### 实现原理
+
+语法树的可视化、序列化，以及后面生成中间代码，都需要做语法树的遍历。也就是说，在遍历过程中对于每一个语法树节点，我们可能要进行不同的操作。因此，这里使用设计者模式 `Visitor Pattern` 对于遍历 AST 是不错的选择。维护语法树节点的人只需要提供一个抽象类接口，让写语法树遍历部分的人，和写中间代码生成的人完成自己的具体类和接口实现即可，并行开发。访问者模式框架如下：
+
+![](./figure/VisitorPattern.png)
+
+针对这里的应用情景，在 ASTNode 抽象类，我们增加一个公共接口 `accept` 某个访问者对象的调用。同时，我们设计一个抽象类 Visitor ，提供访问对应节点的接口（纯虚函数）。在语法树具体节点，只需要接受 visitor 对象，调用该对象的对应名称接口即可。其中，visitor的类型为运行时确定，调用的方法也是对应的具体类的访问方法。
+
+```c++
+/* ASTNode提供的访问接口 */
+virtual void accept(Visitor* visitor) = 0;
+void ASTProgram::accept(Visitor* visitor) { visitor->visitASTProgram(this); }
+...
+void ASTExprIdentifier::accept(Visitor* visitor) { visitor->visitASTExprIdentifier(this); }
+/* Visitor抽象类的定义 */
+class Visitor {
+
+public:
+    virtual void visitASTNode(ASTNode* node) = 0;
+    virtual void visitASTProgram(ASTProgram* node) = 0;
+    ...
+    virtual void visitASTExprIdentifier(ASTExprIdentifier* node) = 0;
+};
+```
+
+因此，如果使用者想要实现某种遍历操作时，需要实现一个具体的访问类，继承Visitor，实现所有的纯虚函数接口。对于每个节点不同的操作类型，分别定义一个具体的访问类即可。即方便分工开发，也便于代码维护。另外，visitor 提供的接口不提供返回值，具体 visitor 类的实现者应该将信息保存在 visitor 对象内部。
+
+对于 `Visitor` 的维护者来说，当增加一种新类型的 AST 节点， visitor 也应增加一个对应接口。因此我们的项目中这两部分由同一人维护。其他开发成员需要在 `Visitor` 接口更新后，更新自己具体类的接口实现。
+
+#### 可视化
+
+语法树的可视化主要用 `treant.js` 实现。布局基于其提供的 example 的样式对 `css` 文件进行调整，树形结构的节点则用 json 格式表示，将其更改保存到 `gragh.js` 文件。每个节点的表示格式如下：
+
+```json
+nodeStructure: {
+    text: {
+        name: "",
+        desc: ""
+    },
+    children : []
+}
+```
+
+* name：节点类型名称
+* desc：附加信息。这里记录了语法分析中保存的位置
+* children：子节点的 array
+
+实现可视化的遍历具体类为 `VisitorGraph`，具体 visit 方法的实现则是生成上述格式的 json 文件。例如：
+
+```c++
+void VisitorGraph::visitASTProgram(ASTProgram* node) {
+	json_stream << "nodeStructure: {";
+    json_stream << "text:{";
+	json_stream << "name:\"ASTProgram\",";
+	printLocation(node);
+    json_stream << "},";
+	json_stream << "children:[";
+	node->getProgramHead()->accept(this);
+	json_stream << ",";
+	node->getProgramBody()->accept(this);
+	json_stream << "]";
+	json_stream << "}";
+}
+```
+
+#### 序列化
+
+可视化提供的语法树形式更加直观，但有时不方便具体信息的错误检查。另一方面，将生成的语法树进行序列化，可以保存语法树对象结构，便于后续阶段的debug。另一方面，C++本身并没有提供序列化机制，而且考虑到编程语言的移植性，我决定存到 json 文件。不过事实上应该也没有较大必要。如果突然要用其他语言实现，重新写若干 AST 类和反序列化接口也挺心累的。主要用途还是查错。
+
+实现可视化的遍历具体类为 `VisitorJson`，具体 visit 方法的实现则是生成包含语法树节点详细信息的 json 文件。这里的信息对不同节点包含对象也不相同，要比可视化部分更为详细。例如程序头这里，额外保存了程序名称这一属性：
+
+```c++
+void VisitorJson::visitASTProgramHead(ASTProgramHead* node) {
+	json_stream << "\"type\":\"ASTProgramHead\",";
+	printLocation(node);
+	json_stream << "\"name\":\"";
+	json_stream << node->getProgramName();
+	json_stream << "\"";
+	if (node->getParamList() != NULL) {
+		json_stream << ",";
+		json_stream << "\"parameter list\":{";
+		node->getParamList()->accept(this);
+		json_stream << "}";
+	}
+}
+```
+
+### Debug 实现
+
+经过查阅资料发现，`yacc` 自带详细的调试功能。在生成 `y.tab.c` 文件过程中，我们可以指定参数 `-t` (trace) 来产生调试信息。另外，我们还可以指定参数 `-v` 生成 `y.output` 文件，其中包含了语法分析中使用的状态编号。在调用 `yyparse()` 的主函数中，我们可以通过改变 `yydebug` 的值来决定是否产生调试信息，这个值在 `y.tab.c` 中进行定义。
+
+```c++
+#define PARSER_DEBUG 1
+extern int yydebug;
+int main() {
+    ...
+    #if PARSER_DEBUG
+        yydebug = 1;
+    #endif
+    yyparse();
+    ...
+}
+```
+
+另外，`pascal.y` 中也实现了简单的debug方法，用于记录每次 `reduce` 操作的代码块位置
+
+```c
+#define PARSER_DEBUG 1
+
+#if PARSER_DEBUG
+#define TRACE(x, y) (x)->setLocation((y).first_line, (y).first_column, yylloc.last_line, yylloc.last_column); printf("reduce at %d.%d-%d.%d\n", (y).first_line, (y).first_column, yylloc.last_line, yylloc.last_column)
+#else
+#define TRACE(x, y) (x)->setLocation((y).first_line, (y).first_column, yylloc.last_line, yylloc.last_column);
+#endif
+```
+
+在每次生成一个新的AST节点对象时，通过调用上述方法记录 `reduce` 的位置。其中，$$表示栈顶元素，@$ 表示栈顶元素的位置信息。
+
+```c
+TRACE($$, @$);
+```
+
+## 附录
 
 ### 文法
 
@@ -280,6 +817,14 @@ int offset = 1;
 <index_type_specfication>::= <identifier> ".." <identifier> ":" <ordinal_type_identifier>
 ```
 
+#### 实参
+
+```
+<actual_parameter_list> := <actual_parameter_list> "," <actual_parameter> 
+                        | <actual_parameter>
+<actual_parameter> := <relational_expression> | <variable_access>
+```
+
 #### 语句块
 
 ```
@@ -297,11 +842,6 @@ int offset = 1;
 <while statement> := "while" <relational_expression> "do" <label_statement>
 <procedure statement> := <identifier> | <identifier> "(" <actual_parameter_list> ")" 
                     | <io_procedure_statement>
-
-<actual_parameter_list> := <actual_parameter_list> "," <actual_parameter> 
-                        | <actual_parameter>
-<actual_parameter> := <relational_expression> | <variable_access>
-
 ```
 
 #### 表达式
@@ -313,9 +853,7 @@ int offset = 1;
 <factor> := <constant> | <identifier> | "(" <relational_expression> ")" | "-" <factor>
 ```
 
-#### 变量
-
-测试代码
+### 测试代码
 
 ```pascal
 program ifStmt;
@@ -331,20 +869,4 @@ begin
 end.
 ```
 
-### Debug 实现
-
-经过查阅资料发现，`yacc` 自带详细的调试功能。在生成 `y.tab.c` 文件过程中，我们可以指定参数 `-t` (trace) 来产生调试信息。另外，我们还可以指定参数 `-v` 生成 `y.output` 文件，其中包含了语法分析中使用的状态编号。在调用 `yyparse()` 的主函数中，我们可以通过改变 `yydebug` 的值来决定是否产生调试信息，这个值在 `y.tab.c` 中进行定义。
-
-```c++
-#define PARSER_DEBUG 1
-extern int yydebug;
-int main() {
-    ...
-    #if PARSER_DEBUG
-        yydebug = 1;
-    #endif
-    yyparse();
-    ...
-}
-```
-
+### 
