@@ -1,0 +1,41 @@
+nodeStructure: {
+    text: {
+        name: "ASTLabelDeclPart"
+    },
+    children: [
+        {
+            text: {
+                name: "ASTLabelList"
+            },
+            children: [
+                {
+                    text: {
+                        name: "ASTLabel",
+                        desc: "label tag"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTLabel",
+                        desc: "label tag"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "..."
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTLabel",
+                        desc: "label tag"
+                    },
+                    children: []
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,41 @@
+nodeStructure: {
+    text: {
+        name: "ASTVarDeclPart"
+    },
+    children: [
+        {
+            text: {
+                name: "ASTVarDeclList"
+            },
+            children: [
+                {
+                    text: {
+                        name: "ASTVarDecl",
+                        desc: "denoter name"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTVarDecl",
+                        desc: "denoter name"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "..."
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTVarDecl",
+                        desc: "denoter name"
+                    },
+                    children: []
+                }
+            ]
+        }
+    ]
+}

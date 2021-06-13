@@ -1,0 +1,41 @@
+nodeStructure: {
+    text: {
+        name: "ASTTypeDefPart"
+    },
+    children: [
+        {
+            text: {
+                name: "ASTTypeDefList"
+            },
+            children: [
+                {
+                    text: {
+                        name: "ASTTypeDef",
+                        desc: "type denoter"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTTypeDef",
+                        desc: "type denoter"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "..."
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTTypeDef",
+                        desc: "type denoter"
+                    },
+                    children: []
+                }
+            ]
+        }
+    ]
+}

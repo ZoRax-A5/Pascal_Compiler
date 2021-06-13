@@ -1,0 +1,110 @@
+nodeStructure: {
+    text: {
+        name: "ASTProcFuncDefPart"
+    },
+    children: [
+        {
+            text: {
+                name: "ASTProcFuncDef"
+            },
+            children: [
+                {
+                    text: {
+                        name: "ASTProcedureDeclarition"
+                    },
+                    children: [
+                        {
+                            text: {
+                                name: "ASTProcedureHead"
+                            },
+                            children: [
+                                {
+                                    text: {
+                                        name: "name"
+                                    },
+                                    children: []
+                                },
+                                {
+                                    text: {
+                                        name: "ASTFormalParamList"
+                                    },
+                                    children: []
+                                }
+                            ]
+                        },
+                        {
+                            text: {
+                                name: "ASTProcedureBody"
+                            },
+                            children: [
+                                {
+                                    text: {
+                                        name: "ASTBlock"
+                                    },
+                                    children: []
+                                }
+                            ]
+                        },
+                        {
+                            text: {
+                                name: "directive"
+                            },
+                            children: []
+                        }
+                    ]
+                },
+                {
+                    text: {
+                        name: "ASTFunctionDeclarition"
+                    },
+                    children: [
+                        {
+                            text: {
+                                name: "ASTFunctionHead"
+                            },
+                            children: [
+                                {
+                                    text: {
+                                        name: "name"
+                                    },
+                                    children: []
+                                },
+                                {
+                                    text: {
+                                        name: "ASTFormalParamList"
+                                    },
+                                    children: []
+                                },
+                                {
+                                    text: {
+                                        name: "ASTTypeDenoter"
+                                    },
+                                    children: []
+                                }
+                            ]
+                        },
+                        {
+                            text: {
+                                name: "ASTFunctionBody"
+                            },
+                            children: [
+                                {
+                                    text: {
+                                        name: "ASTBlock"
+                                    },
+                                    children: []
+                                }
+                            ]
+                        },
+                        {
+                            text: {
+                                name: "directive"
+                            },
+                            children: []
+                        }
+                    ]
+                },
+            ]
+        }
+    ]
+}

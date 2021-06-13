@@ -1,0 +1,78 @@
+nodeStructure: {
+    text: {
+        name:"ASTProgram"
+    },
+    children:[
+        {
+            text: {
+                name:"ASTProgramHead",
+                desc:"program name"
+            }
+            ,
+            children:[
+                {
+                    text: {
+                        name:"ASTProgramParamList"
+                    }
+                    ,
+                    children:[]
+                }
+            ]
+        },
+        {
+            text: {
+                name:"ASTProgramBody"    
+            }
+            ,
+            children:[
+                {
+                    name:"ASTProgramBlock",
+                    children:[
+                        {
+                            text: {
+                                name:"ASTLabelDeclPart"
+                            }
+                            ,
+                            children:[]
+                        },
+                        {
+                            text: {
+                                name:"ASTConstDeclPart"
+                            }
+                            ,
+                            children:[]
+                        },
+                        {
+                            text: {
+                                name:"ASTTypeDefPart"
+                            }
+                            ,
+                            children:[]
+                        },
+                        {
+                            text: {
+                                name:"ASTVarDeclPart"
+                            }
+                            ,
+                            children:[]
+                        },
+                        {
+                            text: {
+                                name:"ASTProcFuncDefPart"
+                            }
+                            ,
+                            children:[]
+                        },
+                        {
+                            text: {
+                                name:"ASTStatPart"
+                            }
+                            ,
+                            children:[]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

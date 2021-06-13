@@ -1,0 +1,69 @@
+nodeStructure: {
+    text: {
+        name: "ASTTypeDenoter"
+    },
+    children: [
+        {
+            text: {
+                name: "ASTTypeOrdinal"
+            },
+            children: [
+                {
+                    text: {
+                        name: "ASTTypeOrdinalBase"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTTypeIdentifier"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTTypeOrdinalEnum"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTTypeOrdinalSubrange"
+                    },
+                    children: []
+                }
+            ]
+        },
+        {
+            text: {
+                name: "ASTTypeStruct"
+            },
+            children: [
+                {
+                    text: {
+                        name: "ASTTypeStructArray"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTTypeStructRecord"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTTypeStructFile"
+                    },
+                    children: []
+                }
+            ]
+        },
+        {
+            text: {
+                name: "ASTTypePointer"
+            },
+            children: []
+        }
+    ]
+}

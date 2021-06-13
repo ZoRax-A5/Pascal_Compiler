@@ -1,0 +1,38 @@
+nodeStructure: {
+    text: {
+        name: "ASTConstDeclPart"
+    },
+    children: [
+        {
+            text: {
+                name: "ASTConstDeclList"
+            },
+            children: [
+                {
+                    text: {
+                        name: "ASTConstDecl",desc: "ASTConst"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTConstDecl",desc: "ASTConst"
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "..."
+                    },
+                    children: []
+                },
+                {
+                    text: {
+                        name: "ASTConstDecl",desc: "ASTConst"
+                    },
+                    children: []
+                }
+            ]
+        }
+    ]
+}

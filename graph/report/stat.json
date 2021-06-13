@@ -1,0 +1,82 @@
+nodeStructure: {
+    text: {
+        name: "ASTStatPart"
+    },
+    children: [
+        {
+            text: {
+                name: "ASTCompoundStat"
+            },
+            children: [
+                {
+                    text: {
+                        name: "ASTStatList"
+                    },
+                    children: [
+                        {
+                            text: {
+                                name: "ASTStat"
+                            },
+                            children: [
+                                {
+                                    text: {
+                                        name: "ASTCompoundStat"
+                                    },
+                                    children: []
+                                },
+                                {
+                                    text: {
+                                        name: "ASTStatAssign"
+                                    },
+                                    children: []
+                                },
+                                {
+                                    text: {
+                                        name: "ASTStatGoto"
+                                    },
+                                    children: []
+                                },
+                                {
+                                    text: {
+                                        name: "ASTStatProc"
+                                    },
+                                    children: []
+                                },
+                                {
+                                    text: {
+                                        name: "ASTStatCondIf"
+                                    },
+                                    children: []
+                                },
+                                {
+                                    text: {
+                                        name: "ASTStatIterRepeat"
+                                    },
+                                    children: []
+                                },
+                                {
+                                    text: {
+                                        name: "ASTStatIterWhile"
+                                    },
+                                    children: []
+                                }
+                            ]
+                        },
+                        {
+                            text: {
+                                name: "..."
+                            },
+                            children: []
+                        },
+                        {
+                            text: {
+                                name: "ASTStat"
+                            },
+                            children: []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

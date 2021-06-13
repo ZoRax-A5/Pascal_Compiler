@@ -1,0 +1,143 @@
+nodeStructure: {
+    text: {
+        name: "Parameter"
+    },
+    children: [
+        {
+            text: {
+                name: "ASTFormalParamList"
+            },
+            children: [
+                {
+                    text: {
+                        name: "ASTProcedureDeclarition"
+                    },
+                    children: [
+                        {
+                            text: {
+                                name: "ASTFormalParam"
+                            },
+                            children: [
+                                {
+                                    text: {
+                                        name: "ASTFormalParamValue"
+                                    },
+                                    children: [
+                                        {
+                                            text: {
+                                                name: "ASTIdentifierList"
+                                            },
+                                            children: []
+                                        },
+                                        {
+                                            text: {
+                                                name: "ASTTypeOrdinal"
+                                            },
+                                            children: []
+                                        }
+                                    ]
+                                },
+                                {
+                                    text: {
+                                        name: "ASTFormalParamVariable"
+                                    },
+                                    children: [
+                                        {
+                                            text: {
+                                                name: "ASTIdentifierList"
+                                            },
+                                            children: []
+                                        },
+                                        {
+                                            text: {
+                                                name: "ASTTypeOrdinal"
+                                            },
+                                            children: []
+                                        }
+                                    ]
+                                },
+                                {
+                                    text: {
+                                        name: "ASTFormalParamProc"
+                                    },
+                                    children: [
+                                        {
+                                            text: {
+                                                name: "ASTProcedureHead"
+                                            },
+                                            children: []
+                                        }
+                                    ]
+                                },
+                                {
+                                    text: {
+                                        name: "ASTFormalParamFunc"
+                                    },
+                                    children: [
+                                        {
+                                            text: {
+                                                name: "ASTFunctionHead"
+                                            },
+                                            children: []
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            text: {
+                                name: "..."
+                            },
+                            children: []
+                        },
+                        {
+                            text: {
+                                name: "ASTFormalParam"
+                            },
+                            children: []
+                        }
+                    ]
+                },
+                {
+                    text: {
+                        name: "ASTActualParamList"
+                    },
+                    children: [
+                        {
+                            text: {
+                                name: "ASTActualParam"
+                            },
+                            children: [
+                                {
+                                    text: {
+                                        name: "ASTExpr"
+                                    },
+                                    children: []
+                                },
+                            ]
+                        },
+                        {
+                            text: {
+                                name: "..."
+                            },
+                            children: []
+                        },
+                        {
+                            text: {
+                                name: "ASTActualParam"
+                            },
+                            children: [
+                                {
+                                    text: {
+                                        name: "ASTExpr"
+                                    },
+                                    children: []
+                                },
+                            ]
+                        }
+                    ]
+                },
+            ]
+        }
+    ]
+}
