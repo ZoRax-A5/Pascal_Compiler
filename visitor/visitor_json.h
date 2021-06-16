@@ -42,6 +42,8 @@ public:
     virtual void visitASTTypeStructRecord(ASTTypeStructRecord* node);
     virtual void visitASTTypeStructFile(ASTTypeStructFile* node);
     virtual void visitASTTypePointer(ASTTypePointer* node);
+    virtual void visitASTFieldDeclList(ASTFieldDeclList* node);
+    virtual void visitASTFieldDecl(ASTFieldDecl* node);
     virtual void visitASTVarDeclPart(ASTVarDeclPart* node);
     virtual void visitASTVarDeclList(ASTVarDeclList* node);
     virtual void visitASTVarDecl(ASTVarDecl* node);

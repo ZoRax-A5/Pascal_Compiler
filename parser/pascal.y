@@ -46,6 +46,9 @@ extern ASTNode* ast_root;
     ASTTypeOrdinal* ast_type_ordinal;
     ASTTypeStruct* ast_type_struct;
     ASTTypePointer* ast_type_pointer;
+    /* field */
+    ASTFieldDeclList* ast_field_decl_list;
+    ASTFieldDecl* ast_field_decl;
     /* variable */
     ASTVarDeclPart* ast_var_decl_part;
     ASTVarDeclList* ast_var_decl_list;
@@ -146,6 +149,9 @@ extern ASTNode* ast_root;
 %type<ast_type_ordinal> ordinal_type base_type
 %type<ast_type_struct> struct_type array_type record_type file_type
 %type<ast_type_pointer> pointer_type
+
+%type<ast_field_decl_list> field_decl_list
+%type<ast_field_decl> field_decl
 
 %type<ast_var_decl_part> variable_declarition
 %type<ast_var_decl_list> variable_decl_list
@@ -420,8 +426,27 @@ array_type:
     }
 ;
 record_type:
-    /* empty */ {
-        $$ = nullptr;
+    KEYWORD_RECORD field_decl_list KEYWORD_END {
+        $$ = new ASTTypeStructRecord($2);
+        TRACE($$, @$);
+    }
+;
+field_decl_list:
+    field_decl_list field_decl {
+        ($1)->addFieldDecl($2);
+        $$ = $1;
+        TRACE($$, @$);
+    }
+    | field_decl {
+        $$ = new ASTFieldDeclList();
+        ($$)->addFieldDecl($1);
+        TRACE($$, @$);
+    }
+;
+field_decl:
+    identifier_list SYMBOL_COLON type_denoter SYMBOL_SEMICOLON {
+        $$ = new ASTFieldDecl($1, $3);
+        TRACE($$, @$);
     }
 ;
 file_type:

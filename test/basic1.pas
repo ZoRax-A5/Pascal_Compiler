@@ -3,7 +3,11 @@ label steam zls;
 const
     ci = 3;
     str = 'string';
-
+type
+    b = record
+        x, z: Integer;
+        y: Char;
+    end;
 var
     a, b: integer;
 procedure count (m, n:integer);

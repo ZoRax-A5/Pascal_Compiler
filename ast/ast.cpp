@@ -154,6 +154,8 @@ ASTTypeDenoter* ASTTypeStructArray::getDenoter() { return type; }
 
 /* structure record type */
 ASTTypeStructRecord::ASTTypeStructRecord() {}
+ASTTypeStructRecord::ASTTypeStructRecord(ASTFieldDeclList* a1) : field_list(a1) {}
+ASTFieldDeclList* ASTTypeStructRecord::getFieldDeclList() { return field_list; }
 
 /* structure file type */
 ASTTypeStructFile::ASTTypeStructFile() {}
@@ -164,6 +166,18 @@ ASTTypeDenoter* ASTTypeStructFile::getComponentType() { return component_type; }
 ASTTypePointer::ASTTypePointer() {}
 ASTTypePointer::ASTTypePointer(ASTTypeIdentifier* a1) : domain_type(a1) {}
 ASTTypeIdentifier* ASTTypePointer::getDomainType() { return domain_type; }
+
+
+/* record field declaration list */
+ASTFieldDeclList::ASTFieldDeclList() {}
+std::vector<ASTFieldDecl*> ASTFieldDeclList::getFieldList() { return field_list; }
+void ASTFieldDeclList::addFieldDecl(ASTFieldDecl* a1) { field_list.push_back(a1); }
+
+/* record field declaration */
+ASTFieldDecl::ASTFieldDecl() {}
+ASTFieldDecl::ASTFieldDecl(ASTIdentifierList* a1, ASTTypeDenoter* a2) : identifier_list(a1), type(a2) {}
+ASTIdentifierList* ASTFieldDecl::getIdentifierList() { return identifier_list; }
+ASTTypeDenoter* ASTFieldDecl::getType() { return type; }
 
 
 /* variable declarition part */
@@ -431,6 +445,8 @@ void ASTTypeStructArray::accept(Visitor* visitor) { visitor->visitASTTypeStructA
 void ASTTypeStructRecord::accept(Visitor* visitor) { visitor->visitASTTypeStructRecord(this); }
 void ASTTypeStructFile::accept(Visitor* visitor) { visitor->visitASTTypeStructFile(this); }
 void ASTTypePointer::accept(Visitor* visitor) { visitor->visitASTTypePointer(this); }
+void ASTFieldDeclList::accept(Visitor* visitor) { visitor->visitASTFieldDeclList(this); }
+void ASTFieldDecl::accept(Visitor* visitor) { visitor->visitASTFieldDecl(this); }
 void ASTVarDeclPart::accept(Visitor* visitor) { visitor->visitASTVarDeclPart(this); }
 void ASTVarDeclList::accept(Visitor* visitor) { visitor->visitASTVarDeclList(this); }
 void ASTVarDecl::accept(Visitor* visitor) { visitor->visitASTVarDecl(this); }

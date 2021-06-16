@@ -10,7 +10,7 @@ void VisitorJson::printLocation(ASTNode* node) {
 }
 
 void VisitorJson::saveJson() {
-	out.open("ast.json");
+	out.open("graph/ast.json");
 	out << json_stream.rdbuf();
 	out.close();
 }
@@ -248,7 +248,13 @@ void VisitorJson::visitASTTypeStructArray(ASTTypeStructArray* node) {
 	json_stream << "}";
 }
 
-void VisitorJson::visitASTTypeStructRecord(ASTTypeStructRecord* node) {}
+void VisitorJson::visitASTTypeStructRecord(ASTTypeStructRecord* node) {
+	json_stream << "\"type\":\"ASTTypeStructRecord\",";
+	printLocation(node);
+	json_stream << "\"field list\":[";
+	node->getFieldDeclList()->accept(this);
+	json_stream << "]";
+}
 
 void VisitorJson::visitASTTypeStructFile(ASTTypeStructFile* node) {
 	json_stream << "\"type\":\"ASTTypeStructFile\",";
@@ -263,6 +269,29 @@ void VisitorJson::visitASTTypePointer(ASTTypePointer* node) {
 	printLocation(node);
 	json_stream << "\"domain type\":{";
 	node->getDomainType()->accept(this);
+	json_stream << "}";
+}
+
+void VisitorJson::visitASTFieldDeclList(ASTFieldDeclList* node) {
+	std::vector<ASTFieldDecl*> list = node->getFieldList();
+	for (auto iter = list.begin(); iter != list.end(); iter++) {
+		if (iter != list.begin()) {
+			json_stream << ",";
+		}
+		json_stream << "{";
+		(*iter)->accept(this);
+		json_stream << "}";
+	}
+}
+
+void VisitorJson::visitASTFieldDecl(ASTFieldDecl* node) {
+	json_stream << "\"type\":\"ASTFieldDeclList\",";
+	printLocation(node);
+	json_stream << "\"identifier list\":[";
+	node->getIdentifierList()->accept(this);
+	json_stream << "],";
+	json_stream << "\"denoter\":{";
+	node->getType()->accept(this);
 	json_stream << "}";
 }
 

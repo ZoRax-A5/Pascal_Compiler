@@ -5,7 +5,7 @@
 
 class Visitor;
 
-/* class declarition */
+/* class declaration */
 /* base class */
 class ASTNode;
 /* program class */
@@ -40,6 +40,9 @@ class ASTTypeStructArray;
 class ASTTypeStructRecord;
 class ASTTypeStructFile;
 class ASTTypePointer;
+/* Record type field definition */
+class ASTFieldDeclList;
+class ASTFieldDecl;
 /* variable declartion */
 class ASTVarDeclPart;
 class ASTVarDeclList;
@@ -430,8 +433,13 @@ public:
 
 /* structure record type */
 class ASTTypeStructRecord : public ASTTypeStruct {
+private:
+    ASTFieldDeclList* field_list;
 public:
     ASTTypeStructRecord();
+    ASTTypeStructRecord(ASTFieldDeclList*);
+
+    ASTFieldDeclList* getFieldDeclList();
 
     virtual void accept(Visitor* visitor);
 };
@@ -462,7 +470,35 @@ public:
     virtual void accept(Visitor* visitor);
 };
 
-/* variable declarition part */
+/* record field declaration list */
+class ASTFieldDeclList : public ASTNode {
+private:
+    std::vector<ASTFieldDecl*> field_list;
+public:
+    ASTFieldDeclList();
+
+    std::vector<ASTFieldDecl*> getFieldList();
+    void addFieldDecl(ASTFieldDecl*);
+
+    virtual void accept(Visitor* visitor);
+};
+
+/* record field declaration */
+class ASTFieldDecl : public ASTNode {
+private:
+    ASTIdentifierList* identifier_list;
+    ASTTypeDenoter* type;
+public:
+    ASTFieldDecl();
+    ASTFieldDecl(ASTIdentifierList*, ASTTypeDenoter*);
+
+    ASTIdentifierList* getIdentifierList();
+    ASTTypeDenoter* getType();
+
+    virtual void accept(Visitor* visitor);
+};
+
+/* variable declaration part */
 class ASTVarDeclPart : public ASTNode {
 private:
     ASTVarDeclList* var_decl_list;
@@ -475,7 +511,7 @@ public:
     virtual void accept(Visitor* visitor);
 };
 
-/* variable declarition list */
+/* variable declaration list */
 class ASTVarDeclList : public ASTNode {
 private:
     std::vector<ASTVarDecl*> var_decl_list;
@@ -488,7 +524,7 @@ public:
     virtual void accept(Visitor* visitor);
 };
 
-/* variable declarition line */
+/* variable declaration line */
 class ASTVarDecl : public ASTNode {
 private:
     ASTIdentifierList* identifier_list;
@@ -524,7 +560,7 @@ public:
     virtual void accept(Visitor* visitor);
 };
 
-/* procedure declarition part */
+/* procedure declaration part */
 class ASTProcedureDeclaration : public ASTProcFuncDecl {
 private:
     ASTProcedureHead* head;
@@ -571,7 +607,7 @@ public:
     virtual void accept(Visitor* visitor);
 };
 
-/* function declarition part */
+/* function declaration part */
 class ASTFunctionDeclaration : public ASTProcFuncDecl {
 private:
     ASTFunctionHead* head;

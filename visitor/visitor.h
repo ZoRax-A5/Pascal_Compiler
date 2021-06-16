@@ -33,6 +33,8 @@ public:
     virtual void visitASTTypeStructRecord(ASTTypeStructRecord* node) = 0;
     virtual void visitASTTypeStructFile(ASTTypeStructFile* node) = 0;
     virtual void visitASTTypePointer(ASTTypePointer* node) = 0;
+    virtual void visitASTFieldDeclList(ASTFieldDeclList* node) = 0;
+    virtual void visitASTFieldDecl(ASTFieldDecl* node) = 0;
     virtual void visitASTVarDeclPart(ASTVarDeclPart* node) = 0;
     virtual void visitASTVarDeclList(ASTVarDeclList* node) = 0;
     virtual void visitASTVarDecl(ASTVarDecl* node) = 0;
