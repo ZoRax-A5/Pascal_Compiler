@@ -728,7 +728,172 @@ Pascal语言的语义分析包括符号表建立和类型检查两个部分。
 
 ### 符号表设计
 
-符号表作为语义分析中最重要的数据结构
+符号表作为语义分析中最重要的数据结构，存储了程序中各个区域的符号信息，在符号表中会进行符号名称、类型、内存地址、行号等信息。符号表会在类型检查中被使用，用于分配变量内存空间等操作。
+
+我们在实验中使用哈希表来进行符号表的维护。
+
+#### 数据结构
+
+##### SYMTABArray类
+
+数组变量作为pascal语言中比较特殊的一个类型，主要要求定义前后的下标，并且通过of语句来表示元素的数据类型。数组的定义一般如下：
+
+```pascal
+var student:array[1..10] of integer;
+```
+
+所以在我们的符号表中，需要记录数组的上下标，并且记住相应的名称和数据类型，因此我们的类定义如下：
+
+```c++
+class SYMTABArray {
+public:
+	string Name;
+	int arrayBegin;
+	int arrayEnd;
+	string Type;
+	SYMTABArray(string _Name,int _arrayBegin,int _arrayEnd,string _Type):
+	Name(_Name),arrayBegin(_arrayBegin),arrayEnd(_arrayEnd),Type(_Type){}
+	SYMTABArray(string newName, SYMTABArray arr):
+   Name(newName),arrayBegin(arr.arrayBegin),arrayEnd(arr.arrayEnd),Type(arr.Type){}
+};
+```
+
+所有成员的含义：
+
+​	Name:数组变量名称
+
+​	arrayBegin:数组起始下标
+
+​	arrayEnd:数组终止下表
+
+​	arrayType:数组数据类型
+
+其中采用初始化列表的方式进行函数的初始化。
+
+##### SYMTABListNode类
+
+符号表的节点类，主要会记录符号表中符号的名称，符号所在的行数（用于报错进行显示），符号所分配的地址位置，以及符号的类型和数据的类型
+
+```c++
+class SYMTABListNode {
+public:
+	string Name;//Table name
+	vector<int> lines;//lines' information
+	int memloc;//memory location
+	string recType;//function,const,variable
+	string dataType;
+	int order;//the order of the defined variable
+
+	SYMTABListNode(string _Name, int _linenum, int _memloc, string _recType, string _dataType, int order) :id(_id), memloc(_memloc), recType(_recType), dataType(_dataType), order(_order) {
+		lines.push_back(_linenum);
+	}
+
+};
+```
+
+各成员含义：
+	Name:符号名称（可能是变量也可能是函数）
+
+​	lines:符号出现的行号
+
+​	memloc:分配的内存地址
+
+​	recType:符号类型
+
+​	dataType:数据类型
+
+​	order:变量定义顺序
+
+##### ScopeNode类
+
+作用域限制了pascal语言中的函数和变量定义，每个作用域内会单独进行符号表的维护。同时作用域有深度，用于显示作用域的嵌套作用，还会有作用域内的数组列表，用于数组符号的表示和存储。
+
+```c++
+class ScopeNode {
+public:
+	string Name;
+	int depth;
+	ScopeNode* pScopeNode;
+	SYMTABList hashTab[TABLE_SIZE];
+	map<string, string> userDefType;
+	vector<SYMTABArray> ArrList;
+	int order;
+
+	ScopeNode(string _Name):Name(_Name),order(0){}
+	ScopeNode(string _Name, ScopeNode* _pScopeNode) :
+		Name(_Name), depth(_pScopeNode->depth), pScopeNode(_pScopeNode->pScopeNode), userDefType(_pScopeNode->userDefType), ArrList(_pScopeNode->ArrList), order(0) {
+		for (int i = 0; i < TABLE_SIZE; i++) {
+			hashTab[i] = _pScopeNode->hashTab[i];
+		}
+	}
+};
+```
+
+各成员内容：
+
+​	Name:作用域名称
+
+​	depth:作用域深度/顺序
+
+​	pScopeNode:父作用域指针
+
+​	hashTab:哈希表，存储符号表内容
+
+​	userDefType:Type中用户定义的数据类型
+
+​	ArrList:所有的数组类型的变量
+
+​	order:最后一个变量的编号
+
+#### 符号表操作实现
+
+为了语义分析能够进行，符号表需要能够进行插入、查找和打印三个操作。
+
+```c++
+//The operation of the symbol table
+void STinsert();
+string STfind(string name);
+void STprint();
+```
+
+STinsert()函数能够检测新变量或者函数声明，并且将该符号插入到符号表中。如果存在同名，则声明语法错误并退出程序。
+
+STfind()函数用于类型检查时的符号查找，给出一个名字，能够找到该符号的数据类型。
+
+STprint()函数用于debug，能够打印所有的类型名字和数量。
+
+#### 作用域操作实现
+
+```c++
+//The operation of the scope
+static int hash(string str);
+Scope Screate(string Name);
+Scope Screate(string Name, Scope pScope);
+void Spop();
+Scope Stop();
+void Spush(string name);
+Scope Sfind(string name);
+```
+
+hash函数：根据给入的字符串输出一个hash值，用于找到对应符号在符号表中的下标。
+
+Spop函数：弹出顶层的scope作用域，并且让当前深度下降1
+
+Stop函数：返回最上层的作用域。
+
+Scope Screate(string Name)函数：在当前的父作用域下创建一个新的子作用域，或者直接新建一个作用域。（global作用域的深度为-1或者名字为global）
+
+Spush函数：将当前名字的作用域放到当前作用域栈中，并且增加作用域深度。
+
+Sfind函数：将操作域名字放入Sfind函数中，可以给出作用域的位置。
+
+### 语义分析过程
+
+通过语法树来生成我们的作用域嵌套关系和符号表，这个过程就是语义分析的过程。
+
+Pascal语法中
+
+
 
 
 
