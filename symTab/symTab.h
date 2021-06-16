@@ -62,21 +62,25 @@ public:
 
 typedef ScopeNode* Scope;
 
+//The operation of the scope
 static int hash(string str);
 Scope Screate(string Name);
 Scope Screate(string Name, Scope pScope);
 void Spop();
-Scope Spop();
+Scope Stop();
 void Spush(string name);
-Scope Spush(string name);
 Scope Sfind(string name);
 
-void STinsert();
+//The operation of the symbol table
+void STinsert(string name,int lineNum,int loc,string recType,string dataType);
 string STfind(string name);
 void STprint();
 
 namespace sym {
 	int getArrayBegin(string name, string scope);
 	int getNodeNum(string STname, string MEMname, string scope);
-
+	string getIDType(string name, string scope);
+	bool getIDIsConst(string name, string scope);
+	string getArrayType(string name, string scope);
+	string getRecordElementType(string name, string MEMname, string scope);
 }
