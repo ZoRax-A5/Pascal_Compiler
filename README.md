@@ -891,7 +891,11 @@ Sfind函数：将操作域名字放入Sfind函数中，可以给出作用域的�
 
 通过语法树来生成我们的作用域嵌套关系和符号表，这个过程就是语义分析的过程。
 
-Pascal语法中
+Pascal语法中不存在独立的变量，每一个变量都会存在于某个固定的作用域中，所以对于变量进行操作的时候，我们需要确定当前的作用域，并且将其入栈，在完成操作之后，我们要对于该作用域进行出栈。
+
+作用域结构嵌套关系中，我们可以使用语法树的前序遍历，来创建我们的作用域和符号表。
+
+同样的，如果想要让我们的作用域出栈，采用后序遍历会更加方便。
 
 
 
@@ -946,11 +950,8 @@ Pascal语法中
 <base_type> := <type_integer> | <type_real> | <type_char> | <type_boolean>
 <struct_type> := <array_type> | <record_type> | <file_type>
 <array_type> := "array" "[" <ordinal_type> "]" "of" <type_denoter>
-<record_type> := "record" <field_decl_list> "end"
 <file_type> := "file" "of" <type_denoter>
 <pointer_type> := "^" <identifier>
-<field_decl_list> := <field_decl_list> <field_decl> | <field_decl>
-<field_decl> := <identifier list> ":" <type_denoter> ";"
 ```
 
 #### 变量声明
