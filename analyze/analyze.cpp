@@ -2,34 +2,21 @@
 
 void SYMTABbuild(ASTProgram* Tree) {
 	Scope global = Screate("global");
-	Tree->scope = global;
+	//Tree->scope = global;
 	traverse_Build(Tree);
-	sc_pop();
-	st_print();
+	Spop();
+	STprint();
 }
 
-void typeCheck(ASTNode* Tree) {
-	traverse(Tree, pushScope, checkNode);
+void typeCheck(ASTProgram* Tree) {
+	traverse_back(Tree);
 }
 
 static void traverse_Build(ASTProgram* node) {
-	node->accept();
-
+	node->accept(this);
 }
 
-static void insertNode(ASTNode node) {
-
-}
-
-static void checkNode(ASTNode node) {
-
-}
-
-static void popScope(ASTNode node) {
-
-}
-
-static void pushScope(ASTNode node) {
+static void traverse_back(ASTProgram* node) {
 
 }
 

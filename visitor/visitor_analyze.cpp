@@ -1,4 +1,5 @@
 #include "visitor_analyze.h"
+#include "../analyze/analyze.h"
 
 VisitorAnalyze::VisitorAnalyze() {}
 
@@ -20,42 +21,50 @@ void VisitorAnalyze::visitASTProgram(ASTProgram* node) {
 }
 
 void VisitorAnalyze::visitASTProgramHead(ASTProgramHead* node){
+	string progName, dataType, recType;
+	int size, progLineNum;
+	std::pair<std::pair<int, int>, std::pair<int, int>> loc = node->getLocation;
+	progLineNum = loc.first.first;
+	progName = node->getProgramName;
+	dataType = "Void";
+	recType = "Function";
+	size = varSize[dataType];
+	STinsert(progName, progLineNum, size, recType, dataType);
 	if (node->getParamList() != NULL) {
 		node->getParamList()->accept(this);
 	}
 }
+
 void VisitorAnalyze::visitASTProgramBody(ASTProgramBody* node){
 	node->getBlock()->accept(this);
 }
+
 void VisitorAnalyze::visitASTBlock(ASTBlock* node){
 	if (node->getLabelDecl() != NULL) {
 		node->getLabelDecl()->accept(this);
-		json_stream << ",";
 	}
 	if (node->getConstDecl() != NULL) {
 		node->getConstDecl()->accept(this);
-		json_stream << ",";
 	}
 	if (node->getTypeDef() != NULL) {
 		node->getTypeDef()->accept(this);
-		json_stream << ",";
 	}
 	if (node->getVarDecl() != NULL) {
 		node->getVarDecl()->accept(this);
-		json_stream << ",";
 	}
 	if (node->getProcFuncDef() != NULL) {
 		node->getProcFuncDef()->accept(this);
-		json_stream << ",";
 	}
 	node->getStatPart()->accept(this);
 }
+
 void VisitorAnalyze::visitASTProgramParamList(ASTProgramParamList* node){
 	node->getASTIdentifierList()->accept(this);
 }
 
 void VisitorAnalyze::visitASTIdentifierList(ASTIdentifierList* node){
 	std::vector<std::string> list = node->getIdentifierList();
+
 }
 
 void VisitorAnalyze::visitASTLabelDeclPart(ASTLabelDeclPart* node){

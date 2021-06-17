@@ -1,13 +1,12 @@
 #include "symTab.h"
-using namespace std;
 
 static int current_depth = -1;
 static int memloc[1024];
 static vector<Scope> scopeStack;//scope in the stack
 static vector<Scope> scopes;//All scope
 
-static int hash(string str) {
-	int v = 0;
+static int hashfunction(string str) {
+	int value = 0;
 	for (int i = 0; i < str.length(); i++) {
 		value = value << SHIFT;
 		value += str[i];
@@ -32,7 +31,7 @@ Scope Screate(string name) {//创建一个链表头并且初始化depth
 }
 
 Scope Screate(string Name, Scope pScope) {
-	ScopeNode temp = new ScopeNode(Name, pScope);
+	ScopeNode* temp = new ScopeNode(Name, pScope);
 	scopes.push_back(temp);
 	return temp;
 }
@@ -63,25 +62,26 @@ Scope Sfind(string name) {
 
 void STinsert(string name, int lineNum, int loc_shift, string recType, string dataType) {
 	Scope nscope = Stop();
-	SYMTABListNode temp_node = new SYMTABListNode(name, lineNum, memloc[current_depth], recType, dataType);
-	int hashvalue = hash(name);
+	SYMTABListNode* temp_node = new SYMTABListNode(name, lineNum, memloc[current_depth], recType, dataType);
+	int hashvalue = hashfunction(name);
 	SYMTABList insert_list = nscope->hashTab[hashvalue];
 	for (auto traver_node : insert_list) {
 		if (traver_node.Name == name) {
-			traver_node.lines.push_back(linenum);
+			traver_node.lines.push_back(lineNum);
 			cout << "Error! In line [" << lineNum << "]: '" << name << "' is already defined." << endl;
 			delete temp_node;
 			exit(-1);
 		}
 	}
-	insert_list.push_back(tempnode);
+	insert_list.push_back(temp_node);
 	memloc[current_depth] += loc_shift;
 }
 //For the examination of datatype
 string STfind(string name) {
-	int hashvalue = hash(name);
-	SYMTABList insert_list = nscope->hashTab[hashvalue];
+	int hashvalue = hashfunction(name);
+	
 	Scope nscope = Stop();
+	SYMTABList insert_list = nscope->hashTab[hashvalue];
 	while (nscope) {
 		for (auto traver_node : insert_list) {
 			if (traver_node.Name == name) {
@@ -96,8 +96,8 @@ string STfind(string name) {
 void STprint() {
 	for (auto nscope : scopes) {
 		cout << "-----------------------------------------------" << endl;
-		cout << "Scope Name: " << item->scopeName << " <depth: " << item->depth << ">" << endl;
-		for (auto i:TABLE_SIZE) {
+		cout << "Scope Name: " << nscope->Name << " <depth: " << nscope->depth << ">" << endl;
+		for (int i = 0; i < TABLE_SIZE;i++) {
 			SYMTABList symtab = nscope->hashTab[i];
 			if (symtab.size() == 0) {
 				continue;
@@ -144,11 +144,11 @@ void STprint() {
 }
 
 bool sym::getIDIsConst(string name, string scope) {
-	int hashValue = hashFunc(name);
+	int hashValue = hashfunction(name);
 	Scope nscope = Sfind(scope);
 	while (nscope) {
-		for (auto nsym : nscope->hashTable[hashValue]) {
-			if (nsym.name == name) {
+		for (auto nsym : nscope->hashTab[hashValue]) {
+			if (nsym.Name == name) {
 				return nsym.recType == "Const";
 			}
 		}
@@ -157,10 +157,10 @@ bool sym::getIDIsConst(string name, string scope) {
 	return false;
 }
 string sym::getIDType(string name, string scope) {
-	int hashValue = hash(name);
+	int hashValue = hashfunction(name);
 	Scope nscope = Sfind(scope);
 	while (nscope) {
-		for (auto nsym : nscope->hashTable[hashValue]) {
+		for (auto nsym : nscope->hashTab[hashValue]) {
 			if (nsym.name == name) {
 				return nsym.dataType;
 			}
@@ -170,24 +170,24 @@ string sym::getIDType(string name, string scope) {
 	return "";
 }
 string sym::getArrayType(string name, string scope) {
-	Scope nscope = getscope(scope);
+	Scope nscope = Sfind(scope);
 	while (nscope) {
-		for (auto item : nscope->arrayList) {
+		for (auto item : nscope->ArrList) {
 			if (item.Name == name) {
 				return item.Type;
 			}
 		}
-		nscope = nscope->parentScope;
+		nscope = nscope->pScopeNode;
 	}
 	return "";
 }
 
 string sym::getRecordElementType(string name, string MEMname, string scope) {
 	for (auto scope : scopes) {
-		if (scope->scopeName == name) {
-			int hashValue = hashFunc(MEMname);
-			for (auto nsym : scope->hashTable[hashValue]) {
-				if (nsym.name == MEMname) {
+		if (scope->Name == name) {
+			int hashValue = hashfunction(MEMname);
+			for (auto nsym : scope->hashTab[hashValue]) {
+				if (nsym.Name == MEMname) {
 					return nsym.dataType;
 				}
 			}
@@ -198,7 +198,7 @@ string sym::getRecordElementType(string name, string MEMname, string scope) {
 }
 
 int sym::getArrayBegin(string name, string scope) {
-	Scope nscope = getscope(scope);
+	Scope nscope = Sfind(scope);
 	while (nscope) {
 		for (auto arr : nscope->ArrList) {
 			if (arr.Name == name) {
@@ -210,14 +210,14 @@ int sym::getArrayBegin(string name, string scope) {
 	return -1;
 }
 
-int sym::getRecordNo(string name, string MEMname, string scope) {
+int sym::getNodeNum(string name, string MEMname, string scope) {
 
 
 	for (auto nscope : scopes) {
-		if (nscope->scopeName == name) {
-			int hashValue = hashFunc(MEMname);
-			for (auto nsym : scope->hashTable[hashValue]) {
-				if (nsym.name == MEMname) {
+		if (nscope->Name == name) {
+			int hashValue = hashfunction(MEMname);
+			for (auto nsym : nscope->hashTab[hashValue]) {
+				if (nsym.Name == MEMname) {
 					return nsym.order;
 				}
 			}

@@ -1,11 +1,11 @@
 #ifndef _SYMTAB_H_
 #define _SYMTAB_H_
-
-#include <cstdio>
-#include <cstdlib>
+#include <cstdio> 
 #include <string>
-#include <vector>
+#include <cstdlib>
 #include <iostream>
+#include <vector>
+#include <utility>
 #include <map>
 using namespace std;
 
@@ -32,8 +32,7 @@ public:
 	string recType;//function,const,variable
 	string dataType;
 	int order;//the order of the defined variable
-
-	SYMTABListNode(string _Name, int _linenum, int _memloc, string _recType, string _dataType, int order) :id(_id), memloc(_memloc), recType(_recType), dataType(_dataType), order(_order) {
+	SYMTABListNode(string _Name, int _linenum, int _memloc, string _recType, string _dataType, int order) :Name(_Name), memloc(_memloc), recType(_recType), dataType(_dataType), order(0) {
 		lines.push_back(_linenum);
 	}
 
@@ -84,3 +83,5 @@ namespace sym {
 	string getArrayType(string name, string scope);
 	string getRecordElementType(string name, string MEMname, string scope);
 }
+
+#endif
