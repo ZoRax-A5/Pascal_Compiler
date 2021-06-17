@@ -1,5 +1,6 @@
 #pragma once
 #include "../ast/ast.h"
+#include "../symTab/symTab.h"
 #include <iostream>
 
 class Visitor {
