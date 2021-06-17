@@ -946,8 +946,11 @@ Pascal语法中
 <base_type> := <type_integer> | <type_real> | <type_char> | <type_boolean>
 <struct_type> := <array_type> | <record_type> | <file_type>
 <array_type> := "array" "[" <ordinal_type> "]" "of" <type_denoter>
+<record_type> := "record" <field_decl_list> "end"
 <file_type> := "file" "of" <type_denoter>
 <pointer_type> := "^" <identifier>
+<field_decl_list> := <field_decl_list> <field_decl> | <field_decl>
+<field_decl> := <identifier list> ":" <type_denoter> ";"
 ```
 
 #### 变量声明
