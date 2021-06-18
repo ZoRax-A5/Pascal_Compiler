@@ -17,6 +17,6 @@ static void traverse_back(ASTProgram* node);
 static void traverse_Build(ASTProgram* node);
 static bool canChange(string type1, string type2);
 
-static map<string, int> varSize{ {"Integer", 2}, {"String", 255}, {"Real", 4}, {"Char", 1}, {"Boolean", 1} };
+static map<string, int> varSize{ {"INTEGER", 2}, {"STRING", 255}, {"REAL", 4}, {"CHAR", 1}, {"BOOLEAN", 1},{"VOID",1},{"LABEL",255} };
 
 #endif

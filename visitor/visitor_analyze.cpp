@@ -25,14 +25,17 @@ void VisitorAnalyze::visitASTProgramHead(ASTProgramHead* node){
 	int size, progLineNum;
 	std::pair<std::pair<int, int>, std::pair<int, int>> loc = node->getLocation;
 	progLineNum = loc.first.first;
-	progName = node->getProgramName;
-	dataType = "Void";
+	progName = node->getProgramName();
+	dataType = "VOID";
 	recType = "Function";
 	size = varSize[dataType];
 	STinsert(progName, progLineNum, size, recType, dataType);
+	
 	if (node->getParamList() != NULL) {
 		node->getParamList()->accept(this);
 	}
+	//push the new scope into the stack
+	Screate(progName);
 }
 
 void VisitorAnalyze::visitASTProgramBody(ASTProgramBody* node){
@@ -59,12 +62,23 @@ void VisitorAnalyze::visitASTBlock(ASTBlock* node){
 }
 
 void VisitorAnalyze::visitASTProgramParamList(ASTProgramParamList* node){
+	
 	node->getASTIdentifierList()->accept(this);
 }
 
 void VisitorAnalyze::visitASTIdentifierList(ASTIdentifierList* node){
 	std::vector<std::string> list = node->getIdentifierList();
-
+	for (auto iter = list.begin(); iter != list.end(); iter++) {
+		string symName, dataType, recType;
+		int size, symLineNum;
+		symName = "";
+		std::pair<std::pair<int, int>, std::pair<int, int>> loc = node->getLocation;
+		symLineNum = loc.first.first;
+		dataType = (*iter);
+		recType = "Variable";
+		size = varSize[dataType];
+		STinsert(symName, symLineNum, size, recType, dataType);
+	}
 }
 
 void VisitorAnalyze::visitASTLabelDeclPart(ASTLabelDeclPart* node){
@@ -78,7 +92,15 @@ void VisitorAnalyze::visitASTLabelList(ASTLabelList* node){
 }
 
 void VisitorAnalyze::visitASTLabel(ASTLabel* node){
-
+	string symName, dataType, recType;
+	int size, symLineNum;
+	std::pair<std::pair<int, int>, std::pair<int, int>> loc = node->getLocation;
+	symLineNum = loc.first.first;
+	symName = node->getTag();
+	dataType = "LABEL";
+	recType = "Variable";
+	size = varSize[dataType];
+	STinsert(symName, symLineNum, size, recType, dataType);
 }
 
 void VisitorAnalyze::visitASTConstDeclPart(ASTConstDeclPart* node){
@@ -93,10 +115,19 @@ void VisitorAnalyze::visitASTConstDeclList(ASTConstDeclList* node){
 }
 
 void VisitorAnalyze::visitASTConstDecl(ASTConstDecl* node){
+	string symName, dataType, recType;
+	int size, symLineNum;
+	std::pair<std::pair<int, int>, std::pair<int, int>> loc = node->getLocation;
+	symLineNum = loc.first.first;
+	dataType = node->getConst()->getLiteral();
+	recType = "Variable";
+	symName = node->getIdentifier();
+	size = varSize[dataType];
 	node->getConst()->accept(this);
+	STinsert(symName, symLineNum, size, recType, dataType);
 }
 void VisitorAnalyze::visitASTConst(ASTConst* node){
-
+	
 }
 void VisitorAnalyze::visitASTTypeDefPart(ASTTypeDefPart* node){
 	node->getASTTypeDefList()->accept(this);
@@ -108,7 +139,10 @@ void VisitorAnalyze::visitASTTypeDefList(ASTTypeDefList* node){
 	}
 }
 void VisitorAnalyze::visitASTTypeDef(ASTTypeDef* node){
+	string UserType_name = node->getIdentifier();
+	
 	node->getTypeDenoter()->accept(this);
+	
 }
 
 void VisitorAnalyze::visitASTTypeDenoter(ASTTypeDenoter* node){}
@@ -185,9 +219,19 @@ void VisitorAnalyze::visitASTProcedureDeclaration(ASTProcedureDeclaration* node)
 }
 
 void VisitorAnalyze::visitASTProcedureHead(ASTProcedureHead* node){
+	string produName, dataType, recType;
+	int size, produLineNum;
+	std::pair<std::pair<int, int>, std::pair<int, int>> loc = node->getLocation;
+	produLineNum = loc.first.first;
+	produName = node->getProcName();
+	dataType = "VOID";
+	recType = "Function";
+	size = varSize[dataType];
+	STinsert(produName, produLineNum, size, recType, dataType);
 	if (node->getProcParam() != NULL) {
 		node->getProcParam()->accept(this);
 	}
+	Spush(produName);
 }
 
 void VisitorAnalyze::visitASTProcedureBody(ASTProcedureBody* node){
@@ -200,10 +244,21 @@ void VisitorAnalyze::visitASTFunctionDeclaration(ASTFunctionDeclaration* node){
 }
 
 void VisitorAnalyze::visitASTFunctionHead(ASTFunctionHead* node){
+	string funcName, dataType, recType;
+	int size, funcLineNum;
+	std::pair<std::pair<int, int>, std::pair<int, int>> loc = node->getLocation;
+	funcLineNum = loc.first.first;
+	funcName = node->getFuncName();
+	//unfinished
+	dataType = node->getReturnType();
+	recType = "Function";
+	size = varSize[dataType];
+	STinsert(funcName, funcLineNum, size, recType, dataType);
 	node->getReturnType()->accept(this);
 	if (node->getFuncParam() != NULL) {
 		node->getFuncParam()->accept(this);
 	}
+	Spush(funcName);
 }
 
 void VisitorAnalyze::visitASTFunctionBody(ASTFunctionBody* node){
@@ -316,4 +371,14 @@ void VisitorAnalyze::visitASTExprConst(ASTExprConst* node){
 }
 
 
-void VisitorAnalyze::visitASTExprIdentifier(ASTExprIdentifier* node){}
+void VisitorAnalyze::visitASTExprIdentifier(ASTExprIdentifier* node){
+	string symName, dataType, recType;
+	int size, symLineNum;
+	std::pair<std::pair<int, int>, std::pair<int, int>> loc = node->getLocation;
+	symLineNum = loc.first.first;
+	symName = node->getIdentifier();
+	dataType = STfind(symName);
+	if (dataType == "") {
+		cout << "Error in line[" << symLineNum << "]: Undefined expression: '" << symName << "'." << endl;
+	}
+}
