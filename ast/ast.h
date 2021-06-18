@@ -333,13 +333,15 @@ public:
 
 /* type denoter (base class) */
 class ASTTypeDenoter : public ASTNode {
+public:
+    enum TypeType { Base, Identifier, Enum, Subrange, Array, Record, File, Pointer };
 private:
-    enum TypeType { Identifier, Enum, Subrange, Array, Record, Pointer };
     TypeType type;
 public:
     ASTTypeDenoter();
 
     TypeType getType();
+    void setType(TypeType);
 
     virtual void accept(Visitor* visitor);
 };
