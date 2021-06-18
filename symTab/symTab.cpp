@@ -161,7 +161,7 @@ string sym::getIDType(string name, string scope) {
 	Scope nscope = Sfind(scope);
 	while (nscope) {
 		for (auto nsym : nscope->hashTab[hashValue]) {
-			if (nsym.name == name) {
+			if (nsym.Name == name) {
 				return nsym.dataType;
 			}
 		}
@@ -205,7 +205,7 @@ int sym::getArrayBegin(string name, string scope) {
 				return arr.arrayBegin;
 			}
 		}
-		nscope = nscope->parentScope;
+		nscope = nscope->pScopeNode;
 	}
 	return -1;
 }

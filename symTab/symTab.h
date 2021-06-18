@@ -1,12 +1,12 @@
 #ifndef _SYMTAB_H_
 #define _SYMTAB_H_
-#include <cstdio> 
+#include <cstdio>
+#include <map>
 #include <string>
 #include <cstdlib>
 #include <iostream>
 #include <vector>
 #include <utility>
-#include <map>
 using namespace std;
 
 #define TABLE_SIZE 571
@@ -46,7 +46,7 @@ public:
 	int depth;
 	ScopeNode* pScopeNode;
 	SYMTABList hashTab[TABLE_SIZE];
-	map<string, string> userDefType;
+	std::map<string, string> userDefType;
 	vector<SYMTABArray> ArrList;
 	int order;
 
