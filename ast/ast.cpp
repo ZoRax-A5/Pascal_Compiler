@@ -114,29 +114,40 @@ ASTTypeDenoter* ASTTypeDef::getTypeDenoter() { return type_denoter; }
 /* type denoter */
 ASTTypeDenoter::ASTTypeDenoter() {}
 ASTTypeDenoter::TypeType ASTTypeDenoter::getType() { return type; }
+void ASTTypeDenoter::setType(ASTTypeDenoter::TypeType a1) { type = a1; }
 
 /* ordinal type base class */
 ASTTypeOrdinal::ASTTypeOrdinal() {}
 
 /* pascal builtin type */
 ASTTypeOrdinalBase::ASTTypeOrdinalBase() {}
-ASTTypeOrdinalBase::ASTTypeOrdinalBase(Builtin a1) : type(a1) {}
+ASTTypeOrdinalBase::ASTTypeOrdinalBase(Builtin a1)
+    : type(a1) {
+    setType(ASTTypeDenoter::TypeType::Base);
+}
 ASTTypeOrdinalBase::Builtin ASTTypeOrdinalBase::getBaseType() { return type; }
 
 /* pascal identifier type */
 ASTTypeIdentifier::ASTTypeIdentifier() {}
-ASTTypeIdentifier::ASTTypeIdentifier(std::string a1) : identifier(a1) {}
+ASTTypeIdentifier::ASTTypeIdentifier(std::string a1)
+    : identifier(a1) {
+    setType(ASTTypeDenoter::TypeType::Identifier);
+}
 std::string ASTTypeIdentifier::getTypeIdentifier() { return identifier; }
 
 /* ordinal enumerate type */
 ASTTypeOrdinalEnum::ASTTypeOrdinalEnum() {}
-ASTTypeOrdinalEnum::ASTTypeOrdinalEnum(ASTIdentifierList* a1) : identifier_list(a1) {}
+ASTTypeOrdinalEnum::ASTTypeOrdinalEnum(ASTIdentifierList* a1)
+    : identifier_list(a1) {
+    setType(ASTTypeDenoter::TypeType::Enum);
+}
 ASTIdentifierList* ASTTypeOrdinalEnum::getIdentifierList() { return identifier_list; }
 
 /* ordinal subrange type */
 ASTTypeOrdinalSubrange::ASTTypeOrdinalSubrange() {}
 ASTTypeOrdinalSubrange::ASTTypeOrdinalSubrange(ASTConst* a1, ASTConst* a2, bool a3, bool a4)
     : min(a1), max(a2), min_neg(a3), max_neg(a4) {
+    setType(ASTTypeDenoter::TypeType::Subrange);
     a1->setSign(a3);
     a2->setSign(a4);
 }
@@ -148,23 +159,35 @@ ASTTypeStruct::ASTTypeStruct() {}
 
 /* structure array type */
 ASTTypeStructArray::ASTTypeStructArray() {}
-ASTTypeStructArray::ASTTypeStructArray(ASTTypeOrdinal* a1, ASTTypeDenoter* a2) : value(a1), type(a2) {}
+ASTTypeStructArray::ASTTypeStructArray(ASTTypeOrdinal* a1, ASTTypeDenoter* a2)
+    : value(a1), type(a2) {
+    setType(ASTTypeDenoter::TypeType::Array);
+}
 ASTTypeOrdinal* ASTTypeStructArray::getValue() { return value; }
 ASTTypeDenoter* ASTTypeStructArray::getDenoter() { return type; }
 
 /* structure record type */
 ASTTypeStructRecord::ASTTypeStructRecord() {}
-ASTTypeStructRecord::ASTTypeStructRecord(ASTFieldDeclList* a1) : field_list(a1) {}
+ASTTypeStructRecord::ASTTypeStructRecord(ASTFieldDeclList* a1) 
+    : field_list(a1) {
+    setType(ASTTypeDenoter::TypeType::Record);
+}
 ASTFieldDeclList* ASTTypeStructRecord::getFieldDeclList() { return field_list; }
 
 /* structure file type */
 ASTTypeStructFile::ASTTypeStructFile() {}
-ASTTypeStructFile::ASTTypeStructFile(ASTTypeDenoter* a1) : component_type(a1) {}
+ASTTypeStructFile::ASTTypeStructFile(ASTTypeDenoter* a1) 
+    : component_type(a1) {
+    setType(ASTTypeDenoter::TypeType::File);
+}
 ASTTypeDenoter* ASTTypeStructFile::getComponentType() { return component_type; }
 
 /* pointer type */
 ASTTypePointer::ASTTypePointer() {}
-ASTTypePointer::ASTTypePointer(ASTTypeIdentifier* a1) : domain_type(a1) {}
+ASTTypePointer::ASTTypePointer(ASTTypeIdentifier* a1) 
+    : domain_type(a1) {
+    setType(ASTTypeDenoter::TypeType::Pointer);
+}
 ASTTypeIdentifier* ASTTypePointer::getDomainType() { return domain_type; }
 
 
