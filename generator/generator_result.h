@@ -75,15 +75,15 @@ private:
 };
 
 class TypeDeclResult : public VisitorResult {
-public:
-    TypeDeclResult(std::vector<std::string> nl, OurType::PascalType* type) :
+public:    
+    TypeDeclResult(std::vector<std::string> nl, OurType::PascalType *type):
         name_list(nl), type_(type) {}
-    const std::vector<std::string>& getNameList(void) { return this->name_list; }
-    OurType::PascalType* getType(void) { return this->type_; }
+    const std::vector<std::string> &getNameList(void) { return this->name_list; }
+    OurType::PascalType *getType(void) { return this->type_; }
 
 private:
     std::vector<std::string> name_list;
-    OurType::PascalType* type_;
+    OurType::PascalType *type_;
 };
 
 class TypeDeclListResult : public VisitorResult {

@@ -1,10 +1,15 @@
 #include "ast/ast.h"
 #include "visitor/visitor_json.h"
 #include "visitor/visitor_graph.h"
-#include "y.tab.h"
+#include "generator/generator.h"
+#include "y.tab.hpp"
 #include <iostream>
 #include <cstdio>
 #include <memory>
+#include <unistd.h>
+#include <fcntl.h>
+#include <getopt.h>
+#include <sys/stat.h>
 
 #ifdef _WIN32
 extern int yyparse();
@@ -30,5 +35,7 @@ int main(int argc, char** argv) {
     VisitorGraph gui = VisitorGraph();
     gui.visitASTProgram(program);
     gui.saveJson();
+    VisitorGen* gen = new VisitorGen();
+    gen->visitASTProgram(program);
     return 0;
 }

@@ -3,6 +3,10 @@
 #include "../symTab/symTab.h"
 #include <iostream>
 
+class VisitorResult{
+
+};
+
 class Visitor {
 
 public:

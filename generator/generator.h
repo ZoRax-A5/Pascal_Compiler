@@ -4,10 +4,12 @@
 #include <sstream>
 #include <fstream>
 #include <utility>
+#include <map>
 #include <memory>
 #include <vector>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Value.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace OurType {
     class EnumType;
@@ -50,8 +52,8 @@ private:
 
 class CodeBlock {
 public:
-	std::vector<std::pair<std::string, llvm::Value*>> named_values;
-    //std::map<std::string, llvm::Value*> named_values;
+	//std::vector<std::pair<std::string, llvm::Value*>> named_values;
+    std::map<std::string, llvm::Value*> named_values;
     std::map<std::string, OurType::PascalType*> named_types;
     std::map<std::string, llvm::Function*> named_functions;
     std::map<std::string, FuncSign*> named_funcsigns;
@@ -158,6 +160,8 @@ public:
     virtual void visitASTTypeStructRecord(ASTTypeStructRecord* node);
     virtual void visitASTTypeStructFile(ASTTypeStructFile* node);
     virtual void visitASTTypePointer(ASTTypePointer* node);
+    virtual void visitASTFieldDeclList(ASTFieldDeclList* node);
+    virtual void visitASTFieldDecl(ASTFieldDecl* node);
     virtual void visitASTVarDeclPart(ASTVarDeclPart* node);
     virtual void visitASTVarDeclList(ASTVarDeclList* node);
     virtual void visitASTVarDecl(ASTVarDecl* node);
