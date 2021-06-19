@@ -11,6 +11,8 @@
 #include "type/type.h"
 #include <assert.h>
 
+ValueResult* buffer;
+TypeResult* type_buffer;
 llvm::Value* GenSysWrite(const std::vector<std::shared_ptr<ValueResult>> &args_list, bool new_line, VisitorGen* generator) {
     static llvm::Function *llvm_printf = nullptr;
     if (llvm_printf == nullptr) {
@@ -225,11 +227,15 @@ void VisitorGen::visitASTProgram(ASTProgram* node) {
 	llvm::FunctionType* func_type = llvm::FunctionType::get(OurType::getLLVMType(this->context, OurType::INT_TYPE), false);
 	llvm::Function* main_func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, "main", &*(this->module));
 	llvm::BasicBlock* entry = llvm::BasicBlock::Create(this->context, "entry", main_func);
+	//append the block into the end of the builder
 	this->builder.SetInsertPoint(entry);
-	this->builder.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(this->context), 0, true));
+	
 	
 	node->getProgramHead()->accept(this);
+
 	node->getProgramBody()->accept(this);
+	//create return
+	this->builder.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(this->context), 0, true));
 }
 
 void VisitorGen::visitASTProgramHead(ASTProgramHead* node) {
@@ -270,7 +276,7 @@ void VisitorGen::visitASTIdentifierList(ASTIdentifierList* node) {
 	std::vector<std::string> list = node->getIdentifierList();
 	for (auto iter = list.begin(); iter != list.end(); iter++) {
 		if (iter != list.begin()) {
-
+			
 		}
 	}
 }
@@ -320,7 +326,79 @@ void VisitorGen::visitASTConstDecl(ASTConstDecl* node) {
 }
 
 void VisitorGen::visitASTConst(ASTConst* node) {
-
+	llvm::Type *tp;
+    if (node->getValueType() == ASTConst::ValueType::INTEGER) {
+		cout<<"INTEGER"<<endl;
+        tp = llvm::Type::getInt32Ty(this->context);
+        int v_int = atoi(node->getLiteral().c_str());
+        buffer = new ValueResult(OurType::INT_TYPE,
+			llvm::ConstantInt::get(tp, (uint64_t) v_int, true),
+            nullptr
+		);
+    }
+    else if (node->getValueType() == ASTConst::ValueType::REAL) {
+        
+        tp = llvm::Type::getDoubleTy(this->context);
+        
+        double v_float = atof(node->getLiteral().c_str());
+        std::cout << v_float << std::endl;
+        buffer = new ValueResult(OurType::REAL_TYPE,
+			llvm::ConstantFP::get(tp, v_float),
+            nullptr
+		);
+    }
+    else if (node->getValueType() == ASTConst::ValueType::CHAR) {
+        tp = llvm::Type::getInt8Ty(this->context);
+        char v_char = node->getLiteral()[1];
+        buffer = new ValueResult(OurType::CHAR_TYPE,
+			llvm::ConstantInt::get(tp, (uint64_t)v_char,true),
+            nullptr
+		);
+    }
+    // if (node->getValueType() == ASTConstValue::ValueType::STRING) {
+    //     // to make str things can store, alloc with each other
+    //     // we have to make all string values have the same length
+    //     // we make this 256
+    //     // so we add suffix zero to all constant string
+    //     // VERY BAD CODING STYLE
+    //     // NEED TO BE MODIFIED ASAP
+    //     std::string tmp = node->getContent().substr(1, node->getContent().length() - 2);
+    //     int tmp_len = tmp.size();
+    //     if (tmp_len > 255) {
+    //         std::cerr << node->get_location() << "this string constant is too long, use first 255 characters instead." << std::endl;
+    //         //This is not error but just warning. Maybe we can add a 'warning type' to report all warnings.
+    //         tmp = tmp.substr(0, 255);
+    //         tmp_len = tmp.size();
+    //     }
+    //     char zero = 0;
+    //     for (int i = 0; i < 255 - tmp_len; i++) tmp = tmp + zero;
+    //     llvm::Value *mem_str = this->builder.CreateGlobalString(tmp);
+    //     llvm::Value *v_str = this->builder.CreateLoad(mem_str);
+    //     return std::make_shared<ValueResult>(
+    //             new OurType::StrType(),
+    //             v_str,
+    //             mem_str
+    //     );
+    // }
+    else if (node->getValueType() == ASTConst::ValueType::BOOLEAN) {
+        tp = llvm::Type::getInt1Ty(this->context);
+        std::string lit = node->getLiteral();
+        for (int i=0;i < lit.length(); i++) lit[i] = tolower(lit[i]);
+        bool p = lit == "true" ? true : false;
+        buffer = new ValueResult(OurType::BOOLEAN_TYPE,
+			llvm::ConstantInt::get(tp, (uint64_t)p,true),
+            nullptr
+		);
+		// return std::make_shared<ValueResult>(
+        //         OurType::BOOLEAN_TYPE,
+        //         llvm::ConstantInt::get(tp, (uint64_t) p, true),
+        //         nullptr
+        // );
+    }
+	else{
+		cout<<"buffer is null!"<<endl;
+		buffer = nullptr;
+	}
 }
 
 void VisitorGen::visitASTTypeDefPart(ASTTypeDefPart* node) {
@@ -355,7 +433,27 @@ void VisitorGen::visitASTTypeIdentifier(ASTTypeIdentifier* node) {
 void VisitorGen::visitASTTypeOrdinal(ASTTypeOrdinal* node) {}
 
 void VisitorGen::visitASTTypeOrdinalBase(ASTTypeOrdinalBase* node) {
-	
+	ASTTypeOrdinalBase::Builtin minetype = node->getBaseType();
+	OurType::BuiltinType* temp_type;
+	temp_type->tg = OurType::PascalType::TypeGroup::BUILT_IN;
+	if(minetype==ASTTypeOrdinalBase::Builtin::INTEGER){
+		type_buffer = new TypeResult(OurType::INT_TYPE);
+	}
+	else if(minetype==ASTTypeOrdinalBase::Builtin::REAL){
+		type_buffer = new TypeResult(OurType::REAL_TYPE);
+	}
+	else if(minetype==ASTTypeOrdinalBase::Builtin::CHAR){
+		type_buffer = new TypeResult(OurType::CHAR_TYPE);
+	}
+	else if(minetype==ASTTypeOrdinalBase::Builtin::BOOLEAN){
+		type_buffer = new TypeResult(OurType::BOOLEAN_TYPE);
+	}
+	// if(minetype==ASTTypeOrdinalBase::Builtin::INTEGER){
+	// 	temp_type->type = OurType::BuiltinType::BasicTypes::VOID;
+	// }
+	else {
+		type_buffer = new TypeResult(temp_type);
+	}
 }
 
 void VisitorGen::visitASTTypeOrdinalEnum(ASTTypeOrdinalEnum* node) {
@@ -411,8 +509,54 @@ void VisitorGen::visitASTVarDeclList(ASTVarDeclList* node) {
 }
 
 void VisitorGen::visitASTVarDecl(ASTVarDecl* node) {
-	node->getASTIdentifierList()->accept(this);
+	//auto res = std::static_pointer_cast<TypeResult>(node->getTypeDecl()->Accept(this));
+    node->getASTIdentifierList()->accept(this);
 	node->getTypeDenoter()->accept(this);
+	auto res = type_buffer;
+	//cout<<res->getType()->tg<<endl;
+	//auto name_list = std::static_pointer_cast<NameList>(node->getList()->Accept(this));
+    auto name_list = node->getASTIdentifierList()->getIdentifierList();
+	if (res == nullptr){
+		cout<<"No Type!"<<endl;
+	} //The error has been reported.
+    for (auto id: name_list) {
+        llvm::Type *ty = OurType::getLLVMType(this->context, res->getType());
+        if (this->block_stack.size() == 1) {
+            llvm::Constant * initializer;
+            if (res->getType()->isBuiltInTy()) {
+				initializer = llvm::Constant::getNullValue(ty);
+				//cout<<"hello"<<endl;
+			}
+			else initializer = llvm::ConstantAggregateZero::get(ty);
+            llvm::GlobalVariable *var = new llvm::GlobalVariable(
+                    /*Module=*/*(this->module),
+                    /*Type=*/ty,
+                    /*isConstant=*/false,
+                    /*Linkage=*/llvm::GlobalValue::CommonLinkage,
+                    /*Initializer=*/initializer, // has initializer, specified below
+                    /*Name=*/id);
+            if (this->block_stack.back()->named_values.count(id)) {
+                cout<<"error!already have!"<<endl;
+				//error 
+            }
+            this->block_stack.back()->named_values[id] = var;
+            this->block_stack.back()->named_types[id] = res->getType();
+        } else {
+            llvm::AllocaInst *var = this->builder.CreateAlloca(
+                    ty,
+                    nullptr,
+                    id
+            );
+            if (this->block_stack.back()->named_values.count(id)) {
+                cout<<"error!already have!"<<endl;
+				//error 
+            }
+            this->block_stack.back()->named_values[id] = var;
+            this->block_stack.back()->named_types[id] = res->getType();
+        }
+    }
+	//node->getASTIdentifierList()->accept(this);
+	//node->getTypeDenoter()->accept(this);
 }
 
 void VisitorGen::visitASTProcFuncDefPart(ASTProcFuncDefPart* node) {
@@ -677,12 +821,71 @@ void VisitorGen::visitASTStatList(ASTStatList* node) {
 
 void VisitorGen::visitASTStat(ASTStat* node) {}
 
+bool VisitorGen::genAssign(llvm::Value* dest_ptr, PascalType *dest_type, llvm::Value* src, PascalType *src_type) {
+    if (dest_type->isSimple()) {
+		cout<<"left is simple"<<endl;
+        if (!isEqual(dest_type, src_type)) {
+			cout<<"left is simple if"<<endl;
+            //Type conversions
+            if (src_type->isIntegerTy() && dest_type->isFloatingPointTy()) {
+                src = this->builder.CreateSIToFP(src, llvm::Type::getFloatTy(this->context));
+                this->builder.CreateStore(src, dest_ptr);
+                return true;
+            }
+            return false;
+        }
+        else {
+			cout<<"left is simple else"<<endl;
+            this->builder.CreateStore(src, dest_ptr);
+            return true;
+        }
+    }
+    else if (dest_type->isStringTy()) {
+        this->builder.CreateStore(src, dest_ptr);
+        return true;
+    }
+    else if (dest_type->isArrayTy()) {
+        this->builder.CreateStore(src, dest_ptr);
+        return true;
+        //TODO: implement array assignment
+    }
+    else if (dest_type->isRecordTy()) {
+        this->builder.CreateStore(src, dest_ptr);
+        return true;
+        //TODO: implement record assignment
+    }
+	else{
+		cout<<"123"<<endl;
+		return false;
+	}
+    
+}
+
+
+//ValueResult* left;
+//ValueResult* right;
+
 void VisitorGen::visitASTStatAssign(ASTStatAssign* node) {
-	
 	node->getLvalue()->accept(this);
-	
+	ValueResult* left = buffer;
+	//delete buffer;
 	node->getRvalue()->accept(this);
-	
+	//left = node->getLvalue();
+	ValueResult* right = buffer;
+	//delete buffer;
+	int loc_line = node->getLocation().first.first; 
+	//right = node->getRvalue();
+	if (left == nullptr || right == nullptr){
+		std::cout<<"NO assignment!"<<std::endl;
+	}
+	else if (left->getMem() == nullptr){
+		std::cout<<"Error in line["<<loc_line<<"]:Invalid left value."<<std::endl;
+	}
+	else if(!genAssign(left->getMem(), left->getType(), right->getValue(), right->getType()))
+	{
+		//cout<<left->getType()<<endl;
+		std::cout<<"Error in line["<<loc_line<<"]:Assignment in different types."<<std::endl;
+	}
 }
 
 void VisitorGen::visitASTStatGoto(ASTStatGoto* node) {
@@ -770,5 +973,30 @@ void VisitorGen::visitASTExprConst(ASTExprConst* node) {
 }
 
 void VisitorGen::visitASTExprIdentifier(ASTExprIdentifier* node) {
+	std::string name = node->getIdentifier();
+	if(this->getCurrentBlock()->isValue(name)){
+		llvm::Value *mem = this->getCurrentBlock()->named_values[name];
+        llvm::Value *value = this->builder.CreateLoad(mem);
+        std::cout << "Get local named value: " << name << std::endl;
+		buffer = new ValueResult(this->getVarType(name),value,mem);
+	}
+	else if (this->block_stack[0]->isValue(name)){
+        llvm::Value *mem = this->block_stack[0]->named_values[name];
+        llvm::Value *value = this->builder.CreateLoad(mem);
+        std::cout << "Get global named value: " << name << std::endl;
+        buffer = new ValueResult(this->block_stack[0]->named_types[name],value,mem);
+		//return std::make_shared<ValueResult>(this->block_stack[0]->named_types[name], value, mem);
+    }
+	else {
+        // std::cout << "start calling no arg func : " << name << std::endl;
+        // ASTFuncCall *func_call = new ASTFuncCall(name, nullptr);
+        // auto ret = func_call->Accept(this);
+        // std::cout << "finish calling no arg func : " << name << " , return " << (ret == nullptr ? "is" : "is not") << " nullptr" << std::endl;
+        // if (ret != nullptr) return ret;
+        // return RecordErrorMessage(name + " is neither a variable nor a no-arg function. Cannot get named value: ", node->get_location_pairs());
+		cout<<"buffer is null!left"<<endl;
+		buffer = nullptr;
+	}
 	
+
 }

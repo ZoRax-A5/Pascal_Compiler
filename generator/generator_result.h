@@ -24,7 +24,11 @@ private:
 class ValueResult : public VisitorResult {
 public:
     ValueResult(OurType::PascalType* type, llvm::Value* value, llvm::Value* mem = nullptr) : type_(type), value_(value), mem_(mem) {}
-
+    ValueResult(const ValueResult &temp){
+        this->type_ = temp.type_;
+        this->value_ = temp.value_;
+        this->mem_ = temp.mem_;
+    }
     ~ValueResult() = default;
 
     llvm::Value* getValue() const { return this->value_; }
@@ -51,6 +55,10 @@ private:
 class TypeResult : public VisitorResult {
 public:
     TypeResult(OurType::PascalType* type, bool is_var = false) :type_(type), is_var_(is_var) {}
+    TypeResult(const TypeResult& temp){
+        this->type_ = temp.type_;
+        this->is_var_ = temp.is_var_;
+    }
     OurType::PascalType* getType() const { return type_; }
     bool is_var() { return is_var_; }
 
