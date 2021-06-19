@@ -133,11 +133,9 @@ llvm::Value* VisitorGen::genSysFunc(std::string id, const std::vector<std::share
 }
 
 
-std::shared_ptr<VisitorResult>
-VisitorGen::RecordErrorMessage(std::string cur_error_message, std::pair<int, int> location) {
+void VisitorGen::RecordErrorMessage(std::string cur_error_message, std::pair<std::pair<int, int>, std::pair<int, int>> location) {
 	error_message.push_back(cur_error_message);
 	error_position.push_back(location);
-	return nullptr;
 }
 
 VisitorGen::VisitorGen():builder(this->context){
@@ -163,9 +161,8 @@ bool VisitorGen::hasError() { return error_message.size() > 0; }
 
 void VisitorGen::printError() {
 	for (int i = 0; i < error_message.size(); i++) {
-		std::string location = "[Error]  ";
-		if (error_position[i] != std::make_pair(-1, -1))
-			location = "[Error in (" + std::to_string(error_position[i].first) + ", " + std::to_string(error_position[i].second) + ")]  ";
+		std::string location = "[Error in (" + std::to_string(error_position[i].first.first) + "." + std::to_string(error_position[i].first.second)
+		+ "-" + std::to_string(error_position[i].second.first) + "." + std::to_string(error_position[i].second.second) + ")]  ";
 		std::cout << location + error_message[i] << std::endl;
 	}
 }
@@ -900,14 +897,29 @@ void VisitorGen::visitASTStatProc(ASTStatProc* node) {
 
 void VisitorGen::visitASTStatCondIf(ASTStatCondIf* node) {
 	
+	llvm::Function *func = this->builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock *then_block = llvm::BasicBlock::Create(this->context, "if_then", func);
+    llvm::BasicBlock *else_block = llvm::BasicBlock::Create(this->context, "if_else", func);
+    llvm::BasicBlock *cont_block = llvm::BasicBlock::Create(this->context, "if_cont", func);
+
 	node->getCondition()->accept(this);
-	
+	ValueResult* cond_res = buffer;
+
+	if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE))
+        return RecordErrorMessage("Invalid condition in if statement.", node->getLocation());
+
+	this->builder.CreateCondBr(cond_res->getValue(), then_block, else_block);
+    this->builder.SetInsertPoint(then_block);
+
 	node->getThenCode()->accept(this);
+	this->builder.CreateBr(cont_block);
+    this->builder.SetInsertPoint(else_block);
+
 	if (node->getElseCode() != NULL) {
-		
 		node->getElseCode()->accept(this);
 	}
-	
+	this->builder.CreateBr(cont_block);
+    this->builder.SetInsertPoint(cont_block);
 }
 
 void VisitorGen::visitASTStatIterRepeat(ASTStatIterRepeat* node) {
@@ -1097,6 +1109,7 @@ void VisitorGen::visitASTExprBinary(ASTExprBinary* node) {
 			buffer = new ValueResult(BOOLEAN_TYPE, this->builder.CreateAnd(L, R, "andtmp"));
             break;
             //return std::make_shared<ValueResult>(BOOLEAN_TYPE, this->builder.CreateAnd(L, R, "andtmp")); 
+		buffer = nullptr;
     }
 }
 
