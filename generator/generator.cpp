@@ -952,12 +952,152 @@ void VisitorGen::visitASTStatIterWhile(ASTStatIterWhile* node) {
 
 void VisitorGen::visitASTExpr(ASTExpr* node) {}
 
+#define Op(x) ASTExpr::OPType::x
+bool check_logic(PascalType *l, PascalType *r){
+    return isEqual(l, BOOLEAN_TYPE) && isEqual(r, BOOLEAN_TYPE);
+}
+bool check_cmp(PascalType *l, PascalType *r, PascalType *&ret) {
+    if (!l->isSimple() || !r->isSimple()) return false;
+    // Don't consider the string temporarily.
+    ret = l;
+
+    if (isEqual(l, BOOLEAN_TYPE) && isEqual(r, BOOLEAN_TYPE)) return true;
+    if (isEqual(l, BOOLEAN_TYPE) || isEqual(r, BOOLEAN_TYPE)) return false;
+
+    if (isEqual(l, CHAR_TYPE) && isEqual(r, CHAR_TYPE)) return true;
+    if (isEqual(l, CHAR_TYPE) || isEqual(r, CHAR_TYPE)) return false;
+
+    if (isEqual(l, REAL_TYPE)) ret = l;
+    if (isEqual(r, REAL_TYPE)) ret = r;;
+    return true;
+}
+
+bool check_arith(PascalType *l, PascalType *r, PascalType *&ret){
+    if (!l->isSimple() || !r->isSimple()) return false;
+    // Don't consider the string temporarily.
+    if (isEqual(l, BOOLEAN_TYPE) || isEqual(r, BOOLEAN_TYPE)) return false;
+    //boolean type can not take part in the arithmetic
+    if (isEqual(l, CHAR_TYPE) || isEqual(r, CHAR_TYPE)) return false;
+    //char type can not take part in the arithmetic
+
+    ret = l;
+    if (isEqual(l, REAL_TYPE)) ret = l;    
+    if (isEqual(r, REAL_TYPE)) ret = r; 
+    return true;
+    //only numbers (integer/real) can forcely converted.
+}
+
+
 void VisitorGen::visitASTExprBinary(ASTExprBinary* node) {
 	
 	node->getOpLeft()->accept(this);
-
+	ValueResult* left = buffer;
 	node->getOpRight()->accept(this);
+	ValueResult* right = buffer;
 
+	if (left == nullptr || right == nullptr)
+        std::cout<<"NO binary Expression!"<<std::endl;
+
+	ASTExpr::OPType nowOp = node->getOpType();
+
+	PascalType *ret = nullptr;
+    if (nowOp == Op(OP_GE) || nowOp == Op(OP_GT) || nowOp == Op(OP_LE) || nowOp == Op(OP_LT) || nowOp == Op(OP_EQ) || nowOp == Op(OP_NE)) {
+        if (!check_cmp(left->getType(), right->getType(), ret)) 
+			std::cout<<"The type of two side in binary compare expression does not matched."<<std::endl;
+    }
+    
+    else if (nowOp == Op(OP_AND) || nowOp == Op(OP_OR)) {
+        if (!check_logic(left->getType(), right->getType()))
+			std::cout<<"Both sides of the binary logic expression need to be BOOLEAN type."<<std::endl;
+    }
+    else {
+        if (!check_arith(left->getType(), right->getType(), ret))
+			std::cout<<"The type of two side in binary arithmetic expression does not matched."<<std::endl;
+    }
+	
+    bool is_real = isEqual(ret, REAL_TYPE);
+   
+    auto L = left->getValue(), R = right->getValue();
+    if (is_real){
+		L = this->builder.CreateUIToFP(L, getLLVMType(this->context, REAL_TYPE));
+		R = this->builder.CreateUIToFP(R, getLLVMType(this->context, REAL_TYPE));
+	}
+    switch (nowOp)
+    {
+        case Op(OP_GE):
+			buffer = new ValueResult(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpOGE(L, R, "cmpftmp") 
+                                                                       : this->builder.CreateICmpSGE(L, R, "cmptmp"));
+            break;
+			//buffer = std::make_shared<ValueResult>(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpOGE(L, R, "cmpftmp") 
+                                                                       //: this->builder.CreateICmpSGE(L, R, "cmptmp"));
+			
+		case Op(OP_GT):
+			buffer = new ValueResult(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpOGT(L, R, "cmpftmp") 
+                                                                       : this->builder.CreateICmpSGT(L, R, "cmptmp"));
+            break;
+            //return std::make_shared<ValueResult>(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpOGT(L, R, "cmpftmp")
+            //                                                         :  this->builder.CreateICmpSGT(L, R, "cmptmp"));
+        case Op(OP_LE):
+			buffer = new ValueResult(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpOLE(L, R, "cmpftmp") 
+                                                                       : this->builder.CreateICmpSLE(L, R, "cmptmp"));
+            break;
+            //return std::make_shared<ValueResult>(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpOLE(L, R, "cmpftmp")
+            //                                                          :  this->builder.CreateICmpSLE(L, R, "cmptmp"));
+        case Op(OP_LT):
+			buffer = new ValueResult(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpOLT(L, R, "cmpftmp") 
+                                                                       : this->builder.CreateICmpSLT(L, R, "cmptmp"));
+            break;
+            //return std::make_shared<ValueResult>(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpOLT(L, R, "cmpftmp")
+            //                                                            : this->builder.CreateICmpSLT(L, R, "cmptmp"));
+        case Op(OP_EQ):
+			buffer = new ValueResult(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpOEQ(L, R, "cmpftmp") 
+                                                                       : this->builder.CreateICmpEQ(L, R, "cmptmp"));
+            break;
+            //return std::make_shared<ValueResult>(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpOEQ(L, R, "cmpftmp")
+            //                                                           : this->builder.CreateICmpEQ(L, R, "cmptmp"));
+        case Op(OP_NE):
+			buffer = new ValueResult(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpONE(L, R, "cmpftmp") 
+                                                                       : this->builder.CreateICmpNE(L, R, "cmptmp"));
+            break;
+            //return std::make_shared<ValueResult>(BOOLEAN_TYPE, is_real ? this->builder.CreateFCmpONE(L, R, "cmpftmp")
+            //                                                           : this->builder.CreateICmpNE(L, R, "cmptmp"));
+        case Op(OP_ADD):
+			buffer = new ValueResult(ret, is_real ? this->builder.CreateFAdd(L, R, "addftmp") 
+                                                                       : this->builder.CreateAdd(L, R, "addtmp"));
+            break;
+            //return std::make_shared<ValueResult>(ret, is_real ? this->builder.CreateFAdd(L, R, "addftmp")
+            //                                                   : this->builder.CreateAdd(L, R, "addtmp"));
+        case Op(OP_SUB):
+			buffer = new ValueResult(ret, is_real ? this->builder.CreateFSub(L, R, "subftmp") 
+                                                                       : this->builder.CreateSub(L, R, "subtmp"));
+            break;
+            //return std::make_shared<ValueResult>(ret, is_real ? this->builder.CreateFSub(L, R, "subftmp")
+            //                                                   : this->builder.CreateSub(L, R, "subtmp"));
+        case Op(OP_MUL):
+			buffer = new ValueResult(ret, is_real ? this->builder.CreateFMul(L, R, "cmpftmp") 
+                                                                       : this->builder.CreateMul(L, R, "cmptmp"));
+            break;
+            //return std::make_shared<ValueResult>(ret, is_real ? this->builder.CreateFMul(L, R, "mulftmp")
+            //                                                  :  this->builder.CreateMul(L, R, "multmp"));
+        case Op(OP_DIV):
+			buffer = new ValueResult(ret, this->builder.CreateFDiv(L, R, "divftmp"));
+            break;
+            //return std::make_shared<ValueResult>(REAL_TYPE, this->builder.CreateFDiv(L, R, "divftmp"));
+        case Op(OP_MOD):
+            if (is_real) std::cout<<"The type of two side in mod must be INTEGER."<<std::endl;
+			buffer = new ValueResult(ret, this->builder.CreateSRem(L, R, "modtmp"));
+            break;
+            //return std::make_shared<ValueResult>(ret, this->builder.CreateSRem(L, R, "modtmp"));
+        
+        case Op(OP_OR):
+			buffer = new ValueResult(BOOLEAN_TYPE, this->builder.CreateOr(L, R, "ortmp"));
+            break;
+            //return std::make_shared<ValueResult>(BOOLEAN_TYPE, this->builder.CreateOr(L, R, "ortmp"));
+        case Op(OP_AND):
+			buffer = new ValueResult(BOOLEAN_TYPE, this->builder.CreateAnd(L, R, "andtmp"));
+            break;
+            //return std::make_shared<ValueResult>(BOOLEAN_TYPE, this->builder.CreateAnd(L, R, "andtmp")); 
+    }
 }
 
 void VisitorGen::visitASTExprUnary(ASTExprUnary* node) {
