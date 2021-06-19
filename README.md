@@ -908,6 +908,42 @@ Pascal语法中不存在独立的变量，每一个变量都会存在于某个�
 对于procedure和函数的定义，我们会将新的procedure和函数名放到当前作用域下，并且将所有的paramList记录到我们的符号表中，增加作用域深度，命名新作用域名称为该procedure或者function的名称。
 
 
+# 设计者模式
+
+在面向对象程序和软件工程中，设计者模式具有较好的扩展性和封闭性，可以将数据结构和访问方法分离开。每个类实现单一的职责，保证接口隔离、互不干扰。我们使用OOP思想进行类的设计，子类可以扩展父类的功能，但不改变父类原有的功能。
+
+设计者模式样例如下：
+
+![img](file:///C:\Users\jxazz\AppData\Roaming\Tencent\Users\1024493416\QQ\WinTemp\RichOle\E{[Q`D%@S`@7A263BH%F`QD.png)
+
+我们设计一个ASTNode类，用于生成语法树的结构。同时。我们设计一个Visitor类，用于访问语法树。
+
+![1](C:\Users\jxazz\Desktop\1.png)
+
+具体的访问方式如下：
+
+visitASTProgram实现操作：
+
+void VisitorGen::visitASTProgram(ASTProgram* node) {
+
+​	node->getProgramHead()->accept(this);
+
+}
+
+ASTProgramBody定义如下：
+
+void ASTProgramBody::accept(Visitor* visitor) { 
+
+​	visitor->visitASTProgramBody(this); 
+
+}
+
+通过向visitASTProgram中传入参数ASTProgram*node，并获取其中私有变量node->getProgramHead()。在获得变量ASTProgramHead()后，调用accept函数并传入visitor指针，进行对应结构的visitor操作，同时使语法树向下遍历。
+
+由于我们需要生成中间结构图和使用LLVM进行语法树操作，我们需要多次遍历语法树，并进行不同操作。这时，只需要定义不同的类，并对这些类设计对应的Visitor函数，就可实现多次遍历和不同操作。
+
+## LLVM
+
 
 
 
