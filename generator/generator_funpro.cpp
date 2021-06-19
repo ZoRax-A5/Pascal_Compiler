@@ -1,18 +1,50 @@
 #include "generator.h"
 #include "generator_result.h"
-
-void VisitorGen::visitASTProcFuncDecl(ASTProcFuncDecl* node) {}
+void VisitorGen::visitASTProcFuncDecl(ASTProcFuncDecl* node) {
+	
+}
 
 void VisitorGen::visitASTProcedureDeclaration(ASTProcedureDeclaration* node) {
-	//json_stream << "{";
-	//json_stream << "text:{";
-	//json_stream << "name:\"ASTProcedureDeclaration\",";
-	//printLocation(node);
-	//json_stream << "},";
-	//json_stream << "children:[";
+	OurType::PascalType *return_type = OurType::VOID_TYPE;
+	string proc_name = node->getProcHead()->getProcName();
+	llvm::Type *llvm_return_type = OurType::getLLVMType(context, return_type);
+	//get basic parameters
+	auto parameters = node->getProcHead()->getProcParam()->getParamList();
+	std::vector<std::string> name_list;
+	std::vector<ASTTypeOrdinal*> type_var_list;
+	for (std::vector<ASTFormalParam*>::iterator item : parameters) {
+		type_var_list.push_back(((ASTFormalParamValue*)item)->getType());
+		auto name_list_temp = ((ASTFormalParamValue*)item)->getNameList();
+		for (auto iter : name_list_temp) {
+
+		}
+	}
+	auto name_list = ((ASTFormalParamValue*)(*(parameters.begin())))->getNameList();
+	auto type_var_list = ((ASTFormalParamValue*)(*(parameters.begin())))->getType();
+	std::vector<llvm::Type*> llvm_type_list;
+	std::vector<OurType::PascalType*> type_list;
+	std::vector<bool> var_list;
+	
+	auto local_vars = this->getAllLocalVarNameType();
+	std::vector<std::string> local_name_list = local_vars.first;
+	std::vector<OurType::PascalType *> local_type_list = local_vars.second;
+	for (int i = 0; i < local_name_list.size(); i++) {
+		name_list.push_back(local_name_list[i]);
+		type_list.push_back(local_type_list[i]);
+		var_list.push_back(true);
+		llvm_type_list.push_back(llvm::PointerType::getUnqual(OurType::getLLVMType(context, local_type_list[i])));
+	}
+	for (auto type : type_var_list) {
+		type_list.push_back(type->getType());
+		var_list.push_back(type->is_var());
+		llvm_type_list.push_back(llvm::PointerType::getUnqual(OurType::getLLVMType(context, type->getType())));
+	}
+	FuncSign *funcsign = new FuncSign((int)(local_name_list.size()), name_list, type_list, var_list, return_type);
+	llvm::FunctionType *functionType = llvm::FunctionType::get(llvm_return_type, llvm_type_list, false);
 	node->getProcHead()->accept(this);
 	//json_stream << ",";
 	node->getProcBody()->accept(this);
+	llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage, func_name, module.get());
 	//json_stream << "]";
 	//json_stream << "}";
 }
