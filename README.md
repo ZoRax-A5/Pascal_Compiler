@@ -914,11 +914,11 @@ Pascal语法中不存在独立的变量，每一个变量都会存在于某个�
 
 设计者模式样例如下：
 
-![img](file:///C:\Users\jxazz\AppData\Roaming\Tencent\Users\1024493416\QQ\WinTemp\RichOle\E{[Q`D%@S`@7A263BH%F`QD.png)
+
 
 我们设计一个ASTNode类，用于生成语法树的结构。同时。我们设计一个Visitor类，用于访问语法树。
 
-![1](C:\Users\jxazz\Desktop\1.png)
+
 
 具体的访问方式如下：
 
@@ -943,6 +943,8 @@ void ASTProgramBody::accept(Visitor* visitor) {
 由于我们需要生成中间结构图和使用LLVM进行语法树操作，我们需要多次遍历语法树，并进行不同操作。这时，只需要定义不同的类，并对这些类设计对应的Visitor函数，就可实现多次遍历和不同操作。
 
 ## LLVM
+
+
 
 
 
