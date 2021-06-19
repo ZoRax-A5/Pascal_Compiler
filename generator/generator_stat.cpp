@@ -1,5 +1,6 @@
 #include "generator.h"
 #include "generator_result.h"
+#include <utility>
 
 void VisitorGen::visitASTCompoundStat(ASTCompoundStat* node) {
 	node->getASTStatList()->accept(this);
@@ -16,10 +17,12 @@ void VisitorGen::visitASTStatList(ASTStatList* node) {
 }
 
 void VisitorGen::visitASTStat(ASTStat* node) {
-	/*if (node->getLabel() != "") {
+	//?????????????????
+	if (node->getLabel() != "") {
 		int label = atoi(node->getLabel().c_str());
 		if (this->getCurrentBlock()->labels.count(label) > 0) {
-			this->RecordErrorMessage("Duplicated label: " + node->getLabel(), node->get_location_pairs());
+			///
+			this->RecordErrorMessage("Duplicated label: " + node->getLabel(), std::make_pair((node->getLocation().first).first, (node->getLocation().second).first));
 		}
 		else {
 			llvm::Function* func = this->builder.GetInsertBlock()->getParent();
@@ -29,7 +32,7 @@ void VisitorGen::visitASTStat(ASTStat* node) {
 			this->getCurrentBlock()->labels[label] = label_block;
 		}
 	}
-	node->getNonLabelStmt()->Accept(this);*/
+	//node->getNonLabelStmt()->Accept(this);
 	//return nullptr;
 }
 
@@ -63,20 +66,25 @@ void VisitorGen::visitASTStatAssign(ASTStatAssign* node) {
 		this->builder.CreateStore(src, dest_ptr);
 		return true;
 		//TODO: implement record assignment
-	}
-	return false;*/
+	}*/
+	//return false;
 
 
-	/*std::shared_ptr<VisitorResult> Generator::VisitASTAssignStmt(ASTAssignStmt* node) {
-		std::cout << "assign!" << std::endl;
-		auto left = std::static_pointer_cast<ValueResult>(node->getExpr1()->Accept(this));
-		auto right = std::static_pointer_cast<ValueResult>(node->getExpr2()->Accept(this));
-		if (left == nullptr || right == nullptr) return nullptr;
-		if (left->getMem() == nullptr)
-			return RecordErrorMessage("Invalid l-value.", node->get_location_pairs());
-		if (!genAssign(left->getMem(), left->getType(), right->getValue(), right->getType()))
-			return RecordErrorMessage("Can not do assignment between different types.", node->get_location_pairs());
-		//return nullptr;*/
+	
+	//std::cout << "assign!" << std::endl;
+	//auto left = std::static_pointer_cast<ValueResult>(node->getExpr1()->Accept(this));
+
+	//auto left = std::static_pointer_cast<ValueResult>(node->getLvalue()->accept(this));
+
+	//auto right = std::static_pointer_cast<ValueResult>(node->getExpr2()->Accept(this));
+	//auto right = std::static_pointer_cast<ValueResult>(node->getRvalue()->accept(this));
+
+	//if (left == nullptr || right == nullptr) return nullptr;
+	//if (left->getMem() == nullptr)
+		//return RecordErrorMessage("Invalid l-value.", node->get_location_pairs());
+	//if (!genAssign(left->getMem(), left->getType(), right->getValue(), right->getType()))
+		//return RecordErrorMessage("Can not do assignment between different types.", node->get_location_pairs());
+	//return nullptr;*/
 
 	node->getLvalue()->accept(this);
 
@@ -96,9 +104,9 @@ void VisitorGen::visitASTStatGoto(ASTStatGoto* node) {
 
 void VisitorGen::visitASTStatProc(ASTStatProc* node) {
 
-	ASTFuncCall* ast_func = new ASTFuncCall(node->getId(), node->getExprList());
-	auto res = ast_func->Accept(this);
-	delete ast_func;
+	//ASTFuncCall* ast_func = new ASTFuncCall(node->getId(), node->getExprList());
+	//auto res = ast_func->Accept(this);
+	//delete ast_func;
 	//return res;
 
 	node->getParamList()->accept(this);
@@ -107,7 +115,7 @@ void VisitorGen::visitASTStatProc(ASTStatProc* node) {
 
 void VisitorGen::visitASTStatCondIf(ASTStatCondIf* node) {
 
-	llvm::Function* func = this->builder.GetInsertBlock()->getParent();
+	/*llvm::Function* func = this->builder.GetInsertBlock()->getParent();
 	llvm::BasicBlock* then_block = llvm::BasicBlock::Create(this->context, "if_then", func);
 	llvm::BasicBlock* else_block = llvm::BasicBlock::Create(this->context, "if_else", func);
 	llvm::BasicBlock* cont_block = llvm::BasicBlock::Create(this->context, "if_cont", func);
