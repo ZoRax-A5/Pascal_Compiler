@@ -26,6 +26,8 @@ ASTTypeStructArray
 ASTTypeStructRecord
 ASTTypeStructFile
 ASTTypePointer
+ASTFieldDeclList
+ASTFieldDecl
 ASTVarDeclPart
 ASTVarDeclList
 ASTVarDecl
