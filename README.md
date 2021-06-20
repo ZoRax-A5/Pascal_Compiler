@@ -1105,6 +1105,34 @@ bool VisitorGen::genAssign(llvm::Value* dest_ptr, PascalType *dest_type, llvm::V
 }
 ```
 
+#### if生成
+
+在生成if语句时，我们需要获取判断条件是否为真，并进行相应操作。同时，我们需要创建子block，访问子节点进行对应块的操作。
+
+```c++
+	llvm::BasicBlock *then_block = llvm::BasicBlock::Create(this->context, "if_then", func);
+	llvm::BasicBlock *else_block = llvm::BasicBlock::Create(this->context, "if_else", func);
+	llvm::BasicBlock *cont_block = llvm::BasicBlock::Create(this->context, "if_cont", func);
+	
+	node->getCondition()->accept(this);
+	ValueResult* cond_res = buffer;
+```
+在获取到条件值后，我们调用CreateCondBr并传入参数cond_res->getValue()，判断具体进行操作的块，并进入then块进行相应操作（当不满足条件时不进行具体操作）。在满足else部分非空时，进入else块进行相应操作。
+```c++
+	this->builder.CreateCondBr(cond_res->getValue(), then_block, else_block);
+	
+	this->builder.SetInsertPoint(then_block);
+	node->getThenCode()->accept(this);
+	this->builder.CreateBr(cont_block);
+   	 this->builder.SetInsertPoint(else_block);
+
+	if (node->getElseCode() != NULL) {
+		node->getElseCode()->accept(this);
+	}
+	this->builder.CreateBr(cont_block);
+   	 this->builder.SetInsertPoint(cont_block);
+```
+
 
 ## 附录
 
