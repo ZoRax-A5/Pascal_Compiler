@@ -440,6 +440,12 @@ ASTExprIdentifier::ASTExprIdentifier() {}
 ASTExprIdentifier::ASTExprIdentifier(std::string a1) : identifier(a1) {}
 std::string ASTExprIdentifier::getIdentifier() { return identifier; }
 
+/* function call expression */
+ASTExprFunc::ASTExprFunc() {}
+ASTExprFunc::ASTExprFunc(std::string a1, ASTActualParamList* a2) : func_name(a1), param_list(a2) {}
+std::string ASTExprFunc::getFuncName() { return func_name; }
+ASTActualParamList* ASTExprFunc::getParamList() { return param_list; }
+
 /* visitor accept interface */
 void ASTProgram::accept(Visitor* visitor) { visitor->visitASTProgram(this); }
 void ASTProgramHead::accept(Visitor* visitor) { visitor->visitASTProgramHead(this); }
@@ -504,3 +510,4 @@ void ASTExprBinary::accept(Visitor* visitor) { visitor->visitASTExprBinary(this)
 void ASTExprUnary::accept(Visitor* visitor) { visitor->visitASTExprUnary(this); }
 void ASTExprConst::accept(Visitor* visitor) { visitor->visitASTExprConst(this); }
 void ASTExprIdentifier::accept(Visitor* visitor) { visitor->visitASTExprIdentifier(this); }
+void ASTExprFunc::accept(Visitor* visitor) { visitor->visitASTExprFunc(this); }

@@ -83,6 +83,7 @@ class ASTExprBinary;
 class ASTExprUnary;
 class ASTExprConst;
 class ASTExprIdentifier;
+class ASTExprFunc;
 
 /* AST node base class */
 class ASTNode {
@@ -1001,6 +1002,21 @@ public:
     ASTExprIdentifier(std::string);
 
     std::string getIdentifier();
+
+    virtual void accept(Visitor* visitor);
+};
+
+/* function call expression */
+class ASTExprFunc : public ASTExpr {
+private:
+    std::string func_name;
+    ASTActualParamList* param_list;
+public:
+    ASTExprFunc();
+    ASTExprFunc(std::string, ASTActualParamList*);
+
+    std::string getFuncName();
+    ASTActualParamList* getParamList();
 
     virtual void accept(Visitor* visitor);
 };

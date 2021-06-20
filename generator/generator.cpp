@@ -958,7 +958,11 @@ void VisitorGen::visitASTStatGoto(ASTStatGoto* node) {
 }
 
 void VisitorGen::visitASTStatProc(ASTStatProc* node) {
-	
+
+	// ASTFuncCall *ast_func = new ASTFuncCall(node->getId(), node->getExprList());
+    // auto res = ast_func->Accept(this);
+    // delete ast_func;
+    // return res;
 	node->getParamList()->accept(this);
 	
 }
@@ -1262,4 +1266,7 @@ void VisitorGen::visitASTExprIdentifier(ASTExprIdentifier* node) {
 	}
 }
 
+void VisitorGen::visitASTExprFunc(ASTExprFunc* node) {
+
+}
 #undef Op
