@@ -102,7 +102,10 @@ while_body:                                       ; preds = %while_cond
 while_end:                                        ; preds = %while_cond
   ret i32 0
 }
-2* %0
+
+define void @mine(i32*, i32*, double*) {
+entry:
+  %3 = load i32, i32* %0
   %x = alloca i32
   store i32 %3, i32* %x
   %4 = load i32, i32* %1
@@ -114,4 +117,22 @@ while_end:                                        ; preds = %while_cond
   %6 = load double, double* %c
   store float 3.000000e+00, double* %c
   ret void
+}
+
+define i32 @WF(i32*, i32*, i8*) {
+entry:
+  %3 = load i32, i32* %0
+  %x = alloca i32
+  store i32 %3, i32* %x
+  %4 = load i32, i32* %1
+  %y = alloca i32
+  store i32 %4, i32* %y
+  %5 = load i8, i8* %2
+  %ch = alloca i8
+  store i8 %5, i8* %ch
+  %WF = alloca i32
+  %6 = load i32, i32* %WF
+  store i32 17, i32* %WF
+  %7 = load i32, i32* %WF
+  ret i32 %7
 }

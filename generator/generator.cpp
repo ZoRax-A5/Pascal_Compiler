@@ -604,11 +604,13 @@ void VisitorGen::visitASTProcFuncDefPart(ASTProcFuncDefPart* node) {
 void VisitorGen::visitASTProcFuncDecl(ASTProcFuncDecl* node) {}
 
 void VisitorGen::visitASTProcedureDeclaration(ASTProcedureDeclaration* node) {
+	DEBUG_GEN("Procedure Declaration\n");
 	node->getProcHead()->getProcParam()->accept(this);
 	TypeListResult* parameters = type_list_buffer;
-	if (parameters == nullptr)
-        RecordErrorMessage("Can not recognize the parameters for function/procedure definition.", node->getLocation());
+	if (parameters == nullptr) {
+		RecordErrorMessage("Can not recognize the parameters for function/procedure definition.", node->getLocation());
 		return;
+	}
 	
 	OurType::PascalType *return_type = OurType::VOID_TYPE;
 	std::string func_name = node->getProcHead()->getProcName();
@@ -624,7 +626,7 @@ void VisitorGen::visitASTProcedureDeclaration(ASTProcedureDeclaration* node) {
 	for (int i = 0; i < name_list.size(); i++) {
 		for (int j = i+1; j < name_list.size(); j++) {
 			if (name_list[i] == name_list[j]) {
-				RecordErrorMessage("The parameters in the function/procedure definition are duplicated.", node->getLocation());
+				RecordErrorMessage("The parameters in the procedure definition are duplicated.", node->getLocation());
 				return;
 			}
 		}
@@ -687,14 +689,122 @@ void VisitorGen::visitASTProcedureDeclaration(ASTProcedureDeclaration* node) {
 	
 	this->builder.SetInsertPoint(oldBlock);
     this->block_stack.pop_back();
+	DEBUG_GEN("Procedure Complete\n");
 }
 
 void VisitorGen::visitASTProcedureHead(ASTProcedureHead* node) {}
 
 void VisitorGen::visitASTProcedureBody(ASTProcedureBody* node) {}
 
-void VisitorGen::visitASTFunctionDeclaration(ASTFunctionDeclaration* node) {
+void VisitorGen::visitASTFunctionDeclaration(ASTFunctionDeclaration* node) {	
+	DEBUG_GEN("Function Declaration\n");
+	node->getFuncHead()->getFuncParam()->accept(this);
+	TypeListResult* parameters = type_list_buffer;
+	if (parameters == nullptr) {
+		RecordErrorMessage("Can not recognize the parameters for function definition.", node->getLocation());
+		return;
+	}
 	
+	OurType::PascalType *return_type = OurType::VOID_TYPE;
+	node->getFuncHead()->getReturnType()->accept(this);
+	TypeResult* return_type_result = type_buffer; 
+	if (return_type_result == nullptr) {
+		RecordErrorMessage("Can not recognize the return type for the function definition.", node->getLocation());
+		return;
+	}
+	return_type = return_type_result->getType();
+	
+	std::string func_name = node->getFuncHead()->getFuncName();
+	llvm::Type *llvm_return_type = OurType::getLLVMType(context, return_type);
+	
+	auto name_list = parameters->getNameList();
+    auto type_var_list = parameters->getTypeList();
+    std::vector<llvm::Type*> llvm_type_list;
+    std::vector<OurType::PascalType*> type_list;
+    std::vector<bool> var_list;
+
+	// check if parameters has same name.
+	for (int i = 0; i < name_list.size(); i++) {
+		for (int j = i+1; j < name_list.size(); j++) {
+			if (name_list[i] == name_list[j]) {
+				RecordErrorMessage("The parameters in the function/procedure definition are duplicated.", node->getLocation());
+				return;
+			}
+		}
+	}
+    
+    auto local_vars = this->getAllLocalVarNameType();
+    std::vector<std::string> local_name_list = local_vars.first;
+    std::vector<OurType::PascalType *> local_type_list = local_vars.second;
+    for(int i = 0; i < local_name_list.size(); i++) {
+        name_list.push_back(local_name_list[i]);
+        type_list.push_back(local_type_list[i]);
+        var_list.push_back(true);
+        llvm_type_list.push_back(llvm::PointerType::getUnqual(OurType::getLLVMType(context, local_type_list[i])));
+    }
+	
+	// adding function parameters
+    for (auto type: type_var_list){
+        type_list.push_back(type->getType());
+        var_list.push_back(type->is_var());
+        llvm_type_list.push_back(llvm::PointerType::getUnqual(OurType::getLLVMType(context, type->getType())));
+    }
+
+	FuncSign* funcsign = new FuncSign((int)(local_name_list.size()), name_list, type_list, var_list, return_type);
+    llvm::FunctionType *functionType = llvm::FunctionType::get(llvm_return_type, llvm_type_list, false);
+    llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage, func_name, module.get());
+
+    this->getCurrentBlock()->set_function(func_name, function, funcsign);
+
+    llvm::BasicBlock* oldBlock = this->builder.GetInsertBlock();
+    llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function, nullptr);
+    this->builder.SetInsertPoint(basicBlock);
+
+	block_stack.push_back(new CodeBlock());
+    this->getCurrentBlock()->block_name = func_name;
+    this->getCurrentBlock()->is_function = true;
+    int iter_i = 0;
+    for(llvm::Function::arg_iterator arg_it = function->arg_begin(); arg_it != function->arg_end(); arg_it++, iter_i++) {
+        if (var_list[iter_i]) {
+            this->getCurrentBlock()->named_values[name_list[iter_i]] = (llvm::Value *)arg_it;
+            if (iter_i >= local_name_list.size())
+                this->getCurrentBlock()->named_types[name_list[iter_i]] = type_list[iter_i];
+            std::cout << "Inserted var param " << name_list[iter_i] << std::endl;
+        } else {
+            llvm::Value *value = this->builder.CreateLoad((llvm::Value *)arg_it);
+            llvm::AllocaInst *mem = this->builder.CreateAlloca(
+                OurType::getLLVMType(this->context, type_list[iter_i]),
+                nullptr,
+                name_list[iter_i]
+            );
+            this->builder.CreateStore(value, mem);
+            this->getCurrentBlock()->named_values[name_list[iter_i]] = mem;
+            if (iter_i >= local_name_list.size())
+                this->getCurrentBlock()->named_types[name_list[iter_i]] = type_list[iter_i];
+            std::cout << "Inserted val param " << name_list[iter_i] << std::endl;
+        }
+    }
+
+	llvm::AllocaInst *mem = this->builder.CreateAlloca(
+		OurType::getLLVMType(this->context, return_type),
+		nullptr,
+		func_name
+	);
+	this->getCurrentBlock()->named_values[func_name] = mem;
+	this->getCurrentBlock()->named_types[func_name] = return_type;
+	std::cout << "Inserted val param " << func_name << std::endl;
+
+	node->getFuncBody()->getBlock()->accept(this);
+	if (this->block_stack.size() == 1) {
+		this->builder.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(this->context), 0, true));
+	} else {
+		llvm::Value *ret = this->builder.CreateLoad(this->getCurrentBlock()->named_values[func_name]);
+		this->builder.CreateRet(ret);
+	}
+	
+	this->builder.SetInsertPoint(oldBlock);
+    this->block_stack.pop_back();
+	DEBUG_GEN("Function Complete\n");
 }
 
 void VisitorGen::visitASTFunctionHead(ASTFunctionHead* node) {}
