@@ -9,11 +9,16 @@ var
     d : boolean;
     e : real;
     f : x;
+procedure mine(x,y:Integer; c:real);
+begin
+    c := 3;
+end;
 begin
     { this is a comment }
     f := 3;
     a := -3;
     b := 3.2;
+    a := b;
     c := 'c';
     d := true;
     e := a+b;
@@ -28,7 +33,7 @@ begin
 
     repeat
         a := a + 1;
-        b := a * a;
+        b := a * b;
     until a = 19;
 
     while a < 30 do
