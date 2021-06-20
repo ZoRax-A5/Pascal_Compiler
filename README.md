@@ -1296,6 +1296,251 @@ void VisitorGen::Save(std::string path) {
 }
 ```
 
+## 测试
+
+我们的代码编译运行方式如下：
+
+在linux下，配置好相关库文件，进入目标文件夹，运行指令：
+
+```c++
+cmake .
+make
+./opc test/easy.pas
+lli ./test/easy.pas.ll
+```
+
+其中指令cmake和make编译代码，./opc test/easy.pas运行代码编译easy.pas文件，生成easy.pas.ll文件，得到中间代码文件。再运行lli指令，运行easy.pas.ll文件，得出结果。
+
+### 生成汇编文件
+```c++
+llc test/repeat.pas.ll -filetype=asm -o target.o
+```
+通过上述指令使得ll中间代码生成obj文件。
+
+```assembly
+	.text
+	.file	"pascal_module"
+	.globl	main                    # -- Begin function main
+	.p2align	4, 0x90
+	.type	main,@function
+main:                                   # @main
+	.cfi_startproc
+# %bb.0:                                # %entry
+	pushq	%rax
+	.cfi_def_cfa_offset 16
+	movl	$0, x(%rip)
+	.p2align	4, 0x90
+.LBB0_1:                                # %repeat_body
+                                        # =>This Inner Loop Header: Depth=1
+	movb	$1, y(%rip)
+	movl	x(%rip), %eax
+	addl	$7, %eax
+	movl	%eax, x(%rip)
+	cmpl	$50, %eax
+	jl	.LBB0_2
+# %bb.3:                                # %if_cont
+                                        #   in Loop: Header=BB0_1 Depth=1
+	cmpl	$50, x(%rip)
+	jge	.LBB0_6
+.LBB0_4:                                # %repeat_cond
+                                        #   in Loop: Header=BB0_1 Depth=1
+	cmpb	$1, y(%rip)
+	jne	.LBB0_1
+	jmp	.LBB0_5
+	.p2align	4, 0x90
+.LBB0_2:                                # %if_then
+                                        #   in Loop: Header=BB0_1 Depth=1
+	movb	$0, y(%rip)
+	cmpl	$50, x(%rip)
+	jl	.LBB0_4
+.LBB0_6:                                # %if_then1
+                                        #   in Loop: Header=BB0_1 Depth=1
+	movb	$1, y(%rip)
+	cmpb	$1, y(%rip)
+	jne	.LBB0_1
+.LBB0_5:                                # %repeat_cont
+	movl	x(%rip), %esi
+	movl	$.Lprintf_format, %edi
+	xorl	%eax, %eax
+	callq	printf
+```
+
+
+### 生成obj文件
+```c++
+llc test/repeat.pas.ll -filetype=obj -o target.o
+```
+通过上述指令使得ll中间代码生成obj文件。
+
+
+测试截图如下：
+
+简单函数、过程测试：
+
+测试代码：
+
+```c++
+program easy;
+
+const
+    aa = 5;
+    bb = 'c';
+    cc = 3.2;
+type
+    x = Integer;
+    y = x;
+var
+    a : Integer;
+    b : x;
+    c : real;
+    d : real;
+    n : Integer;
+    is_small : boolean;
+    char_mine : char;
+
+function Compare(x,y:Integer):boolean;
+begin
+    if x < y then
+        Compare := true
+    else
+        Compare := false;
+end;
+
+function Is_equal(x,y:Integer):boolean;
+begin
+    if x = y then
+        Is_equal := true
+    else
+        Is_equal := false;
+end;
+
+begin
+    { this is a comment }
+    c := 3.2;
+    a := 5;
+    b := 6;
+    d := 3.2;
+    readln(n);
+    if Compare(a,n) then
+        writeln(a)
+    else 
+        writeln(n);
+    
+    char_mine := bb;
+    d := d+aa;
+    writeln(d);
+    if Is_equal(aa,a) then
+        writeln(bb)
+    else
+        writeln(cc);
+
+    repeat
+        b := b+1;
+    until b = 19;
+
+    while Compare(n,b) do
+        n := n + 1;
+    writeln(n);
+    is_small := Compare(a,aa);
+end.
+```
+
+测试结果：
+
+![](./figure/test_easy.png)
+
+测试常量
+
+测试代码：
+
+```c++
+program constant;
+const
+    a = 3;
+
+begin
+    writeln(a);
+end.
+```
+
+测试结果：
+
+![](./figure/test_const.png)
+
+测试repeat语句：
+
+测试代码：
+
+```c++
+program Ex;
+	var x : integer; y : boolean;
+begin
+   	 x:=0;
+	repeat
+		y:=true; x:= x+7;
+		if x < 50 then y:= false;
+   		if x >=50 then y:= true;
+	until y;
+    	writeln('ALL=',x);
+end.
+```
+
+测试结果：
+
+![](./figure/test_repeat.png)
+
+测试数组、if语句、冒泡排序：
+
+测试代码：
+
+```c++
+program test_bubble;
+var
+	r:array[1..100] of integer;
+	i, j, n, temp: integer;
+	flag: boolean;
+	
+begin
+	readln(n);
+	i := 1;
+	repeat
+		read(r[i]);
+		i := i + 1;
+	until i = n + 1;
+	
+	i := 1;
+	
+	repeat
+		flag := true;
+		j := n - 1;
+		repeat
+			if r[j+1]<r[j] then
+	        begin
+				temp := r[j+1];
+				r[j+1] := r[j];
+				r[j] := temp;
+				flag := false;
+	        end;
+			j := j - 1;
+		until j = i - 1;
+
+		if flag then break;
+		i := i + 1;
+	until i = n;
+
+	i := 1;
+	repeat
+		if i < n then write(r[i], ' ') else writeln(r[i]);
+		i := i + 1;
+	until i = n + 1;
+
+end.
+```
+
+测试结果：
+
+![](./figure/test_bubble.png)
+
 
 ## 附录
 
@@ -1432,27 +1677,11 @@ void VisitorGen::Save(std::string path) {
 <factor> := <constant> | <identifier> | "(" <relational_expression> ")" | "-" <factor>
 ```
 
-### 测试代码
-
-```pascal
-program ifStmt;
-var
-    a, b: integer;
-begin
-    a := 3;
-    b := 4;
-    if a < b then
-        a := a - 1
-    else
-        a := a + 1;
-end.
-```
-
 ### 生成指令
 
 > 源代码 -> 中间代码： lli [*.pas]
 >
-> 中间代码 -> 汇编代码：llc [*.ll] -filetype=asm -o [\*.o]
+> 中间代码 -> 汇编代码：llc [*.ll] -filetype=asm -o [\*.asm]
 >
 > 中间代码 -> 目标代码：llc [*.ll] -filetype=obj -o [\*.o]
 >
