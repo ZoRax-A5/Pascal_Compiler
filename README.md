@@ -1600,6 +1600,7 @@ end.
 
 测试结果：
 
+![](./figure/test_array.png)
 
 
 
@@ -1648,6 +1649,8 @@ end.
 ```
 
 测试结果：
+
+![](./figure/test_func.png)
 
 
 
