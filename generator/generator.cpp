@@ -1260,8 +1260,6 @@ void VisitorGen::visitASTExprBinary(ASTExprBinary* node) {
     }
 }
 
-
-
 void VisitorGen::visitASTExprUnary(ASTExprUnary* node) {
 	{
 		/* test code */
@@ -1292,6 +1290,8 @@ void VisitorGen::visitASTExprUnary(ASTExprUnary* node) {
 		buffer = nullptr;
 	}
 }
+
+#undef Op
 
 void VisitorGen::visitASTExprConst(ASTExprConst* node) {
 	node->getConstValue()->accept(this);	
@@ -1431,4 +1431,77 @@ void VisitorGen::visitASTExprFunc(ASTExprFunc* node) {
 	RecordErrorMessage("Function " + func_name + " not found.", node->getLocation());
 }
 
-#undef Op
+void VisitorGen::visitASTExprArray(ASTExprArray* node) {
+    node->getExpr()->accept(this);
+    auto index = buffer;
+    ASTExprIdentifier* tmp = new ASTExprIdentifier(node->getName());
+    tmp->accept(this);
+    auto array = buffer;
+    bool isStr = array->getType()->tg == OurType::PascalType::TypeGroup::STR;
+    bool isArr = array->getType()->tg == OurType::PascalType::TypeGroup::ARRAY;
+
+    if (array == nullptr || (!isArr && !isStr)) {
+        std::cout << "Not an array nor str, cannot use index." << std::endl;
+        return;
+    }
+
+    ArrayType* array_type = (ArrayType*)(array->getType());
+
+    if (!isEqual(index->getType(), OurType::INT_TYPE) && !isEqual(index->getType(), OurType::CHAR_TYPE)) 
+        return;
+
+    llvm::Value *base;
+    if (isArr) {
+        base = array_type->getLLVMLow(this->context);
+    } else {
+        base = llvm::ConstantInt::get(llvm::Type::getInt32Ty(this->context), 0, true);
+    }
+
+    auto offset = this->builder.CreateSub(index->getValue(), base, "subtmp");
+    std::vector<llvm::Value*> offset_vec;
+    offset_vec.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(this->context), 0));
+    offset_vec.push_back(offset);
+    llvm::Value *mem = builder.CreateGEP( array->getMem(), offset_vec, "ArrayCall");
+    llvm::Value *value = this->builder.CreateLoad(mem);
+    if (isArr) {
+        buffer = new ValueResult(array_type->element_type, value, mem);
+    } else {
+        buffer = new ValueResult(OurType::CHAR_TYPE, value, mem);
+    }
+}
+
+void VisitorGen::visitASTExprMember(ASTExprMember* node) {
+    std::string id = node->getName();
+    std::string member_name = node->getMember();
+    ASTExprIdentifier* tmp = new ASTExprIdentifier(node->getName());
+    tmp->accept(this);
+    auto val = buffer;
+
+    auto record_type_ = val->getType();
+    if (!record_type_->isRecordTy()) {
+        RecordErrorMessage("Non-record type can not use '.'.", node->getLocation());
+        return;
+    }
+    
+    auto record_type = (RecordType *)record_type_;
+    auto name_vec = record_type->name_vec;
+    auto type_vec = record_type->type_vec;
+    int bias = -1;
+    for (int i = 0; i < name_vec.size(); i++)
+        if (name_vec[i] == member_name){
+            bias = i;
+            break;
+        }
+
+    if (bias == -1) {
+        RecordErrorMessage(id + " do not have property " + member_name, node->getLocation());
+        return;
+    }
+        
+    std::vector<llvm::Value *> gep_vec = {llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0, true),
+                                          llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), bias, true)};
+    
+    llvm::Value *mem = builder.CreateGEP(val->getMem(), gep_vec, "record_field");
+    llvm::Value *ret = this->builder.CreateLoad(mem);
+    buffer = new ValueResult(type_vec[bias], ret, mem);
+}
