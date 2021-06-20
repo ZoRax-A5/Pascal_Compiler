@@ -329,21 +329,29 @@ void VisitorGen::visitASTConstDecl(ASTConstDecl* node) {
 	cout<<"Const definition!"<<endl;
 	node->getConst()->accept(this);
 	ValueResult* res = buffer;
+	
+
+	//cout<<buffer->getValue()->toString()<<"const!!!"<<endl;
     llvm::GlobalVariable *constant = new llvm::GlobalVariable(
             /*Module=*/*(this->module),
             /*Type=*/OurType::getLLVMType(this->context, res->getType()),
             /*isConstant=*/true,
             /*Linkage=*/llvm::GlobalValue::CommonLinkage,
-            /*Initializer=*/(llvm::Constant *) res->getValue(), // has initializer, specified below
+            /*Initializer=*/(llvm::Constant *)res->getValue(), // has initializer, specified below
             /*Name=*/node->getIdentifier());
 	
     if (this->block_stack.back()->named_values.count(node->getIdentifier()) || this->named_constants.count(node->getIdentifier())) {
         //error 
-    }
-    this->named_constants[node->getIdentifier()] = (llvm::Constant *) (res->getValue());
-    this->block_stack[0]->named_values[node->getIdentifier()] = constant;
+		cout<<"Const ERROR!"<<endl;
+	}
+	// llvm::Constant* mine = constant->getInitializer();
+	// cout<<"hello! "<<mine->isZeroValue()<<endl;
+    this->named_constants[node->getIdentifier()] = (llvm::Constant *)(res->getValue());
+    this->block_stack.back()->named_values[node->getIdentifier()] = constant;
+	string printout =Print(this->block_stack.back()->named_values[node->getIdentifier()]);
+	cout<<printout<<endl;
 	this->block_stack.back()->named_types[node->getIdentifier()] = res->getType();
-
+	this->builder.CreateStore(res->getValue(),constant);
 }
 
 void VisitorGen::visitASTConst(ASTConst* node) {
@@ -351,7 +359,8 @@ void VisitorGen::visitASTConst(ASTConst* node) {
     if (node->getValueType() == ASTConst::ValueType::INTEGER) {
         tp = llvm::Type::getInt32Ty(this->context);
         int v_int = atoi(node->getLiteral().c_str());
-        buffer = new ValueResult(OurType::INT_TYPE,
+        cout<<v_int<<endl;
+		buffer = new ValueResult(OurType::INT_TYPE,
 			llvm::ConstantInt::get(tp, (uint64_t) v_int, true),
             nullptr
 		);
@@ -1308,10 +1317,21 @@ void VisitorGen::visitASTExprConst(ASTExprConst* node) {
 
 void VisitorGen::visitASTExprIdentifier(ASTExprIdentifier* node) {
 	std::string name = node->getIdentifier();
+	// if(this->named_constants.find(name)!=this->named_constants.end()){
+	// 	llvm::Constant* constant = this->named_constants[name];
+	// 	llvm::Value *mem = this->getCurrentBlock()->named_values[name];
+    //     llvm::Value *value = this->builder.CreateLoad(mem);
+	// 	buffer = new
+	// }
 	if(this->getCurrentBlock()->isValue(name)){
+		if(this->named_constants.find(name)!=this->named_constants.end()){
+			
+		}
 		llvm::Value *mem = this->getCurrentBlock()->named_values[name];
         llvm::Value *value = this->builder.CreateLoad(mem);
         std::cout << "Get local named value: " << name << std::endl;
+		//string printout = Print(mem);
+		//cout<<printout<<endl;
 		buffer = new ValueResult(this->getVarType(name),value,mem);
 	}
 	else if (this->block_stack[0]->isValue(name)){
@@ -1402,7 +1422,7 @@ void VisitorGen::visitASTExprFunc(ASTExprFunc* node) {
                     nullptr, 
                     "0_" + std::to_string(this->temp_variable_count)
                 );
-                this->builder.CreateStore(value->getValue(), mem);
+                this->builder.CreateStore(value->getMem(), mem);
                 parameters.push_back(mem);
             }
             cur++;
