@@ -1154,6 +1154,59 @@ void VisitorGen::visitASTConst(ASTConst* node) {
 }
 ```
 
+#### 生成type
+
+生成type时候，包括类型名称和标识符，例如X : interger，X是identifer，interger是denoter。我们将其分开处理。对于denoter，我们将其分为OrdinalBase（包括INT、REAL、CHAR、BOLLEAN）和Enum、Subrange、Struct、ARRAY、RECOED等。这里我们显示对OrdinalBase的处理。
+
+我们获取参数的类型，并进行比较minetype==ASTTypeOrdinalBase::Builtin::type，判断属于哪种类型，并将对应类型生成一个对象传导type_buffer中供上层使用。
+
+```c++
+void VisitorGen::visitASTTypeOrdinalBase(ASTTypeOrdinalBase* node) {
+	ASTTypeOrdinalBase::Builtin minetype = node->getBaseType();
+	if(minetype==ASTTypeOrdinalBase::Builtin::INTEGER){
+		type_buffer = new TypeResult(OurType::INT_TYPE);
+	}
+	else if(minetype==ASTTypeOrdinalBase::Builtin::REAL){
+		type_buffer = new TypeResult(OurType::REAL_TYPE);
+	}
+	else if(minetype==ASTTypeOrdinalBase::Builtin::CHAR){
+		type_buffer = new TypeResult(OurType::CHAR_TYPE);
+	}
+	else if(minetype==ASTTypeOrdinalBase::Builtin::BOOLEAN){
+		type_buffer = new TypeResult(OurType::BOOLEAN_TYPE);
+	}
+	else {
+		type_buffer = nullptr;
+	}
+}
+```
+
+对于identifier，我们先判断是否标识符唯一（若有重复名称提供错误信息。）再遍历标识符列表。
+
+```c++
+void VisitorGen::visitASTTypeIdentifier(ASTTypeIdentifier* node) {
+	OurType::PascalType *ret = nullptr;
+        
+	if (this->getCurrentBlock()->named_values.count(node->getTypeIdentifier()) > 0) {
+		RecordErrorMessage("The variable " + node->getTypeIdentifier() + " Can not be defined again.", node->getLocation());
+        return;
+	}
+
+	for (int i = this->block_stack.size()-1; i >= 0; i--) {
+		CodeBlock *block = this->block_stack[i];
+		if (block->named_types.find(node->getTypeIdentifier()) != block->named_types.end()) {
+			ret = block->named_types[node->getTypeIdentifier()];
+		}
+	}
+	if (ret == nullptr) {
+        RecordErrorMessage("Can not find the definition of type '" + node->getTypeIdentifier() + "'.", node->getLocation());
+        return;
+    }
+		
+	type_buffer = new TypeResult(ret);
+}
+```
+
 
 ## 附录
 
