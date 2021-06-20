@@ -384,31 +384,6 @@ void VisitorGen::visitASTConst(ASTConst* node) {
             nullptr
         );
     }
-    // if (node->getValueType() == ASTConstValue::ValueType::STRING) {
-    //     // to make str things can store, alloc with each other
-    //     // we have to make all string values have the same length
-    //     // we make this 256
-    //     // so we add suffix zero to all constant string
-    //     // VERY BAD CODING STYLE
-    //     // NEED TO BE MODIFIED ASAP
-    //     std::string tmp = node->getContent().substr(1, node->getContent().length() - 2);
-    //     int tmp_len = tmp.size();
-    //     if (tmp_len > 255) {
-    //         std::cerr << node->get_location() << "this string constant is too long, use first 255 characters instead." << std::endl;
-    //         //This is not error but just warning. Maybe we can add a 'warning type' to report all warnings.
-    //         tmp = tmp.substr(0, 255);
-    //         tmp_len = tmp.size();
-    //     }
-    //     char zero = 0;
-    //     for (int i = 0; i < 255 - tmp_len; i++) tmp = tmp + zero;
-    //     llvm::Value *mem_str = this->builder.CreateGlobalString(tmp);
-    //     llvm::Value *v_str = this->builder.CreateLoad(mem_str);
-    //     return std::make_shared<ValueResult>(
-    //             new OurType::StrType(),
-    //             v_str,
-    //             mem_str
-    //     );
-    // }
     else if (node->getValueType() == ASTConst::ValueType::BOOLEAN) {
         tp = llvm::Type::getInt1Ty(this->context);
         std::string lit = node->getLiteral();
@@ -419,10 +394,30 @@ void VisitorGen::visitASTConst(ASTConst* node) {
             nullptr
         );
     }
-    else {
-        cout << "buffer is null!" << endl;
-        buffer = nullptr;
-    }
+	else if (node->getValueType() == ASTConst::ValueType::STRING){
+		
+		std::string tmp = node->getLiteral().substr(1, node->getLiteral().length() - 2);
+        int tmp_len = tmp.size();
+        if (tmp_len > 255) {
+            std::cerr << node << "this string constant is too long, use first 255 characters instead." << std::endl;
+            //This is not error but just warning. Maybe we can add a 'warning type' to report all warnings.
+            tmp = tmp.substr(0, 255);
+            tmp_len = tmp.size();
+        }
+		while(tmp.size()<255){
+			tmp+='\0';
+		}
+        llvm::Value *mem_str = this->builder.CreateGlobalString(tmp);
+        llvm::Value *v_str = this->builder.CreateLoad(mem_str);
+		buffer = new ValueResult(new OurType::StrType(),
+                v_str,
+                mem_str);
+		cout<<"string!"<<endl;
+	}
+	else{
+		cout<<"buffer is null!"<<endl;
+		buffer = nullptr;
+	}
 }
 
 void VisitorGen::visitASTTypeDefPart(ASTTypeDefPart* node) {
@@ -511,9 +506,10 @@ void VisitorGen::visitASTTypeOrdinalBase(ASTTypeOrdinalBase* node) {
     else if (minetype == ASTTypeOrdinalBase::Builtin::BOOLEAN) {
         type_buffer = new TypeResult(OurType::BOOLEAN_TYPE);
     }
-    // if(minetype==ASTTypeOrdinalBase::Builtin::INTEGER){
-    // 	temp_type->type = OurType::BuiltinType::BasicTypes::VOID;
-    // }
+    else if(minetype==ASTTypeOrdinalBase::Builtin::STRING){
+		//OurType::PascalType* temp = new OurType::PascalType(OurType::PascalType::TypeGroup::STR);
+     	type_buffer = new TypeResult(new OurType::StrType());
+    }
     else {
         type_buffer = nullptr;
         //type_buffer = new TypeResult(temp_type);
@@ -1009,6 +1005,7 @@ bool VisitorGen::genAssign(llvm::Value* dest_ptr, PascalType* dest_type, llvm::V
         }
     }
     else if (dest_type->isStringTy()) {
+		cout<<"STRING!!!"<<endl;
         this->builder.CreateStore(src, dest_ptr);
         return true;
     }

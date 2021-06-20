@@ -1544,6 +1544,66 @@ end.
 ![](./figure/test_bubble.png)
 
 
+
+测试string：
+
+测试代码：
+
+```c++
+program stringTest;
+
+var
+	str : string;
+
+begin
+	str = 'helloworld!';
+	writeln(str);
+	writeln('bye');
+end.
+```
+
+测试结果：
+
+![](./figure/test_string.png)
+
+
+测试array：
+
+测试代码：
+
+```c++
+program arrayTest;
+
+var
+	r:array[1..100] of integer;
+	i, n, sum: integer;
+
+begin
+    readln(n);
+	i := 1;
+	repeat
+		read(r[i]);
+        writeln(i);
+		i := i + 1;
+	until i = n + 1;
+
+    sum := 0;
+    i := 1;
+	repeat
+		sum := sum + r[i];
+        i := i + 1;
+	until i = n + 1;
+    writeln(sum);
+end.
+
+```
+
+测试结果：
+
+![](./figure/test_array.png)
+
+
+
 ## 附录
 
 ### 1. 文法

@@ -15,6 +15,7 @@ var
     n : Integer;
     is_small : boolean;
     char_mine : char;
+    str : string;
 
 function Compare(x,y:Integer):boolean;
 begin
@@ -38,6 +39,7 @@ begin
     a := 5;
     b := 6;
     d := 3.2;
+    str := 'Hello World!';
     readln(n);
     if Compare(a,n) then
         writeln(a)
@@ -52,6 +54,7 @@ begin
     else
         writeln(cc);
 
+    writeln(str);
     repeat
         b := b+1;
     until b = 19;
