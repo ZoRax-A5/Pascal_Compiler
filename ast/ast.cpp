@@ -446,6 +446,19 @@ ASTExprFunc::ASTExprFunc(std::string a1, ASTActualParamList* a2) : func_name(a1)
 std::string ASTExprFunc::getFuncName() { return func_name; }
 ASTActualParamList* ASTExprFunc::getParamList() { return param_list; }
 
+/* array index expression */
+ASTExprArray::ASTExprArray() {}
+ASTExprArray::ASTExprArray(std::string a1, ASTExpr* a2) : name(a1), expr(a2) {}
+std::string ASTExprArray::getName() { return name; }
+ASTExpr* ASTExprArray::getExpr() { return expr; }
+
+/* access record member expression */
+ASTExprMember::ASTExprMember() {}
+ASTExprMember::ASTExprMember(std::string a1, std::string a2) : name(a1), member(a2) {}
+std::string ASTExprMember::getName() { return name; }
+std::string ASTExprMember::getMember() { return member; }
+
+
 /* visitor accept interface */
 void ASTProgram::accept(Visitor* visitor) { visitor->visitASTProgram(this); }
 void ASTProgramHead::accept(Visitor* visitor) { visitor->visitASTProgramHead(this); }
@@ -511,3 +524,5 @@ void ASTExprUnary::accept(Visitor* visitor) { visitor->visitASTExprUnary(this); 
 void ASTExprConst::accept(Visitor* visitor) { visitor->visitASTExprConst(this); }
 void ASTExprIdentifier::accept(Visitor* visitor) { visitor->visitASTExprIdentifier(this); }
 void ASTExprFunc::accept(Visitor* visitor) { visitor->visitASTExprFunc(this); }
+void ASTExprArray::accept(Visitor* visitor) { visitor->visitASTExprArray(this); }
+void ASTExprMember::accept(Visitor* visitor) { visitor->visitASTExprMember(this); }

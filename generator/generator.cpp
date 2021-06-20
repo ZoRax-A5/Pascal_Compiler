@@ -963,10 +963,10 @@ bool VisitorGen::genAssign(llvm::Value* dest_ptr, PascalType *dest_type, llvm::V
         return true;
         //TODO: implement record assignment
     }
-	else if(dest_type->isEnumTy()){
-		this->builder.CreateStore(src,dest_ptr);
-		return true;
-	}
+	// else if(dest_type->isEnumTy()){
+	// 	this->builder.CreateStore(src,dest_ptr);
+	// 	return true;
+	// }
 	else{
 		cout<<"123"<<endl;
 		return false;

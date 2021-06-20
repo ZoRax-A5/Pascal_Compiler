@@ -75,4 +75,6 @@ public:
     virtual void visitASTExprConst(ASTExprConst* node) = 0;
     virtual void visitASTExprIdentifier(ASTExprIdentifier* node) = 0;
     virtual void visitASTExprFunc(ASTExprFunc* node) = 0;
+    virtual void visitASTExprArray(ASTExprArray* node) = 0;
+    virtual void visitASTExprMember(ASTExprMember* node) = 0;
 };
