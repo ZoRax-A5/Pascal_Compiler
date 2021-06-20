@@ -627,3 +627,19 @@ void VisitorJson::visitASTExprFunc(ASTExprFunc* node) {
 	node->getParamList()->accept(this);
 	json_stream << "]";
 }
+
+void VisitorJson::visitASTExprArray(ASTExprArray* node) {
+	json_stream << "\"type\":\"ASTExprArray\",";
+	printLocation(node);
+	json_stream << "\"name\":\"" + node->getName() + "\",";
+	json_stream << "\"index\":{";
+	node->getExpr()->accept(this);
+	json_stream << "}";
+}
+
+void VisitorJson::visitASTExprMember(ASTExprMember* node) {
+	json_stream << "\"type\":\"ASTExprArray\",";
+	printLocation(node);
+	json_stream << "\"name\":\"" + node->getName() + "\",";
+	json_stream << "\"member\":\"" + node->getMember() + "\"";
+}
