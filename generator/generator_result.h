@@ -73,12 +73,12 @@ private:
 
 class TypeListResult : public VisitorResult {
 public:
-    TypeListResult(std::vector<std::shared_ptr<TypeResult> > type_list, std::vector<std::string> name_list)
+    TypeListResult(std::vector<TypeResult*> type_list, std::vector<std::string> name_list)
         :type_list_(type_list), name_list_(name_list) {}
-    const std::vector<std::shared_ptr<TypeResult>>& getTypeList() { return type_list_; }
+    const std::vector<TypeResult*>& getTypeList() { return type_list_; }
     const std::vector<std::string>& getNameList() { return name_list_; }
 private:
-    std::vector<std::shared_ptr<TypeResult> >type_list_;
+    std::vector<TypeResult*>type_list_;
     std::vector<std::string> name_list_;
 };
 

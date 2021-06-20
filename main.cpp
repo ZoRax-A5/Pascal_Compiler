@@ -37,5 +37,6 @@ int main(int argc, char** argv) {
     gui.saveJson();
     VisitorGen* gen = new VisitorGen();
     gen->visitASTProgram(program);
+    gen->Save(string(argv[1])+".ll");
     return 0;
 }

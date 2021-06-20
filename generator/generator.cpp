@@ -716,10 +716,10 @@ void VisitorGen::visitASTFormalParamList(ASTFormalParamList* node) {
 void VisitorGen::visitASTFormalParam(ASTFormalParam* node) {}
 
 void VisitorGen::visitASTFormalParamValue(ASTFormalParamValue* node) {
-	node->getNameList()->accept();
-	node->getType()->accept();
+	node->getNameList()->accept(this);
+	node->getType()->accept(this);
     
-    NameList* name_list = name_list_buffer;
+    std::vector<std::string> name_list = name_list_buffer->getNameList();
 	TypeResult* type_value = type_buffer;
 
 	type_value->setIsVar(false);  
@@ -728,10 +728,10 @@ void VisitorGen::visitASTFormalParamValue(ASTFormalParamValue* node) {
 	type_list_buffer = new TypeListResult(type_list, name_list);
 }
 void VisitorGen::visitASTFormalParamVariable(ASTFormalParamVariable* node) {
-	node->getNameList()->accept();
-	node->getType()->accept();
+	node->getNameList()->accept(this);
+	node->getType()->accept(this);
     
-    NameList* name_list = name_list_buffer;
+    std::vector<std::string> name_list = name_list_buffer->getNameList();
 	TypeResult* type_value = type_buffer;
 
 	type_value->setIsVar(true);  
