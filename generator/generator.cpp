@@ -11,7 +11,7 @@
 #include "type/type.h"
 #include <assert.h>
 
-#define DEBUG_GENERATOR 1
+#define DEBUG_GENERATOR 0
 
 #if DEBUG_GENERATOR
 #define DEBUG_GEN(x) printf(x)
@@ -328,7 +328,7 @@ void VisitorGen::visitASTConstDeclList(ASTConstDeclList* node) {
 }
 
 void VisitorGen::visitASTConstDecl(ASTConstDecl* node) {
-    cout << "Const definition!" << endl;
+    //cout << "Const definition!" << endl;
     node->getConst()->accept(this);
     ValueResult* res = buffer;
 
@@ -761,7 +761,7 @@ void VisitorGen::visitASTProcedureDeclaration(ASTProcedureDeclaration* node) {
             this->getCurrentBlock()->named_values[name_list[iter_i]] = (llvm::Value*)arg_it;
             if (iter_i >= local_name_list.size())
                 this->getCurrentBlock()->named_types[name_list[iter_i]] = type_list[iter_i];
-            std::cout << "Inserted var param " << name_list[iter_i] << std::endl;
+            //std::cout << "Inserted var param " << name_list[iter_i] << std::endl;
         }
         else {
             llvm::Value* value = this->builder.CreateLoad((llvm::Value*)arg_it);
@@ -774,7 +774,7 @@ void VisitorGen::visitASTProcedureDeclaration(ASTProcedureDeclaration* node) {
             this->getCurrentBlock()->named_values[name_list[iter_i]] = mem;
             if (iter_i >= local_name_list.size())
                 this->getCurrentBlock()->named_types[name_list[iter_i]] = type_list[iter_i];
-            std::cout << "Inserted val param " << name_list[iter_i] << std::endl;
+            //std::cout << "Inserted val param " << name_list[iter_i] << std::endl;
         }
     }
 
@@ -863,7 +863,7 @@ void VisitorGen::visitASTFunctionDeclaration(ASTFunctionDeclaration* node) {
             this->getCurrentBlock()->named_values[name_list[iter_i]] = (llvm::Value*)arg_it;
             if (iter_i >= local_name_list.size())
                 this->getCurrentBlock()->named_types[name_list[iter_i]] = type_list[iter_i];
-            std::cout << "Inserted var param " << name_list[iter_i] << std::endl;
+            //std::cout << "Inserted var param " << name_list[iter_i] << std::endl;
         }
         else {
             llvm::Value* value = this->builder.CreateLoad((llvm::Value*)arg_it);
@@ -876,7 +876,7 @@ void VisitorGen::visitASTFunctionDeclaration(ASTFunctionDeclaration* node) {
             this->getCurrentBlock()->named_values[name_list[iter_i]] = mem;
             if (iter_i >= local_name_list.size())
                 this->getCurrentBlock()->named_types[name_list[iter_i]] = type_list[iter_i];
-            std::cout << "Inserted val param " << name_list[iter_i] << std::endl;
+            //std::cout << "Inserted val param " << name_list[iter_i] << std::endl;
         }
     }
 
@@ -887,7 +887,7 @@ void VisitorGen::visitASTFunctionDeclaration(ASTFunctionDeclaration* node) {
     );
     this->getCurrentBlock()->named_values[func_name] = mem;
     this->getCurrentBlock()->named_types[func_name] = return_type;
-    std::cout << "Inserted val param " << func_name << std::endl;
+    //std::cout << "Inserted val param " << func_name << std::endl;
 
     node->getFuncBody()->getBlock()->accept(this);
     if (this->block_stack.size() == 1) {
