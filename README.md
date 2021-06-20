@@ -1053,6 +1053,56 @@ void VisitorGen::visitASTProgram(ASTProgram* node) {
 }
 ```
 
+#### stat生成
+
+我们将生成语句分类，实现assign, if, else, repeat等功能。
+
+##### assign生成：
+
+在生成assign语句时，其形式为'left' = 'right'，我们需要在assign语句子节点中获取其左值内存空间和类型，右值类型和数值。
+
+我们先遍历子节点获取其左右值，通过accept并将visit作为指针传入，进入对应子节点进行操作。同时，在子节点中将对应内容传入一个全局变量buffer，并在当前函数中获取。
+
+```c++
+	node->getLvalue()->accept(this);
+	ValueResult* left = buffer;
+	node->getRvalue()->accept(this);
+	ValueResult* right = buffer;
+```
+
+我们调用genAssign函数，将先前获取的left和right作为参数传进去，并实现赋值操作。
+
+```c++
+if(!genAssign(left->getMem(), left->getType(), right->getValue(), right->getType()))
+	{
+		std::cout<<"Error in line["<<loc_line<<"]:Assignment in different types."<<std::endl;
+	}
+``
+在genAssign中，先对左右值类型进行判断是否相同。如果相同，则进赋值操作。如果不相等，判断其能否进行类型转换（int转float），如果支持，则为右值创建一个浮点类，并进行赋值操作；如果不支持，则返回错误信息。
+
+主体部分代码如下：
+```c++
+bool VisitorGen::genAssign(llvm::Value* dest_ptr, PascalType *dest_type, llvm::Value* src, PascalType *src_type) {
+    if (dest_type->isSimple()) {
+        if (!isEqual(dest_type, src_type)) {
+            if (src_type->isIntegerTy() && dest_type->isFloatingPointTy()) {
+                src = this->builder.CreateSIToFP(src, llvm::Type::getFloatTy(this->context));
+                this->builder.CreateStore(src, dest_ptr);
+                return true;
+            }
+            return false;
+        }
+        else {
+            this->builder.CreateStore(src, dest_ptr);
+            return true;
+        }
+    }
+    else{
+        ...
+    }
+}
+```
+
 
 ## 附录
 
