@@ -1,8 +1,13 @@
 *.o
 demo/
-*.tab.c
-*.tab.h
+*.tab.cpp
+*.tab.hpp
 *.output
-lex.yy.c
-*.exe
+lex.yy.cpp
 ./reference
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+opc
+*.exe

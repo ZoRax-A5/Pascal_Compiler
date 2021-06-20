@@ -6,6 +6,8 @@ include_directories(.)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # For jsb: specific the address
+include_directories(/usr/include/llvm-6.0)
+include_directories(/usr/include/llvm-c-6.0)
 include_directories(/usr/include/llvm-10)
 include_directories(/usr/include/llvm-c-10)
 
@@ -27,7 +29,7 @@ aux_source_directory(visitor VIS_SOURCE)
 add_custom_command(
     OUTPUT lex.yy.cpp
     COMMAND lex -o lex.yy.cpp ${CMAKE_CURRENT_LIST_DIR}/lexer/pascal.l
-    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/lexer/pascal.l pascal.y.cpp
+    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/lexer/pascal.l y.tab.cpp
 )
 
 add_custom_command(
