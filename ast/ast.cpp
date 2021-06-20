@@ -406,6 +406,9 @@ ASTStatIterWhile::ASTStatIterWhile(ASTExpr* a1, ASTStat* a2, StatType a3)
 ASTStat* ASTStatIterWhile::getRepeatStat() { return repeat_stat; }
 ASTExpr* ASTStatIterWhile::getRepeatCondition() { return repeat_condition; }
 
+/* break statement */
+ASTStatBreak::ASTStatBreak() {}
+
 /* expression base class */
 ASTExpr::ASTExpr() {}
 std::string ASTExpr::getOp() { return op; }
@@ -518,6 +521,7 @@ void ASTStatProc::accept(Visitor* visitor) { visitor->visitASTStatProc(this); }
 void ASTStatCondIf::accept(Visitor* visitor) { visitor->visitASTStatCondIf(this); }
 void ASTStatIterRepeat::accept(Visitor* visitor) { visitor->visitASTStatIterRepeat(this); }
 void ASTStatIterWhile::accept(Visitor* visitor) { visitor->visitASTStatIterWhile(this); }
+void ASTStatBreak::accept(Visitor* visitor) { visitor->visitASTStatBreak(this); }
 void ASTExpr::accept(Visitor* visitor) { visitor->visitASTExpr(this); }
 void ASTExprBinary::accept(Visitor* visitor) { visitor->visitASTExprBinary(this); }
 void ASTExprUnary::accept(Visitor* visitor) { visitor->visitASTExprUnary(this); }

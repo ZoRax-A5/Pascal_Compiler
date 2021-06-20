@@ -77,6 +77,7 @@ class ASTStatProc;
 class ASTStatCondIf;
 class ASTStatIterRepeat;
 class ASTStatIterWhile;
+class ASTStatBreak;
 /* expression */
 class ASTExpr;
 class ASTExprBinary;
@@ -927,6 +928,14 @@ public:
 
     ASTStat* getRepeatStat();
     ASTExpr* getRepeatCondition();
+
+    virtual void accept(Visitor* visitor);
+};
+
+/* break statement */
+class ASTStatBreak : public ASTStat {
+public:
+    ASTStatBreak();
 
     virtual void accept(Visitor* visitor);
 };

@@ -577,6 +577,12 @@ void VisitorJson::visitASTStatIterWhile(ASTStatIterWhile* node) {
 	json_stream << "}";
 }
 
+void VisitorJson::visitASTStatBreak(ASTStatBreak* node) {
+	json_stream << "\"type\":\"ASTStatIterBreak\",";
+	printLocation(node);
+	json_stream << "\"content\":\"break\"";
+}
+
 void VisitorJson::visitASTExpr(ASTExpr* node) {}
 
 void VisitorJson::visitASTExprBinary(ASTExprBinary* node) {

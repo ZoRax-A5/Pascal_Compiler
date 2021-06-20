@@ -758,6 +758,16 @@ void VisitorGraph::visitASTStatIterWhile(ASTStatIterWhile* node) {
     json_stream << "}";
 }
 
+void VisitorGraph::visitASTStatBreak(ASTStatBreak* node) {
+	json_stream << "{";
+    json_stream << "text:{";
+	json_stream << "name:\"ASTStatBreak\",";
+	printLocation(node);
+    json_stream << "},";
+	json_stream << "children:[]";
+    json_stream << "}";
+}
+
 void VisitorGraph::visitASTExpr(ASTExpr* node) {}
 
 void VisitorGraph::visitASTExprBinary(ASTExprBinary* node) {
@@ -772,7 +782,6 @@ void VisitorGraph::visitASTExprBinary(ASTExprBinary* node) {
 	node->getOpRight()->accept(this);
     json_stream << "]";
     json_stream << "}";
-	
 }
 
 void VisitorGraph::visitASTExprUnary(ASTExprUnary* node) {

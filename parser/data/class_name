@@ -57,6 +57,7 @@ ASTStatProc
 ASTStatCondIf
 ASTStatIterRepeat
 ASTStatIterWhile
+ASTStatBreak
 ASTExpr
 ASTExprBinary
 ASTExprUnary

@@ -1119,6 +1119,17 @@ void VisitorGen::visitASTStatIterWhile(ASTStatIterWhile* node) {
 	
 }
 
+void VisitorGen::visitASTStatBreak(ASTStatBreak* node) {
+    if (this->getCurrentBlock()->loop_breaks.empty()) {
+        RecordErrorMessage("Cannot use break statement out of loops", node->getLocation());
+        return;
+    }
+    this->builder.CreateBr(this->getCurrentBlock()->loop_breaks.back());
+    llvm::Function *func = this->builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock *cont_block = llvm::BasicBlock::Create(this->context, "break_cont", func);
+    this->builder.SetInsertPoint(cont_block);
+}
+
 void VisitorGen::visitASTExpr(ASTExpr* node) {}
 
 #define Op(x) ASTExpr::OPType::x

@@ -82,6 +82,7 @@ extern ASTNode* ast_root;
     ASTStatCondIf* ast_stat_cond_if;
     ASTStatIterRepeat* ast_stat_iter_repeat;
     ASTStatIterWhile* ast_stat_iter_while;
+    ASTStatBreak* ast_stat_break;
     /* expression */
     ASTExpr* ast_expr;
 }
@@ -185,6 +186,7 @@ extern ASTNode* ast_root;
 %type<ast_stat_cond_if> if_statement
 %type<ast_stat_iter_repeat> repeat_statement
 %type<ast_stat_iter_while> while_statement
+%type<ast_stat_break> break_statement
 %type<ast_expr> relational_expression expression term factor
 
 %%
@@ -705,6 +707,10 @@ statement:
         $$ = $1;
         TRACE($$, @$);
     }
+    | break_statement {
+        $$ = $1;
+        TRACE($$, @$);
+    }
     | compound_statement {
         $$ = $1;
         TRACE($$, @$);
@@ -763,6 +769,12 @@ repeat_statement:
 while_statement:
     KEYWORD_WHILE relational_expression KEYWORD_DO label_statement {
         $$ = new ASTStatIterWhile($2, $4, ASTStat::StatType::WHILE);
+        TRACE($$, @$);
+    }
+;
+break_statement:
+    KEYWORD_BREAK {
+        $$ = new ASTStatBreak();
         TRACE($$, @$);
     }
 ;
