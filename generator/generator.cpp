@@ -457,7 +457,7 @@ void VisitorGen::visitASTTypeDef(ASTTypeDef* node) {
         }
         if (defined) {
 			RecordErrorMessage("multiple type definition",node->getLocation());
-            //std::cout << node->getLocation().first.first << "multiple type definition." << std::endl;
+            std::cout << node << "multiple type definition." << std::endl;
         } else {
             this->getCurrentBlock()->named_types[id] = type;
         }
@@ -570,7 +570,7 @@ void VisitorGen::visitASTTypeStructArray(ASTTypeStructArray* node) {
         high = range->high;
     } else {
         // not a range
-        std::cout << node->getLocation().first.first << "index_range is not a range" << std::endl;
+        std::cout << node << "index_range is not a range" << std::endl;
         return ;
     }
     node->getDenoter()->accept(this);
@@ -581,7 +581,7 @@ void VisitorGen::visitASTTypeStructArray(ASTTypeStructArray* node) {
         array_type = type_ret->getType();
     } else {
         // not a type
-        std::cout << node->getLocation().first.first << "array_type is not a type" << std::endl;
+        std::cout << node << "array_type is not a type" << std::endl;
         return;
     }
 

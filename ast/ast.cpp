@@ -3,6 +3,8 @@
 
 ASTNode* ast_root;
 
+
+
 /* AST node base class */
 ASTNode::ASTNode() {}
 std::pair <std::pair <int, int>, std::pair <int, int>> ASTNode::getLocation(void) {
