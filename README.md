@@ -1,12 +1,24 @@
-# Pascal_Compiler
 
 
+<center style="font-size:3.5rem;font-weight:bold">Pascal Compiler</center><br><br>
+<center style="font-size:2rem"><strong>Author Name: </strong>Wang Junjie Zhan   Ziyue Zong   Weixu</center><br><br>
+<center style="font-size:1.5rem"><strong>Date: </strong>June-20-2021</center><br>
+
+
+
+<center><font size = "5" color = "0xAAEEAA">Table of Contents</font></center>
+
+
+
+[toc]
+
+<div style="page-break-after: always;"></div>
 
 ## 编译环境
 
-* Bison for Windows 2.4.1: http://gnuwin32.sourceforge.net/packages/bison.htm
-* Flex for Windows 2.5.4a: http://gnuwin32.sourceforge.net/packages/flex.htm
-* Linux 测试环境为 Ubuntu 20.04, bison (GNU Bison) 3.5.1, flex 2.6.4
+* bison (GNU Bison) 3.5.1
+* flex 2.6.4
+* llvm 6.0
 
 ## 词法分析 (Lexical Analysis)
 
