@@ -1489,6 +1489,58 @@ end.
 
 ![](./figure/test_repeat.png)
 
+测试数组、if语句、冒泡排序：
+
+测试代码：
+
+```c++
+program test_bubble;
+var
+	r:array[1..100] of integer;
+	i, j, n, temp: integer;
+	flag: boolean;
+	
+begin
+	readln(n);
+	i := 1;
+	repeat
+		read(r[i]);
+		i := i + 1;
+	until i = n + 1;
+	
+	i := 1;
+	
+	repeat
+		flag := true;
+		j := n - 1;
+		repeat
+			if r[j+1]<r[j] then
+	        begin
+				temp := r[j+1];
+				r[j+1] := r[j];
+				r[j] := temp;
+				flag := false;
+	        end;
+			j := j - 1;
+		until j = i - 1;
+
+		if flag then break;
+		i := i + 1;
+	until i = n;
+
+	i := 1;
+	repeat
+		if i < n then write(r[i], ' ') else writeln(r[i]);
+		i := i + 1;
+	until i = n + 1;
+
+end.
+```
+
+测试结果：
+
+![](./figure/test_bubble.png)
+
 
 ## 附录
 
