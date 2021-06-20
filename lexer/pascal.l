@@ -2,7 +2,7 @@
 %{
 #include <iostream>
 #include <cstring>
-#include "y.tab.h"
+#include "y.tab.hpp"
 #include "ast/ast.h"
 #define YYSTYPE char const*
 
