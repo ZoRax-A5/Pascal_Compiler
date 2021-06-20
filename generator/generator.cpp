@@ -412,7 +412,7 @@ void VisitorGen::visitASTConst(ASTConst* node) {
 		buffer = new ValueResult(new OurType::StrType(),
                 v_str,
                 mem_str);
-		cout<<"string!"<<endl;
+		//cout<<"string!"<<endl;
 	}
 	else{
 		cout<<"buffer is null!"<<endl;
@@ -1005,7 +1005,7 @@ bool VisitorGen::genAssign(llvm::Value* dest_ptr, PascalType* dest_type, llvm::V
         }
     }
     else if (dest_type->isStringTy()) {
-		cout<<"STRING!!!"<<endl;
+		//cout<<"STRING!!!"<<endl;
         this->builder.CreateStore(src, dest_ptr);
         return true;
     }
@@ -1372,10 +1372,7 @@ void VisitorGen::visitASTExprIdentifier(ASTExprIdentifier* node) {
     //     llvm::Value *value = this->builder.CreateLoad(mem);
     // 	buffer = new
     // }
-    if (this->getCurrentBlock()->isValue(name)) {
-        if (this->named_constants.find(name) != this->named_constants.end()) {
-
-        }
+    if (this->getCurrentBlock()->isValue(name)&&(this->getCurrentBlock()!=this->block_stack[0])) {
         llvm::Value* mem = this->getCurrentBlock()->named_values[name];
         llvm::Value* value = this->builder.CreateLoad(mem);
         //std::cout << "Get local named value: " << name << std::endl;
@@ -1386,7 +1383,7 @@ void VisitorGen::visitASTExprIdentifier(ASTExprIdentifier* node) {
     else if (this->block_stack[0]->isValue(name)) {
         llvm::Value* mem = this->block_stack[0]->named_values[name];
         llvm::Value* value = this->builder.CreateLoad(mem);
-        std::cout << "Get global named value: " << name << std::endl;
+        //std::cout << "Get global named value: " << name << std::endl;
         buffer = new ValueResult(this->block_stack[0]->named_types[name], value, mem);
         //return std::make_shared<ValueResult>(this->block_stack[0]->named_types[name], value, mem);
     }
@@ -1397,7 +1394,8 @@ void VisitorGen::visitASTExprIdentifier(ASTExprIdentifier* node) {
         // std::cout << "finish calling no arg func : " << name << " , return " << (ret == nullptr ? "is" : "is not") << " nullptr" << std::endl;
         // if (ret != nullptr) return ret;
         // return RecordErrorMessage(name + " is neither a variable nor a no-arg function. Cannot get named value: ", node->getLocation());
-        cout << "buffer is null!left" << endl;
+        cout<<this->getCurrentBlock()->block_name<<endl;
+		cout << "buffer is null!left" << endl;
         //buffer = nullptr;
     }
 }

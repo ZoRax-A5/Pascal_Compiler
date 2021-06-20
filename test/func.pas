@@ -1,6 +1,9 @@
 program func;
+var
+   a,b,c,min:Integer;
 
-procedure findMin(x, y, z: integer; var m: integer); 
+
+procedure findMin(x, y, z: integer;var m:integer); 
 begin
    if x < y then
       m := x
@@ -8,6 +11,7 @@ begin
       m := y;
    if z <m then
       m := z;
+   writeln(m);
 end;
 
 function max(num1, num2: integer): integer;
@@ -24,5 +28,10 @@ begin
 end;
 
 begin
+   a := 1;
+   b := 2;
+   c := 3;
+   min := 4;
    findMin(a, b, c, min);
+   writeln(min);
 end.

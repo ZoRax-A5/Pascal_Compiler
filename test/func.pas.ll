@@ -1,9 +1,30 @@
 ; ModuleID = 'pascal_module'
 source_filename = "pascal_module"
 
+@a = common global i32 0
+@b = common global i32 0
+@c = common global i32 0
+@min = common global i32 0
+@printf_format = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
+@printf_format.1 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
+
 define i32 @main() {
 entry:
-  call void @findMin(i32* %result, i32* %result, i32* %result, i32* %result)
+  %0 = load i32, i32* @a
+  store i32 1, i32* @a
+  %1 = load i32, i32* @b
+  store i32 2, i32* @b
+  %2 = load i32, i32* @c
+  store i32 3, i32* @c
+  %3 = load i32, i32* @min
+  store i32 4, i32* @min
+  %4 = load i32, i32* @a
+  %5 = load i32, i32* @b
+  %6 = load i32, i32* @c
+  %7 = load i32, i32* @min
+  call void @findMin(i32* @a, i32* @b, i32* @c, i32* @min)
+  %8 = load i32, i32* @min
+  %call_printf = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @printf_format.1, i32 0, i32 0), i32 %8)
   ret i32 0
 }
 
@@ -51,8 +72,12 @@ if_else2:                                         ; preds = %if_cont
   br label %if_cont3
 
 if_cont3:                                         ; preds = %if_else2, %if_then1
+  %17 = load i32, i32* %3
+  %call_printf = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @printf_format, i32 0, i32 0), i32 %17)
   ret void
 }
+
+declare i32 @printf(i8*, ...)
 
 define i32 @max(i32* %0, i32* %1) {
 entry:
