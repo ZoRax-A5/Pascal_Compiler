@@ -20,7 +20,6 @@ begin
 		repeat
 			if r[j+1]<r[j] then
 	        begin
-				writeln(i, j);
 				temp := r[j+1];
 				r[j+1] := r[j];
 				r[j] := temp;

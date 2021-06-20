@@ -560,8 +560,36 @@ void VisitorGen::visitASTTypeStruct(ASTTypeStruct* node) {}
 
 void VisitorGen::visitASTTypeStructArray(ASTTypeStructArray* node) {
 	
-	node->getDenoter()->accept(this);
-	
+
+	node->getValue()->accept(this);
+	TypeResult* tr = type_buffer;
+    int low, high;
+    if (tr->getType()->tg == OurType::PascalType::TypeGroup::SUBRANGE) {
+        OurType::SubRangeType *range = (OurType::SubRangeType *)tr->getType();
+        low = range->low;
+        high = range->high;
+    } else {
+        // not a range
+        std::cout << node->getLocation().first.first << "index_range is not a range" << std::endl;
+        return ;
+    }
+    node->getDenoter()->accept(this);
+
+    TypeResult* type_ret = type_buffer;
+    OurType::PascalType *array_type;
+    if (type_ret != nullptr) {
+        array_type = type_ret->getType();
+    } else {
+        // not a type
+        std::cout << node->getLocation().first.first << "array_type is not a type" << std::endl;
+        return;
+    }
+
+    OurType::ArrayType *this_type = new OurType::ArrayType(
+        std::make_pair(low, high),
+        array_type
+    ); 
+    type_buffer = new TypeResult(this_type);
 }
 
 void VisitorGen::visitASTTypeStructRecord(ASTTypeStructRecord* node) {}
