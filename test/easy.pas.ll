@@ -11,14 +11,14 @@ source_filename = "pascal_module"
 @n = common global i32 0
 @is_small = common global i1 false
 @char_mine = common global i8 0
-@scanf_format = private unnamed_addr constant [9 x i8] c"%d%*[^\0A]\00", align 1
-@scanf_newline = private unnamed_addr constant [4 x i8] c"%*c\00", align 1
-@printf_format = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
-@printf_format.1 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
-@printf_format.2 = private unnamed_addr constant [5 x i8] c"%lf\0A\00", align 1
-@printf_format.3 = private unnamed_addr constant [4 x i8] c"%c\0A\00", align 1
-@printf_format.4 = private unnamed_addr constant [5 x i8] c"%lf\0A\00", align 1
-@printf_format.5 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
+@scanf_format = private unnamed_addr constant [9 x i8] c"%d%*[^\0A]\00"
+@scanf_newline = private unnamed_addr constant [4 x i8] c"%*c\00"
+@printf_format = private unnamed_addr constant [4 x i8] c"%d\0A\00"
+@printf_format.1 = private unnamed_addr constant [4 x i8] c"%d\0A\00"
+@printf_format.2 = private unnamed_addr constant [5 x i8] c"%lf\0A\00"
+@printf_format.3 = private unnamed_addr constant [4 x i8] c"%c\0A\00"
+@printf_format.4 = private unnamed_addr constant [5 x i8] c"%lf\0A\00"
+@printf_format.5 = private unnamed_addr constant [4 x i8] c"%d\0A\00"
 
 define i32 @main() {
 entry:
@@ -117,7 +117,7 @@ while_end:                                        ; preds = %while_cond
   ret i32 0
 }
 
-define void @mine(i32* %0, i32* %1, double* %2) {
+define void @mine(i32*, i32*, double*) {
 entry:
   %3 = load i32, i32* %0
   %x = alloca i32
@@ -133,7 +133,7 @@ entry:
   ret void
 }
 
-define i1 @Compare(i32* %0, i32* %1) {
+define i1 @Compare(i32*, i32*) {
 entry:
   %2 = load i32, i32* %0
   %x = alloca i32
@@ -162,7 +162,7 @@ if_cont:                                          ; preds = %if_else, %if_then
   ret i1 %8
 }
 
-define i1 @Is_equal(i32* %0, i32* %1) {
+define i1 @Is_equal(i32*, i32*) {
 entry:
   %2 = load i32, i32* %0
   %x = alloca i32
