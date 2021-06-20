@@ -1033,6 +1033,8 @@ public:
 
 在遍历语法树生成中间代码时，我们采用了与生成可视化语法树图时相同的遍历结构。主要部分分为program生成，funcpro生成，label生成，variable生成，const生成，type生成，statment生成，para生成的过程。
 
+### program生成
+
 在VisitASTProgram中，创建一个CodeBlock并放入block_stack中。我们通过llvm::FunctionType::get获取一个函数类型，通过llvm::Function::Create进行创建一个新函数，获取main_func。我们将main_func传入llvm::BasicBlock::Create，用于创建一个基本块，并申明插入的位置在创建块的结尾。然后我们通过访问者模式对语法树子节点进行遍历范围。最后，我们创建一条LLVM ret指令，完成函数。
 
 代码如下:
