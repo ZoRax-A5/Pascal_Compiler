@@ -923,42 +923,60 @@ void VisitorGen::visitASTStatCondIf(ASTStatCondIf* node) {
 }
 
 void VisitorGen::visitASTStatIterRepeat(ASTStatIterRepeat* node) {
+	llvm::Function *func = this->builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock *body_block = llvm::BasicBlock::Create(this->context, "repeat_body", func);
+    llvm::BasicBlock *cond_block = llvm::BasicBlock::Create(this->context, "repeat_cond", func);
+    llvm::BasicBlock *cont_block = llvm::BasicBlock::Create(this->context, "repeat_cont", func);
+	this->getCurrentBlock()->loop_breaks.push_back(cont_block);
 	
+	this->builder.CreateBr(body_block);
+    this->builder.SetInsertPoint(body_block);
+
 	node->getRepeatStatList()->accept(this);
 	
+	this->builder.CreateBr(cond_block);
+    this->builder.SetInsertPoint(cond_block);
+
 	node->getRepeatCondition()->accept(this);
+	ValueResult* cond_res = buffer;
+
+	if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE))
+        return RecordErrorMessage("Invalid expression in repeat statement.", node->get_location());
+
+	this->builder.CreateCondBr(cond_res->getValue(), cont_block, body_block);
+    this->builder.SetInsertPoint(cont_block);
+
+    this->getCurrentBlock()->loop_breaks.pop_back();
 	
 }
 
 void VisitorGen::visitASTStatIterWhile(ASTStatIterWhile* node) {
 	
-	// llvm::Function* func = this->builder.GetInsertBlock()->getParent();
-	// llvm::BasicBlock* cond_block = llvm::BasicBlock::Create(this->context, "while_cond", func);
-	// llvm::BasicBlock* body_block = llvm::BasicBlock::Create(this->context, "while_body", func);
-	// llvm::BasicBlock* end_block = llvm::BasicBlock::Create(this->context, "while_end", func);
-	// this->getCurrentBlock()->loop_breaks.push_back(end_block);
+	llvm::Function *func = this->builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock *cond_block = llvm::BasicBlock::Create(this->context, "while_cond", func);
+    llvm::BasicBlock *body_block = llvm::BasicBlock::Create(this->context, "while_body", func);
+    llvm::BasicBlock *end_block = llvm::BasicBlock::Create(this->context, "while_end", func);
+    this->getCurrentBlock()->loop_breaks.push_back(end_block);
 
-	// this->builder.CreateBr(cond_block);
-	// this->builder.SetInsertPoint(cond_block);
+	this->builder.CreateBr(cond_block);
+	this->builder.SetInsertPoint(cond_block);
 
-	// auto cond_res = std::static_pointer_cast<ValueResult>(node->getExpr()->Accept(this));
-	// if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE))
-	// 	return RecordErrorMessage("Invalid condition in while statement.", node->get_location_pairs());
+	node->getRepeatCondition()->accept(this);
+	ValueResult* cond_res = buffer;
 
-	// this->builder.CreateCondBr(cond_res->getValue(), body_block, end_block);
-	// this->builder.SetInsertPoint(body_block);
-	// node->getStmt()->Accept(this);
+	if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE))
+        return RecordErrorMessage("Invalid expression in while statement.", node->get_location());
 
 
-	// this->builder.CreateBr(cond_block);
-	// this->builder.SetInsertPoint(end_block);
+	this->builder.CreateCondBr(cond_res->getValue(), body_block, end_block);
+	this->builder.SetInsertPoint(body_block);
+	node->getRepeatStat()->accept(this);
 
-	// this->getCurrentBlock()->loop_breaks.pop_back();
 
+	this->builder.CreateBr(cond_block);
+	this->builder.SetInsertPoint(end_block);
 
-	// node->getRepeatStat()->accept(this);
-
-	// node->getRepeatCondition()->accept(this);
+	this->getCurrentBlock()->loop_breaks.pop_back();
 	
 }
 

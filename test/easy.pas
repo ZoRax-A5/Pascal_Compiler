@@ -16,4 +16,16 @@ begin
     e := 3+3.2;
     e := a+b+3;
     e := a*b;
+    if a < b then
+       a := 1
+    else
+       b := 2.3;
+
+    repeat
+        a := a + 1;
+        b := a * a;
+    until a = 19;
+
+    while a < 30 do
+        a := a + 1;
 end.
