@@ -1133,6 +1133,27 @@ bool VisitorGen::genAssign(llvm::Value* dest_ptr, PascalType *dest_type, llvm::V
    	 this->builder.SetInsertPoint(cont_block);
 ```
 
+#### const生成
+
+在生成const时，我们需要判断const的类型，并通过对应llvm函数获取const的值。同时，我们将获取的llvm值转化为我们定义的ValueResult类，存储到全局变量buffer中。这样，我们在子节点获取的const值就可以在父节点中被访问。
+
+我们以Int的获取为例。
+
+```c++
+void VisitorGen::visitASTConst(ASTConst* node) {
+	llvm::Type *tp;
+    	if (node->getValueType() == ASTConst::ValueType::INTEGER) {
+		cout<<"INTEGER"<<endl;
+        	tp = llvm::Type::getInt32Ty(this->context);
+        	int v_int = atoi(node->getLiteral().c_str());
+        	buffer = new ValueResult(OurType::INT_TYPE,
+			llvm::ConstantInt::get(tp, (uint64_t) v_int, true),
+            		nullptr
+		);
+	}
+}
+```
+
 
 ## 附录
 
