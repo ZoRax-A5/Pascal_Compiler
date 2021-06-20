@@ -11,7 +11,7 @@
 #include "type/type.h"
 #include <assert.h>
 
-#define DEBUG_GENERATOR 1gi
+#define DEBUG_GENERATOR 1
 
 #if DEBUG_GENERATOR
     #define DEBUG_GEN(x) printf(x)
@@ -424,23 +424,56 @@ void VisitorGen::visitASTTypeDefList(ASTTypeDefList* node) {
 }
 
 void VisitorGen::visitASTTypeDef(ASTTypeDef* node) {
-
+	std::string id = node->getIdentifier();
+	//cout<<"hello!"<<endl;
 	node->getTypeDenoter()->accept(this);
-
+	TypeResult* tr = type_buffer;
+    if (tr) {
+        OurType::PascalType *type = tr->getType();
+        bool defined = false;
+        for (int i = this->block_stack.size()-1; i >= 0; i--) {
+            CodeBlock *block = this->block_stack[i];
+            if (block->named_types.find(id) != block->named_types.end()) {
+                defined = true;
+                break;
+            }
+        }
+        if (defined) {
+			RecordErrorMessage("multiple type definition",node->getLocation());
+            //std::cout << node->getLocation().first.first << "multiple type definition." << std::endl;
+        } else {
+            this->getCurrentBlock()->named_types[id] = type;
+        }
+    } else {
+        RecordErrorMessage("fail to generate a type",node->getLocation());
+		//std::cout << node->get_location() << "fail to generate a type." << std::endl;
+    }
 }
 
 void VisitorGen::visitASTTypeDenoter(ASTTypeDenoter* node) {}
 
 void VisitorGen::visitASTTypeIdentifier(ASTTypeIdentifier* node) {
+	OurType::PascalType *ret = nullptr;
+        
+	if (this->getCurrentBlock()->named_values.count(node->getTypeIdentifier()) > 0) {
+		return RecordErrorMessage("The variable " + node->getTypeIdentifier() + " Can not be defined again.", node->getLocation());
+	}
 
+	for (int i = this->block_stack.size()-1; i >= 0; i--) {
+		CodeBlock *block = this->block_stack[i];
+		if (block->named_types.find(node->getTypeIdentifier()) != block->named_types.end()) {
+			ret = block->named_types[node->getTypeIdentifier()];
+		}
+	}
+	if (ret == nullptr) 
+		return RecordErrorMessage("Can not find the definition of type '" + node->getTypeIdentifier() + "'.", node->getLocation());
+	type_buffer = new TypeResult(ret);
 }
 
 void VisitorGen::visitASTTypeOrdinal(ASTTypeOrdinal* node) {}
 
 void VisitorGen::visitASTTypeOrdinalBase(ASTTypeOrdinalBase* node) {
 	ASTTypeOrdinalBase::Builtin minetype = node->getBaseType();
-	OurType::BuiltinType* temp_type;
-	temp_type->tg = OurType::PascalType::TypeGroup::BUILT_IN;
 	if(minetype==ASTTypeOrdinalBase::Builtin::INTEGER){
 		type_buffer = new TypeResult(OurType::INT_TYPE);
 	}
@@ -457,7 +490,8 @@ void VisitorGen::visitASTTypeOrdinalBase(ASTTypeOrdinalBase* node) {
 	// 	temp_type->type = OurType::BuiltinType::BasicTypes::VOID;
 	// }
 	else {
-		type_buffer = new TypeResult(temp_type);
+		type_buffer = nullptr;
+		//type_buffer = new TypeResult(temp_type);
 	}
 }
 
@@ -522,7 +556,7 @@ void VisitorGen::visitASTVarDecl(ASTVarDecl* node) {
 	//auto name_list = std::static_pointer_cast<NameList>(node->getList()->Accept(this));
     auto name_list = node->getASTIdentifierList()->getIdentifierList();
 	if (res == nullptr){
-		cout<<"No Type!"<<endl;
+		//cout<<"No Type!"<<endl;
 	} //The error has been reported.
     for (auto id: name_list) {
         llvm::Type *ty = OurType::getLLVMType(this->context, res->getType());
@@ -541,7 +575,7 @@ void VisitorGen::visitASTVarDecl(ASTVarDecl* node) {
                     /*Initializer=*/initializer, // has initializer, specified below
                     /*Name=*/id);
             if (this->block_stack.back()->named_values.count(id)) {
-                cout<<"error!already have!"<<endl;
+                //cout<<"error!already have!"<<endl;
 				//error 
             }
             this->block_stack.back()->named_values[id] = var;
@@ -553,7 +587,7 @@ void VisitorGen::visitASTVarDecl(ASTVarDecl* node) {
                     id
             );
             if (this->block_stack.back()->named_values.count(id)) {
-                cout<<"error!already have!"<<endl;
+                //cout<<"error!already have!"<<endl;
 				//error 
             }
             this->block_stack.back()->named_values[id] = var;
@@ -621,7 +655,7 @@ void VisitorGen::visitASTProcFuncDefPart(ASTProcFuncDefPart* node) {
 	// 	llvm_type_list.push_back(llvm::PointerType::getUnqual(OurType::getLLVMType(context, type->getType())));
 	// }
 
-	// FuncSign* funcsign = new FuncSign((int)(local_name_list.size()), name_list, type_list, var_list, return_type);
+	// FuncSign* funcsign = new FuncSign((int)(local_name_list.size()), coutname_list, type_list, var_list, return_type);
 	// llvm::FunctionType* functionType = llvm::FunctionType::get(llvm_return_type, llvm_type_list, false);
 	// llvm::Function* function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage, func_name, module.get());
 
@@ -898,7 +932,7 @@ void VisitorGen::visitASTStatAssign(ASTStatAssign* node) {
 	//string ltype = Print(left->getType());
 	string rvalue = Print(right->getValue());
 	//string rtype = Print(right->getType());
-	cout<<"[DEBUG] Assign:"<<lvalue<<" "<<rvalue<<endl;
+	//cout<<"[DEBUG] Assign:"<<lvalue<<" "<<rvalue<<endl;
 }
 
 void VisitorGen::visitASTStatGoto(ASTStatGoto* node) {
