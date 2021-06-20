@@ -1053,11 +1053,11 @@ void VisitorGen::visitASTProgram(ASTProgram* node) {
 }
 ```
 
-#### stat生成
+### stat生成
 
 我们将生成语句分类，实现assign, if, else, repeat等功能。
 
-##### assign生成：
+#### assign生成：
 
 在生成assign语句时，其形式为'left' = 'right'，我们需要在assign语句子节点中获取其左值内存空间和类型，右值类型和数值。
 
@@ -1077,7 +1077,7 @@ if(!genAssign(left->getMem(), left->getType(), right->getValue(), right->getType
 	{
 		std::cout<<"Error in line["<<loc_line<<"]:Assignment in different types."<<std::endl;
 	}
-``
+```
 在genAssign中，先对左右值类型进行判断是否相同。如果相同，则进赋值操作。如果不相等，判断其能否进行类型转换（int转float），如果支持，则为右值创建一个浮点类，并进行赋值操作；如果不支持，则返回错误信息。
 
 主体部分代码如下：
