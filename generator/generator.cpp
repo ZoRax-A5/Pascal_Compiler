@@ -606,9 +606,11 @@ void VisitorGen::visitASTProcFuncDecl(ASTProcFuncDecl* node) {}
 void VisitorGen::visitASTProcedureDeclaration(ASTProcedureDeclaration* node) {
 	node->getProcHead()->getProcParam()->accept(this);
 	TypeListResult* parameters = type_list_buffer;
-	if (parameters == nullptr)
-        RecordErrorMessage("Can not recognize the parameters for function/procedure definition.", node->getLocation());
+	if (parameters == nullptr){
+		RecordErrorMessage("Can not recognize the parameters for function/procedure definition.", node->getLocation());
 		return;
+	}
+        
 	
 	OurType::PascalType *return_type = OurType::VOID_TYPE;
 	std::string func_name = node->getProcHead()->getProcName();
@@ -687,6 +689,7 @@ void VisitorGen::visitASTProcedureDeclaration(ASTProcedureDeclaration* node) {
 	
 	this->builder.SetInsertPoint(oldBlock);
     this->block_stack.pop_back();
+	
 }
 
 void VisitorGen::visitASTProcedureHead(ASTProcedureHead* node) {}
@@ -775,7 +778,7 @@ bool VisitorGen::genAssign(llvm::Value* dest_ptr, PascalType *dest_type, llvm::V
 			cout<<"left is simple if"<<endl;
             //Type conversions
             if (src_type->isIntegerTy() && dest_type->isFloatingPointTy()) {
-                src = this->builder.CreateSIToFP(src, llvm::Type::getFloatTy(this->context));
+                src = this->builder.CreateSIToFP(src, getLLVMType(this->context, REAL_TYPE));
                 this->builder.CreateStore(src, dest_ptr);
                 return true;
             }
@@ -1061,8 +1064,8 @@ void VisitorGen::visitASTExprBinary(ASTExprBinary* node) {
             //return std::make_shared<ValueResult>(ret, is_real ? this->builder.CreateFSub(L, R, "subftmp")
             //                                                   : this->builder.CreateSub(L, R, "subtmp"));
         case Op(OP_MUL):
-			buffer = new ValueResult(ret, is_real ? this->builder.CreateFMul(L, R, "cmpftmp") 
-                                                                       : this->builder.CreateMul(L, R, "cmptmp"));
+			buffer = new ValueResult(ret, is_real ? this->builder.CreateFMul(L, R, "mulftmp") 
+                                                                       : this->builder.CreateMul(L, R, "multmp"));
             break;
             //return std::make_shared<ValueResult>(ret, is_real ? this->builder.CreateFMul(L, R, "mulftmp")
             //                                                  :  this->builder.CreateMul(L, R, "multmp"));

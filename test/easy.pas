@@ -9,6 +9,7 @@ var
     d : boolean;
     e : real;
     f : x;
+    n : Integer;
 procedure mine(x,y:Integer; c:real);
 begin
     c := 3;
@@ -26,6 +27,7 @@ begin
     e := 3+3.2;
     e := a+b+3;
     e := a*b;
+    readln(n);
     if a < b then
        a := 1
     else

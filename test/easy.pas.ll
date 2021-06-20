@@ -7,6 +7,7 @@ source_filename = "pascal_module"
 @d = common global i1 false
 @e = common global double 0.000000e+00
 @f = common global i32 0
+@n = common global i32 0
 
 define i32 @main() {
 entry:
@@ -45,13 +46,13 @@ entry:
   %19 = load i32, i32* @a
   %20 = load double, double* @b
   %21 = uitofp i32 %19 to double
-  %cmpftmp = fmul double %21, %20
-  store double %cmpftmp, double* @e
+  %mulftmp = fmul double %21, %20
+  store double %mulftmp, double* @e
   %22 = load i32, i32* @a
   %23 = load double, double* @b
   %24 = uitofp i32 %22 to double
-  %cmpftmp4 = fcmp olt double %24, %23
-  br i1 %cmpftmp4, label %if_then, label %if_else
+  %cmpftmp = fcmp olt double %24, %23
+  br i1 %cmpftmp, label %if_then, label %if_else
 
 if_then:                                          ; preds = %entry
   %25 = load i32, i32* @a
@@ -75,8 +76,8 @@ repeat_body:                                      ; preds = %repeat_cond, %if_co
   %30 = load i32, i32* @a
   %31 = load double, double* @b
   %32 = uitofp i32 %30 to double
-  %cmpftmp5 = fmul double %32, %31
-  store double %cmpftmp5, double* @b
+  %mulftmp4 = fmul double %32, %31
+  store double %mulftmp4, double* @b
   br label %repeat_cond
 
 repeat_cond:                                      ; preds = %repeat_body
@@ -89,20 +90,23 @@ repeat_cont:                                      ; preds = %repeat_cond
 
 while_cond:                                       ; preds = %while_body, %repeat_cont
   %34 = load i32, i32* @a
-  %cmptmp6 = icmp slt i32 %34, 30
-  br i1 %cmptmp6, label %while_body, label %while_end
+  %cmptmp5 = icmp slt i32 %34, 30
+  br i1 %cmptmp5, label %while_body, label %while_end
 
 while_body:                                       ; preds = %while_cond
   %35 = load i32, i32* @a
   %36 = load i32, i32* @a
-  %addtmp7 = add i32 %36, 1
-  store i32 %addtmp7, i32* @a
+  %addtmp6 = add i32 %36, 1
+  store i32 %addtmp6, i32* @a
   br label %while_cond
 
 while_end:                                        ; preds = %while_cond
   ret i32 0
 }
-2* %0
+
+define void @mine(i32* %0, i32* %1, double* %2) {
+entry:
+  %3 = load i32, i32* %0
   %x = alloca i32
   store i32 %3, i32* %x
   %4 = load i32, i32* %1
@@ -112,6 +116,6 @@ while_end:                                        ; preds = %while_cond
   %c = alloca double
   store double %5, double* %c
   %6 = load double, double* %c
-  store float 3.000000e+00, double* %c
+  store double 3.000000e+00, double* %c
   ret void
 }
