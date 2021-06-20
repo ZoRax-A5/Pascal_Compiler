@@ -1,12 +1,17 @@
 program easy;
+type
+    x = Integer;
+    y = x;
 var
     a : Integer;
     b : real;
     c : char;
     d : boolean;
     e : real;
+    f : x;
 begin
     { this is a comment }
+    f := 3;
     a := -3;
     b := 3.2;
     c := 'c';
