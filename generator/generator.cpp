@@ -872,17 +872,25 @@ void VisitorGen::visitASTStatAssign(ASTStatAssign* node) {
 	//delete buffer;
 	int loc_line = node->getLocation().first.first; 
 	//right = node->getRvalue();
+
+
 	if (left == nullptr || right == nullptr){
 		std::cout<<"NO assignment!"<<std::endl;
 	}
 	else if (left->getMem() == nullptr){
 		std::cout<<"Error in line["<<loc_line<<"]:Invalid left value."<<std::endl;
 	}
+	
 	else if(!genAssign(left->getMem(), left->getType(), right->getValue(), right->getType()))
 	{
 		//cout<<left->getType()<<endl;
 		std::cout<<"Error in line["<<loc_line<<"]:Assignment in different types."<<std::endl;
 	}
+	string lvalue = Print(left->getValue());
+	//string ltype = Print(left->getType());
+	string rvalue = Print(right->getValue());
+	//string rtype = Print(right->getType());
+	cout<<"[DEBUG] Assign:"<<lvalue<<" "<<rvalue<<endl;
 }
 
 void VisitorGen::visitASTStatGoto(ASTStatGoto* node) {

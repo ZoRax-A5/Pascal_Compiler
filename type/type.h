@@ -7,8 +7,18 @@
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Constant.h>
 #include <llvm/IR/Constants.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/Casting.h>
 #include <stdint.h>
 //#include <generator/generator.h>
+
+
+template <typename T> static std::string Print(T* value_or_type) {
+    std::string str;
+    llvm::raw_string_ostream stream(str);
+    value_or_type->print(stream);
+    return str;
+}
 
 namespace OurType {
 
