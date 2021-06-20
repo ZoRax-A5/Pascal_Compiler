@@ -1206,6 +1206,83 @@ void VisitorGen::visitASTTypeIdentifier(ASTTypeIdentifier* node) {
 	type_buffer = new TypeResult(ret);
 }
 ```
+#### function生成
+
+生成fucntion时，我们需要对参数、函数内容进行处理。
+
+先获取参数并判断返回参数是否为空（无法识别）。
+
+```c++
+node->getProcHead()->getProcParam()->accept(this);
+	TypeListResult* parameters = type_list_buffer;
+	if (parameters == nullptr) {
+		RecordErrorMessage("Can not recognize the parameters for function/procedure definition.", node->getLocation());
+		return;
+	}
+```
+
+再获取函数名称、返回值、参数名称类型等内容。
+
+```c++
+OurType::PascalType *return_type = OurType::VOID_TYPE;
+	std::string func_name = node->getProcHead()->getProcName();
+	llvm::Type *llvm_return_type = OurType::getLLVMType(context, return_type);
+	
+	auto name_list = parameters->getNameList();
+    	auto type_var_list = parameters->getTypeList();
+```
+
+在获取到上述内容后，我们将局部变量类型、名称和参数类型、名称依次传入node类私有变量。
+
+```c++
+for(int i = 0; i < local_name_list.size(); i++) {
+        name_list.push_back(local_name_list[i]);
+        type_list.push_back(local_type_list[i]);
+        var_list.push_back(true);
+    	llvm_type_list.push_back(llvm::PointerType::getUnqual(OurType::getLLVMType(context, local_type_list[i])));
+    }
+for (auto type: type_var_list){
+        type_list.push_back(type->getType());
+        var_list.push_back(type->is_var());
+        llvm_type_list.push_back(llvm::PointerType::getUnqual(OurType::getLLVMType(context, type->getType())));
+    }
+```
+
+最后根据对应信息进行函数创建。
+
+```c++
+	FuncSign* funcsign = new FuncSign((int)(local_name_list.size()), name_list, type_list, var_list, return_type);
+	llvm::FunctionType *functionType = llvm::FunctionType::get(llvm_return_type, llvm_type_list, false);
+	llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage, func_name, module.get());
+```
+
+在创建完函数后，我们需要对函数体的内容进行处理。这里我们进入ProcBody进行相应处理。
+
+```c++
+	node->getProcBody()->getBlock()->accept(this);
+	this->builder.CreateRetVoid();
+	
+	this->builder.SetInsertPoint(oldBlock);
+   	this->block_stack.pop_back();
+```
+
+### 输出生成结果
+
+我们将生成的内容放在module中，在程序最好，将module中内容通过llvm::outs()函数输出到对应文件中。
+
+```c++
+void VisitorGen::Save(std::string path) {
+    int fd = open(path.c_str(), O_CREAT | O_WRONLY, 0644);
+    if (fd < 0) {
+        std::cerr << "cannot generate output file " << path << ", errno: " << errno << std::endl;
+    }
+    if (dup2(fd, 1) < 0) {
+        std::cerr << "cannot dup output file to stdout, errno: " << errno << std::endl;
+    }
+    close(fd);
+    this->module->print(llvm::outs(), nullptr);
+}
+```
 
 
 ## 附录
