@@ -62,3 +62,4 @@ ASTExprBinary
 ASTExprUnary
 ASTExprConst
 ASTExprIdentifier
+ASTExprFunc
