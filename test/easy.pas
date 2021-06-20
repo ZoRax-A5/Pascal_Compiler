@@ -15,10 +15,6 @@ var
     n : Integer;
     is_small : boolean;
     char_mine : char;
-procedure mine(x,y:Integer; c:real);
-begin
-    c := 3;
-end;
 
 function Compare(x,y:Integer):boolean;
 begin

@@ -22,6 +22,9 @@ source_filename = "pascal_module"
 
 define i32 @main() {
 entry:
+  store i32 5, i32* @aa
+  store i8 99, i8* @bb
+  store double 3.200000e+00, double* @cc
   %0 = load double, double* @c
   store double 3.200000e+00, double* @c
   %1 = load i32, i32* @a
@@ -115,22 +118,6 @@ while_end:                                        ; preds = %while_cond
   %34 = call i1 @Compare(i32* @a, i32* @aa)
   store i1 %34, i1* @is_small
   ret i32 0
-}
-
-define void @mine(i32* %0, i32* %1, double* %2) {
-entry:
-  %3 = load i32, i32* %0
-  %x = alloca i32
-  store i32 %3, i32* %x
-  %4 = load i32, i32* %1
-  %y = alloca i32
-  store i32 %4, i32* %y
-  %5 = load double, double* %2
-  %c = alloca double
-  store double %5, double* %c
-  %6 = load double, double* %c
-  store double 3.000000e+00, double* %c
-  ret void
 }
 
 define i1 @Compare(i32* %0, i32* %1) {
