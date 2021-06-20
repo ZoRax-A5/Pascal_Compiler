@@ -417,6 +417,23 @@ void VisitorGen::visitASTConst(ASTConst* node) {
             nullptr
 		);
     }
+	else if (node->getValueType() == ASTConst::ValueType::STRING){
+		std::string tmp = node->getContent().substr(1, node->getContent().length() - 2);
+        int tmp_len = tmp.size();
+        if (tmp_len > 255) {
+            std::cerr << node << "this string constant is too long, use first 255 characters instead." << std::endl;
+            //This is not error but just warning. Maybe we can add a 'warning type' to report all warnings.
+            tmp = tmp.substr(0, 255);
+            tmp_len = tmp.size();
+        }
+        char zero = 0;
+        for (int i = 0; i < 255 - tmp_len; i++) tmp = tmp + zero;
+        llvm::Value *mem_str = this->builder.CreateGlobalString(tmp);
+        llvm::Value *v_str = this->builder.CreateLoad(mem_str);
+		buffer = new ValueResult(new OurType::StrType(),
+                v_str,
+                mem_str);
+	}
 	else{
 		cout<<"buffer is null!"<<endl;
 		buffer = nullptr;
