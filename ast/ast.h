@@ -99,6 +99,12 @@ public:
 
     virtual ~ASTNode() {}
     virtual void accept(Visitor* visitor) = 0;
+    friend std::ostream &operator<< (std::ostream &output, ASTNode &node ) {
+        std::pair <std::pair <int, int>, std::pair <int, int>> loc = node.getLocation();
+        output << std::to_string(loc.first.first) + "." + std::to_string(loc.first.second) + "-" 
+                + std::to_string(loc.second.first) + "." + std::to_string(loc.second.second);
+        return output;            
+    }
 };
 
 /* program base node */
