@@ -10,10 +10,17 @@ var
     e : real;
     f : x;
     n : Integer;
+    aa : 1..25;
 procedure mine(x,y:Integer; c:real);
 begin
     c := 3;
 end;
+
+function WF(x, y:Integer; ch:char): Integer;
+begin
+    WF := 17;
+end;
+
 begin
     { this is a comment }
     f := 3;
