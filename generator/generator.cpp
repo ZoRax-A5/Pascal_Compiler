@@ -455,7 +455,8 @@ void VisitorGen::visitASTTypeIdentifier(ASTTypeIdentifier* node) {
 	OurType::PascalType *ret = nullptr;
         
 	if (this->getCurrentBlock()->named_values.count(node->getTypeIdentifier()) > 0) {
-		return RecordErrorMessage("The variable " + node->getTypeIdentifier() + " Can not be defined again.", node->getLocation());
+		RecordErrorMessage("The variable " + node->getTypeIdentifier() + " Can not be defined again.", node->getLocation());
+        return;
 	}
 
 	for (int i = this->block_stack.size()-1; i >= 0; i--) {
@@ -464,8 +465,11 @@ void VisitorGen::visitASTTypeIdentifier(ASTTypeIdentifier* node) {
 			ret = block->named_types[node->getTypeIdentifier()];
 		}
 	}
-	if (ret == nullptr) 
-		return RecordErrorMessage("Can not find the definition of type '" + node->getTypeIdentifier() + "'.", node->getLocation());
+	if (ret == nullptr) {
+        RecordErrorMessage("Can not find the definition of type '" + node->getTypeIdentifier() + "'.", node->getLocation());
+        return;
+    }
+		
 	type_buffer = new TypeResult(ret);
 }
 
@@ -990,8 +994,10 @@ void VisitorGen::visitASTStatCondIf(ASTStatCondIf* node) {
 	node->getCondition()->accept(this);
 	ValueResult* cond_res = buffer;
 
-	if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE))
-        return RecordErrorMessage("Invalid condition in if statement.", node->getLocation());
+	if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE)) {
+        RecordErrorMessage("Invalid condition in if statement.", node->getLocation());
+        return;
+    }
 
 	this->builder.CreateCondBr(cond_res->getValue(), then_block, else_block);
     this->builder.SetInsertPoint(then_block);
@@ -1025,8 +1031,10 @@ void VisitorGen::visitASTStatIterRepeat(ASTStatIterRepeat* node) {
 	node->getRepeatCondition()->accept(this);
 	ValueResult* cond_res = buffer;
 
-	if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE))
-        return RecordErrorMessage("Invalid expression in repeat statement.", node->getLocation());
+	if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE)) {
+        RecordErrorMessage("Invalid expression in repeat statement.", node->getLocation());
+        return;
+    }
 
 	this->builder.CreateCondBr(cond_res->getValue(), cont_block, body_block);
     this->builder.SetInsertPoint(cont_block);
@@ -1049,10 +1057,11 @@ void VisitorGen::visitASTStatIterWhile(ASTStatIterWhile* node) {
 	node->getRepeatCondition()->accept(this);
 	ValueResult* cond_res = buffer;
 
-	if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE))
-        return RecordErrorMessage("Invalid expression in while statement.", node->getLocation());
-
-
+	if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE)) {
+        RecordErrorMessage("Invalid expression in while statement.", node->getLocation());
+        return;
+    }
+    
 	this->builder.CreateCondBr(cond_res->getValue(), body_block, end_block);
 	this->builder.SetInsertPoint(body_block);
 	node->getRepeatStat()->accept(this);
