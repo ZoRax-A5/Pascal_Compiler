@@ -114,7 +114,7 @@ public:
 
     bool genAssign(llvm::Value* dest_ptr, OurType::PascalType* dest_type, llvm::Value* src, OurType::PascalType* src_type);
 
-    llvm::Value* genSysFunc(std::string id, const std::vector<std::shared_ptr<ValueResult>>& args_list);
+    llvm::Value* genSysFunc(std::string id, const std::vector<ValueResult*> &args_list);
 
     void RecordErrorMessage(std::string cur_error_message, std::pair<std::pair<int, int>, std::pair<int, int>> location);
 
@@ -195,4 +195,5 @@ public:
     virtual void visitASTExprUnary(ASTExprUnary* node);
     virtual void visitASTExprConst(ASTExprConst* node);
     virtual void visitASTExprIdentifier(ASTExprIdentifier* node);
+    virtual void visitASTExprFunc(ASTExprFunc* node);
 };

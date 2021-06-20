@@ -836,6 +836,10 @@ factor:
         $$ = new ASTExprIdentifier($1);
         TRACE($$, @$);
     }
+    | IDENTIFIER SYMBOL_LPAREN actual_param_list SYMBOL_RPAREN {
+        $$ = new ASTExprFunc($1, $3);
+        TRACE($$, @$);
+    }
     | SYMBOL_LPAREN relational_expression SYMBOL_RPAREN {
         $$ = $2;
         TRACE($$, @$);

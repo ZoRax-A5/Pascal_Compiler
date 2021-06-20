@@ -43,13 +43,13 @@ private:
 
 class ValueListResult : public VisitorResult {
 public:
-    ValueListResult(std::vector<std::shared_ptr<ValueResult> > value_list) : value_list_(value_list) {}
+    ValueListResult(std::vector<ValueResult*> value_list) : value_list_(value_list) {}
 
     ~ValueListResult() = default;
 
-    const std::vector<std::shared_ptr<ValueResult> >& getValueList() const { return this->value_list_; }
+    const std::vector<ValueResult*>& getValueList() const { return this->value_list_; }
 private:
-    std::vector<std::shared_ptr<ValueResult> > value_list_;
+    std::vector<ValueResult*> value_list_;
 };
 
 class TypeResult : public VisitorResult {
