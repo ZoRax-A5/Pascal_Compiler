@@ -808,3 +808,15 @@ void VisitorGraph::visitASTExprIdentifier(ASTExprIdentifier* node) {
 	json_stream << "children:[]";
     json_stream << "}";
 }
+
+void VisitorGraph::visitASTExprFunc(ASTExprFunc* node) {
+	json_stream << "{";
+    json_stream << "text:{";
+	json_stream << "name:\"ASTExprFunc\",";
+	printLocation(node);
+    json_stream << "},";
+	json_stream << "children:[";
+	node->getParamList()->accept(this);
+    json_stream << "]";
+    json_stream << "}";
+}
