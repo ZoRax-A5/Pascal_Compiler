@@ -10,7 +10,6 @@
 #include <llvm/Support/Error.h>
 #include "type/type.h"
 #include <assert.h>
-#include <>
 
 #define DEBUG_GENERATOR 1
 
@@ -608,8 +607,86 @@ void VisitorGen::visitASTProcedureDeclaration(ASTProcedureDeclaration* node) {
 	node->getProcHead()->getProcParam()->accept(this);
 	TypeListResult* parameters = type_list_buffer;
 	if (parameters == nullptr)
-        return RecordErrorMessage("Can not recognize the parameters for function/procedure definition.", node->getLocation);
+        RecordErrorMessage("Can not recognize the parameters for function/procedure definition.", node->getLocation());
+		return;
 	
+	OurType::PascalType *return_type = OurType::VOID_TYPE;
+	std::string func_name = node->getProcHead()->getProcName();
+	llvm::Type *llvm_return_type = OurType::getLLVMType(context, return_type);
+	
+	auto name_list = parameters->getNameList();
+    auto type_var_list = parameters->getTypeList();
+    std::vector<llvm::Type*> llvm_type_list;
+    std::vector<OurType::PascalType*> type_list;
+    std::vector<bool> var_list;
+
+	// check if parameters has same name.
+	for (int i = 0; i < name_list.size(); i++) {
+		for (int j = i+1; j < name_list.size(); j++) {
+			if (name_list[i] == name_list[j]) {
+				RecordErrorMessage("The parameters in the function/procedure definition are duplicated.", node->getLocation());
+				return;
+			}
+		}
+	}
+    
+    auto local_vars = this->getAllLocalVarNameType();
+    std::vector<std::string> local_name_list = local_vars.first;
+    std::vector<OurType::PascalType *> local_type_list = local_vars.second;
+    for(int i = 0; i < local_name_list.size(); i++) {
+        name_list.push_back(local_name_list[i]);
+        type_list.push_back(local_type_list[i]);
+        var_list.push_back(true);
+        llvm_type_list.push_back(llvm::PointerType::getUnqual(OurType::getLLVMType(context, local_type_list[i])));
+    }
+	
+	// adding function parameters
+    for (auto type: type_var_list){
+        type_list.push_back(type->getType());
+        var_list.push_back(type->is_var());
+        llvm_type_list.push_back(llvm::PointerType::getUnqual(OurType::getLLVMType(context, type->getType())));
+    }
+
+	FuncSign* funcsign = new FuncSign((int)(local_name_list.size()), name_list, type_list, var_list, return_type);
+    llvm::FunctionType *functionType = llvm::FunctionType::get(llvm_return_type, llvm_type_list, false);
+    llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage, func_name, module.get());
+
+    this->getCurrentBlock()->set_function(func_name, function, funcsign);
+
+    llvm::BasicBlock* oldBlock = this->builder.GetInsertBlock();
+    llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function, nullptr);
+    this->builder.SetInsertPoint(basicBlock);
+
+	block_stack.push_back(new CodeBlock());
+    this->getCurrentBlock()->block_name = func_name;
+    this->getCurrentBlock()->is_function = false;
+    int iter_i = 0;
+    for(llvm::Function::arg_iterator arg_it = function->arg_begin(); arg_it != function->arg_end(); arg_it++, iter_i++) {
+        if (var_list[iter_i]) {
+            this->getCurrentBlock()->named_values[name_list[iter_i]] = (llvm::Value *)arg_it;
+            if (iter_i >= local_name_list.size())
+                this->getCurrentBlock()->named_types[name_list[iter_i]] = type_list[iter_i];
+            std::cout << "Inserted var param " << name_list[iter_i] << std::endl;
+        } else {
+            llvm::Value *value = this->builder.CreateLoad((llvm::Value *)arg_it);
+            llvm::AllocaInst *mem = this->builder.CreateAlloca(
+                OurType::getLLVMType(this->context, type_list[iter_i]),
+                nullptr,
+                name_list[iter_i]
+            );
+            this->builder.CreateStore(value, mem);
+            this->getCurrentBlock()->named_values[name_list[iter_i]] = mem;
+            if (iter_i >= local_name_list.size())
+                this->getCurrentBlock()->named_types[name_list[iter_i]] = type_list[iter_i];
+            std::cout << "Inserted val param " << name_list[iter_i] << std::endl;
+        }
+    }
+
+	node->getProcBody()->getBlock()->accept(this);
+	this->builder.CreateRetVoid();
+	
+	this->builder.SetInsertPoint(oldBlock);
+    this->block_stack.pop_back();
 }
 
 void VisitorGen::visitASTProcedureHead(ASTProcedureHead* node) {}
@@ -627,8 +704,9 @@ void VisitorGen::visitASTFunctionBody(ASTFunctionBody* node) {}
 void VisitorGen::visitASTFormalParamList(ASTFormalParamList* node) {
 	vector<std::string> name_list;
     std::vector<TypeResult*> type_list;
-    for (auto son: node->getParaDeclList()){
-		TypeListResult* temp_list = son->accept(this);
+    for (auto son: node->getParamList()){
+		son->accept(this);
+		TypeListResult* temp_list = type_list_buffer;
         name_list.insert(name_list.end(), temp_list->getNameList().begin(), temp_list->getNameList().end());
         type_list.insert(type_list.end(), temp_list->getTypeList().begin(), temp_list->getTypeList().end());
     }
@@ -1068,7 +1146,7 @@ void VisitorGen::visitASTExprIdentifier(ASTExprIdentifier* node) {
         // auto ret = func_call->Accept(this);
         // std::cout << "finish calling no arg func : " << name << " , return " << (ret == nullptr ? "is" : "is not") << " nullptr" << std::endl;
         // if (ret != nullptr) return ret;
-        // return RecordErrorMessage(name + " is neither a variable nor a no-arg function. Cannot get named value: ", node->get_location_pairs());
+        // return RecordErrorMessage(name + " is neither a variable nor a no-arg function. Cannot get named value: ", node->getLocation());
 		cout<<"buffer is null!left"<<endl;
 		buffer = nullptr;
 	}

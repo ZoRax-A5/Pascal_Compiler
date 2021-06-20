@@ -24,7 +24,7 @@ class ValueResult;
 class FuncSign {
 public:
     FuncSign(int n_local, std::vector<std::string> name_list, std::vector<OurType::PascalType*> type_list,
-        std::vector<int> is_var, OurType::PascalType* return_type = nullptr)
+        std::vector<bool> is_var, OurType::PascalType* return_type = nullptr)
         : name_list_(name_list), type_list_(type_list), is_var_(is_var), return_type_(return_type),
         n_local_variables(n_local) {
         if (return_type == nullptr)
@@ -36,7 +36,7 @@ public:
 
     std::vector<std::string> getNameList() { return name_list_; }
 
-    std::vector<int> getVarList() { return is_var_; }
+    std::vector<bool> getVarList() { return is_var_; }
 
     OurType::PascalType* getReturnType() { return return_type_; }
 
@@ -46,7 +46,7 @@ private:
     int n_local_variables; // used for parameter passing
     std::vector<OurType::PascalType*> type_list_;
     std::vector<std::string> name_list_;
-    std::vector<int> is_var_;
+    std::vector<bool> is_var_;
     OurType::PascalType* return_type_;
 };
 
