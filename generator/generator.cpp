@@ -941,7 +941,7 @@ void VisitorGen::visitASTStatIterRepeat(ASTStatIterRepeat* node) {
 	ValueResult* cond_res = buffer;
 
 	if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE))
-        return RecordErrorMessage("Invalid expression in repeat statement.", node->get_location());
+        return RecordErrorMessage("Invalid expression in repeat statement.", node->getLocation());
 
 	this->builder.CreateCondBr(cond_res->getValue(), cont_block, body_block);
     this->builder.SetInsertPoint(cont_block);
@@ -965,7 +965,7 @@ void VisitorGen::visitASTStatIterWhile(ASTStatIterWhile* node) {
 	ValueResult* cond_res = buffer;
 
 	if (cond_res == nullptr || !isEqual(cond_res->getType(), BOOLEAN_TYPE))
-        return RecordErrorMessage("Invalid expression in while statement.", node->get_location());
+        return RecordErrorMessage("Invalid expression in while statement.", node->getLocation());
 
 
 	this->builder.CreateCondBr(cond_res->getValue(), body_block, end_block);
@@ -1016,7 +1016,6 @@ bool check_arith(PascalType *l, PascalType *r, PascalType *&ret){
     return true;
     //only numbers (integer/real) can forcely converted.
 }
-
 
 void VisitorGen::visitASTExprBinary(ASTExprBinary* node) {
 	
@@ -1130,6 +1129,8 @@ void VisitorGen::visitASTExprBinary(ASTExprBinary* node) {
 		buffer = nullptr;
     }
 }
+
+#undef Op
 
 void VisitorGen::visitASTExprUnary(ASTExprUnary* node) {
 	
