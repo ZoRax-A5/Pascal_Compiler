@@ -190,6 +190,7 @@ public:
     virtual void visitASTStatCondIf(ASTStatCondIf* node);
     virtual void visitASTStatIterRepeat(ASTStatIterRepeat* node);
     virtual void visitASTStatIterWhile(ASTStatIterWhile* node);
+    virtual void visitASTStatBreak(ASTStatBreak* node);
     virtual void visitASTExpr(ASTExpr* node);
     virtual void visitASTExprBinary(ASTExprBinary* node);
     virtual void visitASTExprUnary(ASTExprUnary* node);
