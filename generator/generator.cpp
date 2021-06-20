@@ -11,6 +11,14 @@
 #include "type/type.h"
 #include <assert.h>
 
+#define DEBUG_GENERATOR 1gi
+
+#if DEBUG_GENERATOR
+    #define DEBUG_GEN(x) printf(x)
+#else
+	#define DEBUG_GEN(x)
+#endif
+
 ValueResult* buffer;
 TypeResult* type_buffer;
 llvm::Value* GenSysWrite(const std::vector<std::shared_ptr<ValueResult>> &args_list, bool new_line, VisitorGen* generator) {
@@ -1135,7 +1143,7 @@ void VisitorGen::visitASTExprBinary(ASTExprBinary* node) {
 void VisitorGen::visitASTExprUnary(ASTExprUnary* node) {
 	{
 		/* test code */
-		printf("visit unary code\n");
+		DEBUG_GEN("visit unary code\n");
 	}
 	node->getOp()->accept(this);
 	ValueResult* operand = buffer;
