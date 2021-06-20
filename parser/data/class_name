@@ -63,3 +63,5 @@ ASTExprUnary
 ASTExprConst
 ASTExprIdentifier
 ASTExprFunc
+ASTExprArray
+ASTExprMember

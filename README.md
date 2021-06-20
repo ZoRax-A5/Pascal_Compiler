@@ -1154,6 +1154,136 @@ void VisitorGen::visitASTConst(ASTConst* node) {
 }
 ```
 
+#### 生成type
+
+生成type时候，包括类型名称和标识符，例如X : interger，X是identifer，interger是denoter。我们将其分开处理。对于denoter，我们将其分为OrdinalBase（包括INT、REAL、CHAR、BOLLEAN）和Enum、Subrange、Struct、ARRAY、RECOED等。这里我们显示对OrdinalBase的处理。
+
+我们获取参数的类型，并进行比较minetype==ASTTypeOrdinalBase::Builtin::type，判断属于哪种类型，并将对应类型生成一个对象传导type_buffer中供上层使用。
+
+```c++
+void VisitorGen::visitASTTypeOrdinalBase(ASTTypeOrdinalBase* node) {
+	ASTTypeOrdinalBase::Builtin minetype = node->getBaseType();
+	if(minetype==ASTTypeOrdinalBase::Builtin::INTEGER){
+		type_buffer = new TypeResult(OurType::INT_TYPE);
+	}
+	else if(minetype==ASTTypeOrdinalBase::Builtin::REAL){
+		type_buffer = new TypeResult(OurType::REAL_TYPE);
+	}
+	else if(minetype==ASTTypeOrdinalBase::Builtin::CHAR){
+		type_buffer = new TypeResult(OurType::CHAR_TYPE);
+	}
+	else if(minetype==ASTTypeOrdinalBase::Builtin::BOOLEAN){
+		type_buffer = new TypeResult(OurType::BOOLEAN_TYPE);
+	}
+	else {
+		type_buffer = nullptr;
+	}
+}
+```
+
+对于identifier，我们先判断是否标识符唯一（若有重复名称提供错误信息。）再遍历标识符列表。
+
+```c++
+void VisitorGen::visitASTTypeIdentifier(ASTTypeIdentifier* node) {
+	OurType::PascalType *ret = nullptr;
+        
+	if (this->getCurrentBlock()->named_values.count(node->getTypeIdentifier()) > 0) {
+		RecordErrorMessage("The variable " + node->getTypeIdentifier() + " Can not be defined again.", node->getLocation());
+        return;
+	}
+
+	for (int i = this->block_stack.size()-1; i >= 0; i--) {
+		CodeBlock *block = this->block_stack[i];
+		if (block->named_types.find(node->getTypeIdentifier()) != block->named_types.end()) {
+			ret = block->named_types[node->getTypeIdentifier()];
+		}
+	}
+	if (ret == nullptr) {
+        RecordErrorMessage("Can not find the definition of type '" + node->getTypeIdentifier() + "'.", node->getLocation());
+        return;
+    }
+		
+	type_buffer = new TypeResult(ret);
+}
+```
+#### function生成
+
+生成fucntion时，我们需要对参数、函数内容进行处理。
+
+先获取参数并判断返回参数是否为空（无法识别）。
+
+```c++
+node->getProcHead()->getProcParam()->accept(this);
+	TypeListResult* parameters = type_list_buffer;
+	if (parameters == nullptr) {
+		RecordErrorMessage("Can not recognize the parameters for function/procedure definition.", node->getLocation());
+		return;
+	}
+```
+
+再获取函数名称、返回值、参数名称类型等内容。
+
+```c++
+OurType::PascalType *return_type = OurType::VOID_TYPE;
+	std::string func_name = node->getProcHead()->getProcName();
+	llvm::Type *llvm_return_type = OurType::getLLVMType(context, return_type);
+	
+	auto name_list = parameters->getNameList();
+    	auto type_var_list = parameters->getTypeList();
+```
+
+在获取到上述内容后，我们将局部变量类型、名称和参数类型、名称依次传入node类私有变量。
+
+```c++
+for(int i = 0; i < local_name_list.size(); i++) {
+        name_list.push_back(local_name_list[i]);
+        type_list.push_back(local_type_list[i]);
+        var_list.push_back(true);
+    	llvm_type_list.push_back(llvm::PointerType::getUnqual(OurType::getLLVMType(context, local_type_list[i])));
+    }
+for (auto type: type_var_list){
+        type_list.push_back(type->getType());
+        var_list.push_back(type->is_var());
+        llvm_type_list.push_back(llvm::PointerType::getUnqual(OurType::getLLVMType(context, type->getType())));
+    }
+```
+
+最后根据对应信息进行函数创建。
+
+```c++
+	FuncSign* funcsign = new FuncSign((int)(local_name_list.size()), name_list, type_list, var_list, return_type);
+	llvm::FunctionType *functionType = llvm::FunctionType::get(llvm_return_type, llvm_type_list, false);
+	llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage, func_name, module.get());
+```
+
+在创建完函数后，我们需要对函数体的内容进行处理。这里我们进入ProcBody进行相应处理。
+
+```c++
+	node->getProcBody()->getBlock()->accept(this);
+	this->builder.CreateRetVoid();
+	
+	this->builder.SetInsertPoint(oldBlock);
+   	this->block_stack.pop_back();
+```
+
+### 输出生成结果
+
+我们将生成的内容放在module中，在程序最好，将module中内容通过llvm::outs()函数输出到对应文件中。
+
+```c++
+void VisitorGen::Save(std::string path) {
+    int fd = open(path.c_str(), O_CREAT | O_WRONLY, 0644);
+    if (fd < 0) {
+        std::cerr << "cannot generate output file " << path << ", errno: " << errno << std::endl;
+    }
+    if (dup2(fd, 1) < 0) {
+        std::cerr << "cannot dup output file to stdout, errno: " << errno << std::endl;
+    }
+    close(fd);
+    this->module->print(llvm::outs(), nullptr);
+}
+```
+
 
 ## 附录
 

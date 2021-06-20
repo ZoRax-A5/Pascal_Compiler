@@ -84,6 +84,8 @@ class ASTExprUnary;
 class ASTExprConst;
 class ASTExprIdentifier;
 class ASTExprFunc;
+class ASTExprArray;
+class ASTExprMember;
 
 /* AST node base class */
 class ASTNode {
@@ -1017,6 +1019,36 @@ public:
 
     std::string getFuncName();
     ASTActualParamList* getParamList();
+
+    virtual void accept(Visitor* visitor);
+};
+
+/* array expression */
+class ASTExprArray : public ASTExpr {
+private:
+    std::string name;
+    ASTExpr* expr;
+public:
+    ASTExprArray();
+    ASTExprArray(std::string, ASTExpr*);
+
+    std::string getName();
+    ASTExpr* getExpr();
+
+    virtual void accept(Visitor* visitor);
+};
+
+/* access record member expression */
+class ASTExprMember : public ASTExpr {
+private:
+    std::string name;
+    std::string member;
+public:
+    ASTExprMember();
+    ASTExprMember(std::string, std::string);
+
+    std::string getName();
+    std::string getMember();
 
     virtual void accept(Visitor* visitor);
 };

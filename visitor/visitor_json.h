@@ -78,5 +78,7 @@ public:
     virtual void visitASTExprUnary(ASTExprUnary* node);
     virtual void visitASTExprConst(ASTExprConst* node);
     virtual void visitASTExprIdentifier(ASTExprIdentifier* node);
-    virtual void visitASTExprFunc(ASTExprFunc* node) {}
+    virtual void visitASTExprFunc(ASTExprFunc* node);
+    virtual void visitASTExprArray(ASTExprArray* node);
+    virtual void visitASTExprMember(ASTExprMember* node);
 };

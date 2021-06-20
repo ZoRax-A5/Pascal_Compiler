@@ -717,6 +717,16 @@ assign_statement:
         $$ = new ASTStatAssign(left, $3, ASTStat::StatType::ASSIGN);
         TRACE($$, @$);
     }
+    | IDENTIFIER SYMBOL_LBRACK relational_expression SYMBOL_RBRACK SYMBOL_ASSIGN relational_expression {
+        ASTExprArray* left = new ASTExprArray($1, $3);
+        $$ = new ASTStatAssign(left, $6, ASTStat::StatType::ASSIGN);
+        TRACE($$, @$);
+    }
+    | IDENTIFIER SYMBOL_DOT IDENTIFIER SYMBOL_ASSIGN relational_expression { 
+        ASTExprMember* left = new ASTExprMember($1, $3);
+        $$ = new ASTStatAssign(left, $5, ASTStat::StatType::ASSIGN);
+        TRACE($$, @$);
+    }
 ;
 goto_statement:
     KEYWORD_GOTO IDENTIFIER {
@@ -836,16 +846,24 @@ factor:
         $$ = new ASTExprIdentifier($1);
         TRACE($$, @$);
     }
-    | IDENTIFIER SYMBOL_LPAREN actual_param_list SYMBOL_RPAREN {
-        $$ = new ASTExprFunc($1, $3);
-        TRACE($$, @$);
-    }
     | SYMBOL_LPAREN relational_expression SYMBOL_RPAREN {
         $$ = $2;
         TRACE($$, @$);
     }
     | SYMBOL_SUB factor {
         $$ = new ASTExprUnary($2, ASTExpr::OPType::OP_NEG);
+        TRACE($$, @$);
+    }
+    | IDENTIFIER SYMBOL_LPAREN actual_param_list SYMBOL_RPAREN {
+        $$ = new ASTExprFunc($1, $3);
+        TRACE($$, @$);
+    }
+    | IDENTIFIER SYMBOL_LBRACK relational_expression SYMBOL_RBRACK {
+        $$ = new ASTExprArray($1, $3);
+        TRACE($$, @$);
+    }
+    | IDENTIFIER SYMBOL_DOT IDENTIFIER {
+        $$ = new ASTExprMember($1, $3);
         TRACE($$, @$);
     }
 ;
