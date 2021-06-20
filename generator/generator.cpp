@@ -27,6 +27,7 @@ ValueListResult* value_list_buffer;
 
 llvm::Value* GenSysWrite(const std::vector<ValueResult*> &args_list, bool new_line, VisitorGen* generator) {
     static llvm::Function *llvm_printf = nullptr;
+	
     if (llvm_printf == nullptr) {
         //register printf
         std::vector<llvm::Type *> arg_types = {llvm::Type::getInt8PtrTy(generator->context)};
@@ -69,6 +70,7 @@ llvm::Value* GenSysWrite(const std::vector<ValueResult*> &args_list, bool new_li
             return nullptr;
         }
     }
+	
     if (new_line) {
         format += "\n";
     }
@@ -324,15 +326,29 @@ void VisitorGen::visitASTConstDeclList(ASTConstDeclList* node) {
 }
 
 void VisitorGen::visitASTConstDecl(ASTConstDecl* node) {
-
+	cout<<"Const definition!"<<endl;
 	node->getConst()->accept(this);
+	ValueResult* res = buffer;
+    llvm::GlobalVariable *constant = new llvm::GlobalVariable(
+            /*Module=*/*(this->module),
+            /*Type=*/OurType::getLLVMType(this->context, res->getType()),
+            /*isConstant=*/true,
+            /*Linkage=*/llvm::GlobalValue::CommonLinkage,
+            /*Initializer=*/(llvm::Constant *) res->getValue(), // has initializer, specified below
+            /*Name=*/node->getIdentifier());
+	
+    if (this->block_stack.back()->named_values.count(node->getIdentifier()) || this->named_constants.count(node->getIdentifier())) {
+        //error 
+    }
+    this->named_constants[node->getIdentifier()] = (llvm::Constant *) (res->getValue());
+    this->block_stack[0]->named_values[node->getIdentifier()] = constant;
+	this->block_stack.back()->named_types[node->getIdentifier()] = res->getType();
 
 }
 
 void VisitorGen::visitASTConst(ASTConst* node) {
 	llvm::Type *tp;
     if (node->getValueType() == ASTConst::ValueType::INTEGER) {
-		cout<<"INTEGER"<<endl;
         tp = llvm::Type::getInt32Ty(this->context);
         int v_int = atoi(node->getLiteral().c_str());
         buffer = new ValueResult(OurType::INT_TYPE,
@@ -341,9 +357,7 @@ void VisitorGen::visitASTConst(ASTConst* node) {
 		);
     }
     else if (node->getValueType() == ASTConst::ValueType::REAL) {
-        
         tp = llvm::Type::getDoubleTy(this->context);
-        
         double v_float = atof(node->getLiteral().c_str());
         std::cout << v_float << std::endl;
         buffer = new ValueResult(OurType::REAL_TYPE,
@@ -393,11 +407,6 @@ void VisitorGen::visitASTConst(ASTConst* node) {
 			llvm::ConstantInt::get(tp, (uint64_t)p,true),
             nullptr
 		);
-		// return std::make_shared<ValueResult>(
-        //         OurType::BOOLEAN_TYPE,
-        //         llvm::ConstantInt::get(tp, (uint64_t) p, true),
-        //         nullptr
-        // );
     }
 	else{
 		cout<<"buffer is null!"<<endl;
