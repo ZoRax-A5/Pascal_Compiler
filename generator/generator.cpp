@@ -23,8 +23,9 @@ ValueResult* buffer;
 TypeResult* type_buffer;
 TypeListResult* type_list_buffer;
 NameList* name_list_buffer;
+ValueListResult* value_list_buffer;
 
-llvm::Value* GenSysWrite(const std::vector<std::shared_ptr<ValueResult>> &args_list, bool new_line, VisitorGen* generator) {
+llvm::Value* GenSysWrite(const std::vector<ValueResult*> &args_list, bool new_line, VisitorGen* generator) {
     static llvm::Function *llvm_printf = nullptr;
     if (llvm_printf == nullptr) {
         //register printf
@@ -75,7 +76,7 @@ llvm::Value* GenSysWrite(const std::vector<std::shared_ptr<ValueResult>> &args_l
     return generator->builder.CreateCall(llvm_printf, printf_args, "call_printf");
 }
 
-llvm::Value* GenSysRead(const std::vector<std::shared_ptr<ValueResult>> &args_list, bool new_line, VisitorGen* generator) {
+llvm::Value* GenSysRead(const std::vector<ValueResult*> &args_list, bool new_line, VisitorGen* generator) {
     static llvm::Function *llvm_scanf = nullptr;
     if (llvm_scanf == nullptr) {
         //register printf
@@ -135,7 +136,7 @@ bool VisitorGen::isSysFunc(std::string id) {
     if (id == "readln") return true;
 }
 
-llvm::Value* VisitorGen::genSysFunc(std::string id, const std::vector<std::shared_ptr<ValueResult>> &args_list) {
+llvm::Value* VisitorGen::genSysFunc(std::string id, const std::vector<ValueResult*> &args_list) {
     for (auto &ch: id) ch = tolower(ch);
     if (id == "write") return GenSysWrite(args_list, false, this);
     if (id == "writeln") return GenSysWrite(args_list, true, this);
@@ -854,7 +855,22 @@ void VisitorGen::visitASTFormalParamProc(ASTFormalParamProc* node) {}
 
 void VisitorGen::visitASTFormalParamFunc(ASTFormalParamFunc* node) {}
 
-void VisitorGen::visitASTActualParamList(ASTActualParamList* node) {}
+void VisitorGen::visitASTActualParamList(ASTActualParamList* node) {
+	auto expr_list = node->getParamList();
+	std::vector<ValueResult*> ret;
+    int cnt = 0;
+    for (auto expr_node: expr_list){
+		expr_node->getExpr()->accept(this);
+		ValueResult* val = buffer;
+        if (val == nullptr) {
+            std::cout << "meet nullptr at VisitASTExpressionList! at parameter: " << cnt << std::endl;
+            return;
+        }
+        ret.push_back(val);
+        cnt++;
+    }
+	value_list_buffer = new ValueListResult(ret);
+}
 
 void VisitorGen::visitASTActualParam(ASTActualParam* node) {}
 
@@ -959,12 +975,9 @@ void VisitorGen::visitASTStatGoto(ASTStatGoto* node) {
 
 void VisitorGen::visitASTStatProc(ASTStatProc* node) {
 
-	// ASTFuncCall *ast_func = new ASTFuncCall(node->getId(), node->getExprList());
-    // auto res = ast_func->Accept(this);
-    // delete ast_func;
-    // return res;
-	node->getParamList()->accept(this);
-	
+	ASTExprFunc* func = new ASTExprFunc(node->getProcName(), node->getParamList());
+	func->accept(this);
+	delete func;
 }
 
 void VisitorGen::visitASTStatCondIf(ASTStatCondIf* node) {
@@ -1267,6 +1280,110 @@ void VisitorGen::visitASTExprIdentifier(ASTExprIdentifier* node) {
 }
 
 void VisitorGen::visitASTExprFunc(ASTExprFunc* node) {
+	ASTActualParamList* argList = node->getParamList();
+	ValueListResult* value_list;
+    std::vector<ValueResult*> value_vector;
+    bool have_args = false;
 
+    if (argList != nullptr) {
+		have_args = true;
+		node->getParamList()->accept(this);
+		value_list = value_list_buffer;
+        value_vector = value_list ->getValueList();
+    }
+
+    std::string func_name = node->getFuncName();
+    for (int i = block_stack.size() - 1; i >= 0; i--){
+        FuncSign *funcsign = block_stack[i]->find_funcsign(func_name);
+        if (funcsign == nullptr) continue;
+        // Note the function/procedure can not be overridden in pascal, so the function is matched iff the name is matched.
+        // VERY IMPORTANT !!!
+        // NameList().size include all local variables that require to be passed
+        // we should compare NameList.size() - n_local
+        // which is the actual arg size
+        if (funcsign->getNameList().size() - funcsign->getLocalVariablesNum() != value_vector.size()) {
+			RecordErrorMessage("Can't find function " + func_name + ": you have " + std::to_string(value_vector.size()) + "parameters, but the defined one has " 
+              + std::to_string(funcsign->getNameList().size() - funcsign->getLocalVariablesNum()) + "parameters.", node->getLocation());
+			return;
+		}
+            
+        auto name_list = funcsign->getNameList();
+        auto type_list = funcsign->getTypeList();
+        auto var_list = funcsign->getVarList();
+        auto return_type = funcsign->getReturnType();
+        llvm::Function *callee = block_stack[i]->find_function(func_name);
+        std::vector<llvm::Value*> parameters;
+
+        // adding local variables in generator_program.cpp, we define all locals at the head of the para list
+        int cur;
+        int n_local = funcsign->getLocalVariablesNum();
+        for(cur = 0; cur < n_local; cur++) {
+            std::string local_name = name_list[cur];
+            if (this->getCurrentBlock()->named_values.find(local_name) == this->getCurrentBlock()->named_values.end()) {
+                std::cout << "local variable is not found." << std::endl;
+                parameters.push_back(nullptr);
+            } else {
+                parameters.push_back(this->getCurrentBlock()->named_values[local_name]);
+            }
+        }
+
+        // PASSING function args
+		
+        for (auto value: value_vector){
+            if (!isEqual(value->getType(), type_list[cur])) {
+				RecordErrorMessage("Type does not match on function " + func_name + " calling.", node->getLocation());
+				return;
+			}
+                
+            if (value->getMem() != nullptr) {
+                parameters.push_back(value->getMem());
+            } else {
+                this->temp_variable_count++;
+                // here we encounter a literally const value as a parameter
+                // we add a local variable to the IRBuilder
+                // but do not reflect it in Current_CodeBlock->named_values
+                // thus we do not add abnormal local variables when we declare another function/procedure
+                llvm::AllocaInst *mem = this->builder.CreateAlloca(
+                    getLLVMType(this->context, type_list[cur]), 
+                    nullptr, 
+                    "0_" + std::to_string(this->temp_variable_count)
+                );
+                this->builder.CreateStore(value->getValue(), mem);
+                parameters.push_back(mem);
+            }
+            cur++;
+        } 
+        auto ret = builder.CreateCall(callee, parameters);
+        if (funcsign->getReturnType()->tg == OurType::PascalType::TypeGroup::STR) {
+            // to return a str type for writeln to print
+            // we have to use its pointer
+            // to achieve this, we add a never used variable here
+            // we do this shit only to the str type return value
+            // VERY BAD CODING STYLE
+            // NEED TO BE MODIFIED ASAP 
+            this->temp_variable_count++;
+            std::cout << ((OurType::StrType *)funcsign->getReturnType())->dim << std::endl;
+            llvm::AllocaInst *mem = this->builder.CreateAlloca(
+                OurType::getLLVMType(this->context, funcsign->getReturnType()),
+                nullptr,
+                "0_" + func_name + std::to_string(this->temp_variable_count)
+            );
+            this->builder.CreateStore(ret, mem);
+            llvm::Value *value = this->builder.CreateLoad(mem);
+			buffer = new ValueResult(funcsign->getReturnType(), value, mem);
+			return;
+        } else {
+			buffer = new ValueResult(funcsign->getReturnType(), ret);
+			return;
+        }
+    }
+    // Currently, sys_function will use no local variables that has cascade relation
+    // So we do not need to deal with the locals and do it simply
+    if (isSysFunc(node->getFuncName())) {
+		buffer = new ValueResult(OurType::VOID_TYPE, genSysFunc(node->getFuncName(), value_vector));
+		return;
+    }
+	RecordErrorMessage("Function " + func_name + " not found.", node->getLocation());
 }
+
 #undef Op
