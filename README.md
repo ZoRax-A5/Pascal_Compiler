@@ -907,46 +907,151 @@ Pascal语法中不存在独立的变量，每一个变量都会存在于某个�
 
 对于procedure和函数的定义，我们会将新的procedure和函数名放到当前作用域下，并且将所有的paramList记录到我们的符号表中，增加作用域深度，命名新作用域名称为该procedure或者function的名称。
 
+## 中间代码生成
 
-# 设计者模式
+### 设计者模式
 
 在面向对象程序和软件工程中，设计者模式具有较好的扩展性和封闭性，可以将数据结构和访问方法分离开。每个类实现单一的职责，保证接口隔离、互不干扰。我们使用OOP思想进行类的设计，子类可以扩展父类的功能，但不改变父类原有的功能。
 
 设计者模式样例如下：
 
-
-
 我们设计一个ASTNode类，用于生成语法树的结构。同时。我们设计一个Visitor类，用于访问语法树。
+```c++
+class ASTNode {
+private:
+    std::pair <int, int> first_loc, last_loc;
+public:
+    ASTNode();
+    std::pair <std::pair <int, int>, std::pair <int, int>> getLocation(void);
+    void setLocation(int fline, int fcol, int lline, int lcol);
 
+    virtual ~ASTNode() {}
+    virtual void accept(Visitor* visitor) = 0;
+};
 
+```
 
 具体的访问方式如下：
 
 visitASTProgram实现操作：
+```c++
 
 void VisitorGen::visitASTProgram(ASTProgram* node) {
-
-​	node->getProgramHead()->accept(this);
-
+	node->getProgramHead()->accept(this);
 }
+```
+```c++
 
 ASTProgramBody定义如下：
 
 void ASTProgramBody::accept(Visitor* visitor) { 
-
-​	visitor->visitASTProgramBody(this); 
-
+	visitor->visitASTProgramBody(this); 
 }
+```
 
 通过向visitASTProgram中传入参数ASTProgram*node，并获取其中私有变量node->getProgramHead()。在获得变量ASTProgramHead()后，调用accept函数并传入visitor指针，进行对应结构的visitor操作，同时使语法树向下遍历。
 
 由于我们需要生成中间结构图和使用LLVM进行语法树操作，我们需要多次遍历语法树，并进行不同操作。这时，只需要定义不同的类，并对这些类设计对应的Visitor函数，就可实现多次遍历和不同操作。
 
-## LLVM
+### LLVM
+在LLVM中，类型是在context中共享的。LLVM中定义了类型llvm::type，需要在llvm中api Alloc、CreateFun等函数中使用。我们定义了Pascal中数据类型，并通过函数getLLVMType将其转化为llvm::type类型，其函数接口定义如下：
 
+llvm::Type* getLLVMType(llvm::LLVMContext& context, PascalType* const p_type)
 
+通过判断传入类型p_type，调用对应llvm函数从context中获取对应类型。
 
+在进行中间代码生成时，我们定义了FunSign类，用于保存创建的函数的变量类型，其中定义如下：
+```c++
+class FuncSign {
+public:
+    FuncSign(int n_local, std::vector<std::string> name_list, 											std::vector<OurType::PascalType*> type_list,std::vector<bool> is_var, OurType::PascalType* return_type = nullptr)
+        : name_list_(name_list), type_list_(type_list), is_var_(is_var), return_type_(return_type),n_local_variables(n_local) 
+    {
+        if (return_type == nullptr)
+            return_type_ = OurType::VOID_TYPE;
+    }
 
+    std::vector<OurType::PascalType*> getTypeList() { return type_list_; }
+    std::vector<std::string> getNameList() { return name_list_; }
+    std::vector<bool> getVarList() { return is_var_; }
+    OurType::PascalType* getReturnType() { return return_type_; }
+    int getLocalVariablesNum() { return this->n_local_variables; }
+
+private:
+    int n_local_variables; // used for parameter passing
+    std::vector<OurType::PascalType*> type_list_;
+    std::vector<std::string> name_list_;
+    std::vector<bool> is_var_;
+    OurType::PascalType* return_type_;
+};
+```
+同时创建CodeBlock，包含变量name_values,name_types,named_functions等，用于保存block中的一些数据。并定义CodeBlock* getCurrentBlock(void)函数，用于获取获取CodeBlock内容。
+
+CodeBlock定义如下：
+```c++
+class CodeBlock {
+public:
+    std::map<std::string, llvm::Value*> named_values;
+    std::map<std::string, OurType::PascalType*> named_types;
+    std::map<std::string, llvm::Function*> named_functions;
+    std::map<std::string, FuncSign*> named_funcsigns;
+    std::map<int, llvm::BasicBlock*> labels;
+    std::string block_name;
+    bool is_function;
+    std::vector<llvm::BasicBlock*> loop_breaks;
+
+    bool isType(std::string id, bool check_defined = false) {
+        return named_types.find(id) != named_types.end() &&
+            (named_values.find(id) == named_values.end() || check_defined);
+    }
+
+    bool isValue(std::string id) {
+		for (auto item : named_values) {
+
+		}
+        return named_values.find(id) != named_values.end();
+    }
+
+    llvm::Function* find_function(std::string id) {
+        if (named_functions.find(id) == named_functions.end())
+            return nullptr;
+        return named_functions[id];
+    }
+
+    FuncSign* find_funcsign(std::string id) {
+        if (named_funcsigns.find(id) == named_funcsigns.end())
+            return nullptr;
+        return named_funcsigns[id];
+    }
+
+    void set_function(std::string id, llvm::Function* function, FuncSign* funcsign) {
+        named_funcsigns[id] = funcsign;
+        named_functions[id] = function;
+    }
+};
+```
+
+在遍历语法树生成中间代码时，我们采用了与生成可视化语法树图时相同的遍历结构。主要部分分为program生成，funcpro生成，label生成，variable生成，const生成，type生成，statment生成，para生成的过程。
+
+在VisitASTProgram中，创建一个CodeBlock并放入block_stack中。我们通过llvm::FunctionType::get获取一个函数类型，通过llvm::Function::Create进行创建一个新函数，获取main_func。我们将main_func传入llvm::BasicBlock::Create，用于创建一个基本块，并申明插入的位置在创建块的结尾。然后我们通过访问者模式对语法树子节点进行遍历范围。最后，我们创建一条LLVM ret指令，完成函数。
+
+代码如下:
+
+```c++
+void VisitorGen::visitASTProgram(ASTProgram* node) {
+	this->block_stack.push_back(new CodeBlock());
+	llvm::FunctionType* func_type = llvm::FunctionType::get(OurType::getLLVMType(this->context, OurType::INT_TYPE), false);
+	llvm::Function* main_func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, "main", &*(this->module));
+	llvm::BasicBlock* entry = llvm::BasicBlock::Create(this->context, "entry", main_func);
+    
+	this->builder.SetInsertPoint(entry);
+    
+	node->getProgramHead()->accept(this);
+	node->getProgramBody()->accept(this);
+	//create return
+	this->builder.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(this->context), 0, true));
+}
+```
 
 
 ## 附录
