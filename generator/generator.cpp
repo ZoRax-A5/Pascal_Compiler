@@ -1133,6 +1133,10 @@ void VisitorGen::visitASTExprBinary(ASTExprBinary* node) {
 
 
 void VisitorGen::visitASTExprUnary(ASTExprUnary* node) {
+	{
+		/* test code */
+		printf("visit unary code\n");
+	}
 	node->getOp()->accept(this);
 	ValueResult* operand = buffer;
 	if (operand == nullptr) {
@@ -1142,7 +1146,7 @@ void VisitorGen::visitASTExprUnary(ASTExprUnary* node) {
 	switch (nowOp) {
 		case Op(OP_NEG):
 			if (isEqual(operand->getType(), INT_TYPE) && isEqual(operand->getType(), REAL_TYPE)) {
-				RecordErrorMessage("The type after negative sign must be INTEGER or REAL.", node->get_location_pairs());
+				RecordErrorMessage("The type after negative sign must be INTEGER or REAL.", node->getLocation());
 				buffer = nullptr;
 				break;
 			}
@@ -1155,7 +1159,7 @@ void VisitorGen::visitASTExprUnary(ASTExprUnary* node) {
 				buffer = new ValueResult(operand->getType(), this->builder.CreateSub(zero, operand->getValue(), "negatmp"));
 			}
 			break;
-		buffer = nullptr
+		buffer = nullptr;
 	}
 }
 
