@@ -1296,6 +1296,35 @@ void VisitorGen::Save(std::string path) {
 }
 ```
 
+## 测试
+
+我们的代码编译运行方式如下：
+
+在linux下，配置好相关库文件，进入目标文件夹，运行指令：
+
+```c++
+cmake .
+make
+./opc test/easy.pas
+lli ./test/easy.pas.ll
+```
+
+其中指令cmake和make编译代码，./opc test/easy.pas运行代码编译easy.pas文件，生成easy.pas.ll文件，得到中间代码文件。再运行lli指令，运行easy.pas.ll文件，得出结果。
+
+
+
+测试截图如下：
+
+测试常量
+
+![](./figure/test_const.png)
+
+![](./figure/test_repeat.png)
+
+![](./figure/test_repeat.png)
+
+
+
 
 ## 附录
 
