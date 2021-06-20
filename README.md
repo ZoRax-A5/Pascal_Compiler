@@ -1448,4 +1448,13 @@ begin
 end.
 ```
 
-### 
+### 生成指令
+
+> 源代码 -> 中间代码： lli [*.pas]
+>
+> 中间代码 -> 汇编代码：llc [*.ll] -filetype=asm -o [\*.o]
+>
+> 中间代码 -> 目标代码：llc [*.ll] -filetype=obj -o [\*.o]
+>
+> 目标文件 -> 可执行文件：g++ [\*.o] -o [executable file] -fPIC --std=c++11 -no-pie
+
