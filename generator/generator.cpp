@@ -11,6 +11,14 @@
 #include "type/type.h"
 #include <assert.h>
 
+#define DEBUG_GENERATOR 1gi
+
+#if DEBUG_GENERATOR
+    #define DEBUG_GEN(x) printf(x)
+#else
+	#define DEBUG_GEN(x)
+#endif
+
 ValueResult* buffer;
 TypeResult* type_buffer;
 llvm::Value* GenSysWrite(const std::vector<std::shared_ptr<ValueResult>> &args_list, bool new_line, VisitorGen* generator) {
@@ -1138,18 +1146,41 @@ void VisitorGen::visitASTExprBinary(ASTExprBinary* node) {
     }
 }
 
-#undef Op
+
 
 void VisitorGen::visitASTExprUnary(ASTExprUnary* node) {
-	
+	{
+		/* test code */
+		DEBUG_GEN("visit unary code\n");
+	}
 	node->getOp()->accept(this);
-
+	ValueResult* operand = buffer;
+	if (operand == nullptr) {
+		RecordErrorMessage("No Unary Expression!", node->getLocation());
+	}
+	ASTExpr::OPType nowOp = node->getOpType();
+	switch (nowOp) {
+		case Op(OP_NEG):
+			if (isEqual(operand->getType(), INT_TYPE) && isEqual(operand->getType(), REAL_TYPE)) {
+				RecordErrorMessage("The type after negative sign must be INTEGER or REAL.", node->getLocation());
+				buffer = nullptr;
+				break;
+			}
+			llvm::Type *tp =operand->getllvmType();
+			llvm::Value *zero = llvm::ConstantInt::get(tp, (uint64_t) 0, true);
+			if (isEqual(operand->getType(), REAL_TYPE)) {
+				buffer = new ValueResult(operand->getType(), this->builder.CreateFSub(zero, operand->getValue(), "negaftmp"));
+			}
+			else {
+				buffer = new ValueResult(operand->getType(), this->builder.CreateSub(zero, operand->getValue(), "negatmp"));
+			}
+			break;
+		buffer = nullptr;
+	}
 }
 
 void VisitorGen::visitASTExprConst(ASTExprConst* node) {
-
-	node->getConstValue()->accept(this);
-	
+	node->getConstValue()->accept(this);	
 }
 
 void VisitorGen::visitASTExprIdentifier(ASTExprIdentifier* node) {
@@ -1177,6 +1208,6 @@ void VisitorGen::visitASTExprIdentifier(ASTExprIdentifier* node) {
 		cout<<"buffer is null!left"<<endl;
 		buffer = nullptr;
 	}
-	
-
 }
+
+#undef Op
